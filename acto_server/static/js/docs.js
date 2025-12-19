@@ -311,6 +311,9 @@ function showDocumentation(section = 'overview') {
     }, 100);
 }
 
+// Make showDocumentation globally available immediately
+window.showDocumentation = showDocumentation;
+
 function initDocumentation() {
     const docContent = document.getElementById('docContent');
     if (!docContent) {
@@ -324,7 +327,6 @@ function initDocumentation() {
     loadTokenGatingConfig();
 }
 
-// Make functions globally available
-window.showDocumentation = showDocumentation;
+// Make initDocumentation globally available immediately
 window.initDocumentation = initDocumentation;
 

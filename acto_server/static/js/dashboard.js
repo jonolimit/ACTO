@@ -10,6 +10,15 @@ let keysList = [];
 // These are hardcoded and should always be available
 if (!window.API_ENDPOINTS) {
     window.API_ENDPOINTS = {
+        'Test API Key (GET /v1/proofs)': {
+            method: 'GET',
+            path: '/v1/proofs',
+            description: 'Test your API key - Simple endpoint to verify authentication works',
+            requiresBody: false,
+            params: [],
+            isSimple: true,
+            defaultParams: { limit: 1 }
+        },
         'GET /v1/proofs': {
             method: 'GET',
             path: '/v1/proofs',

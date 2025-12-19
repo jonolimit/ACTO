@@ -27,6 +27,15 @@ async function loadTokenGatingConfig() {
 
 // Define API endpoints - these are always available
 const API_ENDPOINTS = {
+    'Test API Key (GET /v1/proofs)': {
+        method: 'GET',
+        path: '/v1/proofs',
+        description: 'Test your API key - Simple endpoint to verify authentication works',
+        requiresBody: false,
+        params: [],
+        isSimple: true,
+        defaultParams: { limit: 1 }
+    },
     'GET /v1/proofs': {
         method: 'GET',
         path: '/v1/proofs',
@@ -170,7 +179,10 @@ function selectEndpoint(endpointKey) {
     // Show/hide params
     if (paramsContainer) {
         paramsContainer.innerHTML = '';
-        if (currentEndpoint.params && currentEndpoint.params.length > 0) {
+        // Hide params for simple endpoints
+        if (currentEndpoint.isSimple) {
+            paramsContainer.style.display = 'none';
+        } else if (currentEndpoint.params && currentEndpoint.params.length > 0) {
             currentEndpoint.params.forEach(param => {
                 const div = document.createElement('div');
                 div.className = 'form-group';
@@ -186,6 +198,9 @@ function selectEndpoint(endpointKey) {
         }
     }
 }
+
+// Make selectEndpoint globally available immediately
+window.selectEndpoint = selectEndpoint;
 
 function initPlayground() {
     console.log('initPlayground() called');
@@ -272,7 +287,15 @@ async function executePlaygroundRequest() {
     try {
         // Build URL with params
         let url = currentEndpoint.path;
-        if (currentEndpoint.params && paramsContainer) {
+        
+        // Handle simple endpoints with default params
+        if (currentEndpoint.isSimple && currentEndpoint.defaultParams) {
+            const queryParams = new URLSearchParams();
+            Object.keys(currentEndpoint.defaultParams).forEach(key => {
+                queryParams.append(key, currentEndpoint.defaultParams[key]);
+            });
+            url += '?' + queryParams.toString();
+        } else if (currentEndpoint.params && paramsContainer) {
             currentEndpoint.params.forEach(param => {
                 const input = document.getElementById(`param_${param}`);
                 if (input && input.value) {
@@ -380,14 +403,6 @@ function clearPlaygroundResponse() {
     if (responseEl) responseEl.textContent = '';
     if (statusEl) statusEl.textContent = '';
 }
-
-// Make all functions globally available (after they are all defined)
-window.initPlayground = initPlayground;
-window.selectEndpoint = selectEndpoint;
-window.clearPlaygroundResponse = clearPlaygroundResponse;
-window.formatPlaygroundResponse = formatPlaygroundResponse;
-window.copyPlaygroundResponse = copyPlaygroundResponse;
-window.executePlaygroundRequest = executePlaygroundRequest;
 
 // Make all functions globally available (after they are all defined)
 window.initPlayground = initPlayground;
