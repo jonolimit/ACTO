@@ -282,10 +282,19 @@ let currentDocSection = 'overview';
 let menuListenersSetup = false;
 
 function showDocumentation(section = 'overview') {
+    console.log('showDocumentation called with section:', section);
     currentDocSection = section;
+    
     const docContent = document.getElementById('docContent');
     if (!docContent) {
         console.error('docContent element not found');
+        // Try to find it again after a short delay
+        setTimeout(() => {
+            const retryContent = document.getElementById('docContent');
+            if (retryContent) {
+                showDocumentation(section);
+            }
+        }, 100);
         return;
     }
     
@@ -296,6 +305,8 @@ function showDocumentation(section = 'overview') {
         return;
     }
     
+    console.log('Setting content for section:', section);
+    // Set the content
     docContent.innerHTML = doc.content;
     
     // Update active menu item
@@ -310,62 +321,86 @@ function showDocumentation(section = 'overview') {
     setTimeout(() => {
         updateDocumentationWithConfig();
     }, 100);
+    
+    console.log('Documentation section displayed:', section);
 }
 
 // Make showDocumentation globally available immediately
 window.showDocumentation = showDocumentation;
 
 function initDocumentation() {
-    const docContent = document.getElementById('docContent');
-    if (!docContent) {
-        // If element doesn't exist yet, try again after a short delay
-        setTimeout(initDocumentation, 100);
-        return;
-    }
-    
-    // Set up event listeners for documentation menu items
-    setupDocumentationMenuListeners();
-    
-    showDocumentation('overview');
-    // Load token gating configuration
-    loadTokenGatingConfig();
+    // Wait a bit to ensure DOM is ready
+    setTimeout(() => {
+        const docContent = document.getElementById('docContent');
+        const docTab = document.getElementById('tab-docs');
+        
+        // Check if docs tab is visible
+        if (!docTab || !docTab.classList.contains('active')) {
+            console.log('Docs tab is not active, skipping initialization');
+            return;
+        }
+        
+        if (!docContent) {
+            console.error('docContent element not found');
+            // Try again after a short delay
+            setTimeout(initDocumentation, 100);
+            return;
+        }
+        
+        // Reset the flag to allow re-setting listeners when tab is opened
+        menuListenersSetup = false;
+        
+        // Set up event listeners for documentation menu items
+        setupDocumentationMenuListeners();
+        
+        // Show overview section by default if no content is shown
+        if (!docContent.innerHTML || docContent.innerHTML.trim() === '') {
+            showDocumentation('overview');
+        }
+        
+        // Load token gating configuration
+        loadTokenGatingConfig();
+    }, 50);
 }
 
 // Set up event listeners for documentation navigation menu
 function setupDocumentationMenuListeners() {
-    // Only set up listeners once to avoid duplicates
-    if (menuListenersSetup) {
-        return;
-    }
-    
     const menuItems = document.querySelectorAll('.doc-menu-item');
     if (menuItems.length === 0) {
+        console.warn('No documentation menu items found, will retry...');
+        // Retry after a short delay
+        setTimeout(setupDocumentationMenuListeners, 100);
         return;
     }
     
-    menuItems.forEach(item => {
+    console.log(`Setting up event listeners for ${menuItems.length} menu items`);
+    
+    menuItems.forEach((item, index) => {
+        // Remove existing listeners by cloning the element
+        const newItem = item.cloneNode(true);
+        item.parentNode.replaceChild(newItem, item);
+        
         // Add click event listener
-        item.addEventListener('click', function() {
+        newItem.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
             const section = this.dataset.section;
+            console.log('Menu item clicked, section:', section, 'index:', index);
             if (section) {
+                console.log('Switching to documentation section:', section);
                 showDocumentation(section);
+            } else {
+                console.error('No section found in dataset for menu item');
             }
         });
+        
+        console.log(`Event listener added to menu item ${index + 1}: ${newItem.dataset.section}`);
     });
     
     menuListenersSetup = true;
+    console.log('Documentation menu listeners setup complete');
 }
 
 // Make initDocumentation globally available immediately
 window.initDocumentation = initDocumentation;
-
-// Set up event listeners when DOM is ready
-document.addEventListener('DOMContentLoaded', function() {
-    // Set up documentation menu listeners if the menu exists
-    // Note: The menu might not exist yet if user hasn't logged in
-    // In that case, initDocumentation() will set up the listeners when the docs tab is opened
-    if (document.querySelector('.doc-menu-item')) {
-        setupDocumentationMenuListeners();
-    }
-});
 
