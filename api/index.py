@@ -8,8 +8,12 @@ from mangum import Mangum
 db_url = os.getenv("ACTO_DB_URL", "NOT SET")
 print(f"DEBUG: ACTO_DB_URL = {db_url[:50]}..." if len(db_url) > 50 else f"DEBUG: ACTO_DB_URL = {db_url}")
 
-# FastAPI
+# FastAPI app
 app = create_app()
 
-# Mangum adapter
-handler = Mangum(app, lifespan="off")
+# Mangum adapter for Vercel
+mangum_handler = Mangum(app, lifespan="off")
+
+# Vercel expects a handler function
+def handler(request):
+    return mangum_handler(request.environ, lambda status, headers: None)
