@@ -7,7 +7,6 @@ import sys
 from abc import ABC, abstractmethod
 from collections.abc import Iterator
 from datetime import datetime, timezone
-from io import BytesIO
 from pathlib import Path
 from typing import Any
 
@@ -164,7 +163,6 @@ class ProtobufTelemetryParser(TelemetryParser):
         message_type: type | None = None,
     ) -> TelemetryBundle:
         try:
-            from google.protobuf import message  # type: ignore[import-untyped]
             from google.protobuf.json_format import MessageToDict  # type: ignore[import-untyped]
         except ImportError:
             raise TelemetryError(
