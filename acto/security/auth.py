@@ -205,8 +205,14 @@ def require_api_key_and_token_balance(
             except AccessError as e:
                 raise HTTPException(status_code=403, detail=f"Token balance check failed: {str(e)}") from e
             except Exception as e:
+                import traceback
+                error_details = str(e)
+                # Log full traceback for debugging (in production, use proper logging)
+                import logging
+                logger = logging.getLogger(__name__)
+                logger.error(f"Token balance verification error: {error_details}\n{traceback.format_exc()}")
                 raise HTTPException(
-                    status_code=500, detail=f"Failed to verify token balance: {str(e)}"
+                    status_code=500, detail=f"Failed to verify token balance: {error_details}"
                 ) from e
 
     return _dep

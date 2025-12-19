@@ -24,20 +24,54 @@ class SolanaTokenGate:
         Client, Pubkey = self._lazy_import()
         client = Client(self.rpc_url)
 
-        owner_pk = Pubkey.from_string(owner)
-        mint_pk = Pubkey.from_string(mint)
+        try:
+            # Convert string addresses to Pubkey objects
+            if isinstance(owner, str):
+                owner_pk = Pubkey.from_string(owner)
+            else:
+                owner_pk = owner
+            
+            if isinstance(mint, str):
+                mint_pk = Pubkey.from_string(mint)
+            else:
+                mint_pk = mint
 
-        resp = client.get_token_accounts_by_owner(owner_pk, {"mint": mint_pk})
-        value = resp.value
-        if not value:
-            return 0.0
+            # Get token accounts
+            resp = client.get_token_accounts_by_owner(owner_pk, {"mint": mint_pk})
+            
+            if not resp or not hasattr(resp, 'value') or not resp.value:
+                return 0.0
 
-        total = 0.0
-        for item in value:
-            parsed = item.account.data.parsed  # type: ignore
-            amt = parsed["info"]["tokenAmount"]["uiAmount"]
-            total += float(amt or 0.0)
-        return total
+            total = 0.0
+            for item in resp.value:
+                try:
+                    # Handle different response formats
+                    if hasattr(item, 'account') and hasattr(item.account, 'data'):
+                        if hasattr(item.account.data, 'parsed'):
+                            parsed = item.account.data.parsed
+                        elif isinstance(item.account.data, dict):
+                            parsed = item.account.data.get('parsed', {})
+                        else:
+                            continue
+                    elif isinstance(item, dict):
+                        parsed = item.get('account', {}).get('data', {}).get('parsed', {})
+                    else:
+                        continue
+                    
+                    # Extract amount
+                    if isinstance(parsed, dict):
+                        info = parsed.get('info', {})
+                        token_amount = info.get('tokenAmount', {})
+                        amt = token_amount.get('uiAmount') or token_amount.get('amount', 0)
+                        if amt:
+                            total += float(amt)
+                except (AttributeError, KeyError, TypeError, ValueError) as e:
+                    # Skip items that can't be parsed
+                    continue
+            
+            return total
+        except Exception as e:
+            raise AccessError(f"Failed to check token balance: {str(e)}") from e
 
     def decide(self, owner: str, mint: str, minimum: float) -> AccessDecision:
         bal = self.check_balance(owner, mint)
