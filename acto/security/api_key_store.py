@@ -1,11 +1,12 @@
 from __future__ import annotations
 
 import hashlib
+import json
 import secrets
 from datetime import datetime, timezone
 from typing import Any
 
-from sqlalchemy import String, text
+from sqlalchemy import String, Integer, Text, text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from acto.errors import AccessError
@@ -28,6 +29,9 @@ class ApiKeyRecord(Base):
     is_active: Mapped[bool] = mapped_column(default=True, index=True)
     created_by: Mapped[str | None] = mapped_column(String(256), nullable=True)
     user_id: Mapped[str | None] = mapped_column(String(64), nullable=True, index=True)
+    # Usage statistics
+    request_count: Mapped[int] = mapped_column(Integer, default=0, index=True)
+    endpoint_usage: Mapped[str | None] = mapped_column(Text, nullable=True)  # JSON string with endpoint -> count mapping
 
 
 def generate_api_key(prefix: str = "acto") -> str:
@@ -116,6 +120,46 @@ class ApiKeyStore:
                     else:
                         # For other databases, try ALTER TABLE
                         conn.execute(text("ALTER TABLE api_keys ADD COLUMN user_id VARCHAR(64)"))
+                
+                # Check if request_count column exists
+                stats_columns = ["request_count", "endpoint_usage"]
+                for col_name in stats_columns:
+                    col_exists = False
+                    if self.engine.url.drivername == "postgresql":
+                        result = conn.execute(text(f"""
+                            SELECT column_name 
+                            FROM information_schema.columns 
+                            WHERE table_name='api_keys' AND column_name='{col_name}'
+                        """))
+                        col_exists = result.fetchone() is not None
+                    elif self.engine.url.drivername.startswith("sqlite"):
+                        result = conn.execute(text("PRAGMA table_info(api_keys)"))
+                        columns = [row[1] for row in result.fetchall()]
+                        col_exists = col_name in columns
+                    else:
+                        try:
+                            conn.execute(text(f"SELECT {col_name} FROM api_keys LIMIT 1"))
+                            col_exists = True
+                        except Exception:
+                            col_exists = False
+                    
+                    if not col_exists:
+                        if col_name == "request_count":
+                            if self.engine.url.drivername == "postgresql":
+                                conn.execute(text("ALTER TABLE api_keys ADD COLUMN request_count INTEGER DEFAULT 0"))
+                                conn.execute(text("CREATE INDEX IF NOT EXISTS ix_api_keys_request_count ON api_keys(request_count)"))
+                            elif self.engine.url.drivername.startswith("sqlite"):
+                                conn.execute(text("ALTER TABLE api_keys ADD COLUMN request_count INTEGER DEFAULT 0"))
+                                conn.execute(text("CREATE INDEX IF NOT EXISTS ix_api_keys_request_count ON api_keys(request_count)"))
+                            else:
+                                conn.execute(text("ALTER TABLE api_keys ADD COLUMN request_count INTEGER DEFAULT 0"))
+                        elif col_name == "endpoint_usage":
+                            if self.engine.url.drivername == "postgresql":
+                                conn.execute(text("ALTER TABLE api_keys ADD COLUMN endpoint_usage TEXT"))
+                            elif self.engine.url.drivername.startswith("sqlite"):
+                                conn.execute(text("ALTER TABLE api_keys ADD COLUMN endpoint_usage TEXT"))
+                            else:
+                                conn.execute(text("ALTER TABLE api_keys ADD COLUMN endpoint_usage TEXT"))
         except Exception as e:
             # If migration fails, log but don't crash - table might already have the column
             # or the database might not support the operation
@@ -140,6 +184,8 @@ class ApiKeyStore:
             is_active=True,
             created_by=created_by,
             user_id=user_id,
+            request_count=0,
+            endpoint_usage=None,
         )
 
         with self.Session() as session:
@@ -169,6 +215,32 @@ class ApiKeyStore:
                 session.commit()
                 return True
         return False
+    
+    def record_usage(self, key: str, endpoint: str) -> None:
+        """Record API key usage for statistics."""
+        key_hash = hash_api_key(key)
+        with self.Session() as session:
+            record = session.query(ApiKeyRecord).filter(
+                ApiKeyRecord.key_hash == key_hash,
+                ApiKeyRecord.is_active == True,  # noqa: E712
+            ).first()
+            if record:
+                # Update request count
+                record.request_count = (record.request_count or 0) + 1
+                record.last_used_at = datetime.now(timezone.utc).isoformat()
+                
+                # Update endpoint usage statistics
+                endpoint_usage = {}
+                if record.endpoint_usage:
+                    try:
+                        endpoint_usage = json.loads(record.endpoint_usage)
+                    except (json.JSONDecodeError, TypeError):
+                        endpoint_usage = {}
+                
+                endpoint_usage[endpoint] = endpoint_usage.get(endpoint, 0) + 1
+                record.endpoint_usage = json.dumps(endpoint_usage)
+                
+                session.commit()
 
     def require(self, key: str | None) -> None:
         """Require a valid API key, raise AccessError if invalid."""
@@ -194,6 +266,8 @@ class ApiKeyStore:
                     "is_active": record.is_active,
                     "created_by": record.created_by,
                     "user_id": record.user_id,
+                    "request_count": record.request_count or 0,
+                    "endpoint_usage": json.loads(record.endpoint_usage) if record.endpoint_usage else {},
                 }
                 for record in records
             ]
@@ -214,6 +288,8 @@ class ApiKeyStore:
                     "is_active": record.is_active,
                     "created_by": record.created_by,
                     "user_id": record.user_id,
+                    "request_count": record.request_count or 0,
+                    "endpoint_usage": json.loads(record.endpoint_usage) if record.endpoint_usage else {},
                 }
         return None
     

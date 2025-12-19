@@ -2,10 +2,15 @@ const API_BASE = window.location.origin;
 let phantomWallet = null;
 let currentUser = null;
 let accessToken = null;
+let keysList = [];
+// Make variables globally accessible for other modules
+window.keysList = keysList;
+window.accessToken = null; // Will be updated when token is set
 
 // Check for existing session
 window.addEventListener('DOMContentLoaded', async () => {
     accessToken = localStorage.getItem('acto_access_token');
+    window.accessToken = accessToken;
     if (accessToken) {
         const user = await getCurrentUser();
         if (user) {
@@ -13,6 +18,8 @@ window.addEventListener('DOMContentLoaded', async () => {
             showMainContent();
         } else {
             localStorage.removeItem('acto_access_token');
+            accessToken = null;
+            window.accessToken = null;
         }
     }
 });
@@ -66,6 +73,7 @@ async function connectWallet() {
         
         const data = await verifyRes.json();
         accessToken = data.access_token;
+        window.accessToken = accessToken;
         localStorage.setItem('acto_access_token', accessToken);
         currentUser = { user_id: data.user_id, wallet_address: data.wallet_address };
         
@@ -91,6 +99,7 @@ async function disconnectWallet() {
     phantomWallet = null;
     currentUser = null;
     accessToken = null;
+    window.accessToken = null;
     localStorage.removeItem('acto_access_token');
     document.getElementById('loginCard').classList.remove('hidden');
     document.getElementById('mainContent').classList.add('hidden');
@@ -106,6 +115,11 @@ function showMainContent() {
         document.getElementById('walletAddress').textContent = 
             `${currentUser.wallet_address.substring(0, 4)}...${currentUser.wallet_address.substring(currentUser.wallet_address.length - 4)}`;
         document.getElementById('walletInfo').style.display = 'block';
+    }
+    // Load keys and initialize documentation
+    loadKeys();
+    if (typeof initDocumentation === 'function') {
+        initDocumentation();
     }
 }
 
@@ -174,27 +188,31 @@ async function apiRequest(endpoint, options = {}) {
 async function loadKeys() {
     if (!accessToken) return;
     
-    const keysList = document.getElementById('keysList');
-    keysList.innerHTML = '<div class="empty-state"><p>Loading keys...</p></div>';
+    const keysListEl = document.getElementById('keysList');
+    keysListEl.innerHTML = '<div class="empty-state"><p>Loading keys...</p></div>';
     
     const result = await apiRequest('/v1/keys');
     if (!result) {
-        keysList.innerHTML = '<div class="empty-state"><p>Failed to load keys.</p></div>';
+        keysListEl.innerHTML = '<div class="empty-state"><p>Failed to load keys.</p></div>';
         return;
     }
     
-    if (!result.keys || result.keys.length === 0) {
-        keysList.innerHTML = '<div class="empty-state"><p>No API keys found. Create your first key above!</p></div>';
+    keysList = result.keys || [];
+    window.keysList = keysList; // Update global reference
+    
+    if (keysList.length === 0) {
+        keysListEl.innerHTML = '<div class="empty-state"><p>No API keys found. Create your first key above!</p></div>';
         return;
     }
     
-    keysList.innerHTML = result.keys.map(key => `
+    keysListEl.innerHTML = keysList.map(key => `
         <div class="key-item">
             <div class="key-info">
                 <h3>${escapeHtml(key.name)}</h3>
                 <p><strong>ID:</strong> ${escapeHtml(key.key_id)}</p>
                 <p><strong>Created:</strong> ${new Date(key.created_at).toLocaleString()}</p>
                 ${key.last_used_at ? `<p><strong>Last Used:</strong> ${new Date(key.last_used_at).toLocaleString()}</p>` : '<p><strong>Last Used:</strong> Never</p>'}
+                ${key.request_count !== undefined ? `<p><strong>Requests:</strong> ${key.request_count}</p>` : ''}
                 <p><strong>Status:</strong> <span class="status-badge status-${key.is_active ? 'active' : 'inactive'}">${key.is_active ? 'Active' : 'Inactive'}</span></p>
             </div>
             <div class="key-actions">
@@ -202,6 +220,74 @@ async function loadKeys() {
             </div>
         </div>
     `).join('');
+    
+    // Also update stats tab if it's visible
+    if (document.getElementById('tab-stats').classList.contains('active')) {
+        loadStatsKeys();
+    }
+}
+
+// Load keys for statistics view
+async function loadStatsKeys() {
+    if (!accessToken) return;
+    
+    const statsKeysList = document.getElementById('statsKeysList');
+    if (!statsKeysList) return;
+    
+    statsKeysList.innerHTML = '<div class="empty-state"><p>Loading keys...</p></div>';
+    
+    const result = await apiRequest('/v1/keys');
+    if (!result) {
+        statsKeysList.innerHTML = '<div class="empty-state"><p>Failed to load keys.</p></div>';
+        return;
+    }
+    
+    keysList = result.keys || [];
+    window.keysList = keysList; // Update global reference
+    
+    if (keysList.length === 0) {
+        statsKeysList.innerHTML = '<div class="empty-state"><p>No API keys found. Create your first key in the API Keys tab!</p></div>';
+        return;
+    }
+    
+    statsKeysList.innerHTML = keysList.map(key => `
+        <div class="key-item">
+            <div class="key-info">
+                <h3>${escapeHtml(key.name)}</h3>
+                <p><strong>ID:</strong> ${escapeHtml(key.key_id)}</p>
+                <p><strong>Total Requests:</strong> ${key.request_count || 0}</p>
+                <p><strong>Endpoints Used:</strong> ${Object.keys(key.endpoint_usage || {}).length}</p>
+                ${key.last_used_at ? `<p><strong>Last Used:</strong> ${new Date(key.last_used_at).toLocaleString()}</p>` : '<p><strong>Last Used:</strong> Never</p>'}
+            </div>
+            <div class="key-actions">
+                <button class="btn btn-primary" onclick="showKeyStats('${key.key_id}')">View Statistics</button>
+            </div>
+        </div>
+    `).join('');
+}
+
+// Tab switching
+function switchTab(tabName) {
+    // Hide all tabs
+    document.querySelectorAll('.tab-content').forEach(tab => {
+        tab.classList.remove('active');
+    });
+    document.querySelectorAll('.nav-tab').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    
+    // Show selected tab
+    document.getElementById(`tab-${tabName}`).classList.add('active');
+    document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+    
+    // Load content for specific tabs
+    if (tabName === 'stats') {
+        loadStatsKeys();
+    } else if (tabName === 'docs') {
+        if (typeof initDocumentation === 'function') {
+            initDocumentation();
+        }
+    }
 }
 
 // Create new key

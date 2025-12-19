@@ -25,6 +25,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
     
     <link rel="stylesheet" href="/static/css/dashboard.css">
+    <link rel="stylesheet" href="/static/css/navigation.css">
     <script src="https://unpkg.com/@solana/web3.js@latest/lib/index.iife.min.js"></script>
 </head>
 <body>
@@ -53,45 +54,94 @@
         
         <!-- Main Content (hidden until logged in) -->
         <div id="mainContent" class="hidden">
-            <div class="card">
-                <h2>Create New API Key</h2>
-                <form id="createKeyForm">
-                    <div class="form-group">
-                        <label for="keyName">Key Name</label>
-                        <input 
-                            type="text" 
-                            id="keyName" 
-                            name="name" 
-                            placeholder="e.g., Production Key, Development Key"
-                            required
-                        >
+            <!-- Navigation Tabs -->
+            <div class="nav-tabs">
+                <button class="nav-tab active" data-tab="keys" onclick="switchTab('keys')">API Keys</button>
+                <button class="nav-tab" data-tab="stats" onclick="switchTab('stats')">Statistics</button>
+                <button class="nav-tab" data-tab="docs" onclick="switchTab('docs')">Documentation</button>
+            </div>
+            
+            <!-- API Keys Tab -->
+            <div id="tab-keys" class="tab-content active">
+                <div class="card">
+                    <h2>Create New API Key</h2>
+                    <form id="createKeyForm">
+                        <div class="form-group">
+                            <label for="keyName">Key Name</label>
+                            <input 
+                                type="text" 
+                                id="keyName" 
+                                name="name" 
+                                placeholder="e.g., Production Key, Development Key"
+                                required
+                            >
+                        </div>
+                        <button type="submit" class="btn btn-primary" id="createBtn">
+                            Create API Key
+                        </button>
+                    </form>
+                    
+                    <div id="newKeyDisplay" class="new-key-display">
+                        <h3>API Key Created Successfully</h3>
+                        <p>Copy this key now - you won't be able to see it again:</p>
+                        <div class="key-value" id="newKeyValue"></div>
+                        <div class="warning">
+                            <strong>Important:</strong> Store this key securely. It will not be shown again after you close this dialog.
+                        </div>
                     </div>
-                    <button type="submit" class="btn btn-primary" id="createBtn">
-                        Create API Key
-                    </button>
-                </form>
+                </div>
                 
-                <div id="newKeyDisplay" class="new-key-display">
-                    <h3>API Key Created Successfully</h3>
-                    <p>Copy this key now - you won't be able to see it again:</p>
-                    <div class="key-value" id="newKeyValue"></div>
-                    <div class="warning">
-                        <strong>Important:</strong> Store this key securely. It will not be shown again after you close this dialog.
+                <div class="card">
+                    <h2>Your API Keys</h2>
+                    <div id="keysList" class="keys-list">
+                        <div class="empty-state">
+                            <p>Loading keys...</p>
+                        </div>
                     </div>
                 </div>
             </div>
             
-            <div class="card">
-                <h2>Your API Keys</h2>
-                <div id="keysList" class="keys-list">
-                    <div class="empty-state">
-                        <p>Loading keys...</p>
+            <!-- Statistics Tab -->
+            <div id="tab-stats" class="tab-content">
+                <div class="card">
+                    <h2>API Key Usage Statistics</h2>
+                    <p>View detailed usage statistics for your API keys. Click on any key below to see its usage statistics.</p>
+                    <div id="statsKeysList" class="keys-list">
+                        <div class="empty-state">
+                            <p>Loading keys...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Documentation Tab -->
+            <div id="tab-docs" class="tab-content">
+                <div class="doc-layout">
+                    <div class="doc-sidebar">
+                        <ul class="doc-menu">
+                            <li class="doc-menu-item active" data-section="overview" onclick="showDocumentation('overview')">Overview</li>
+                            <li class="doc-menu-item" data-section="gettingStarted" onclick="showDocumentation('gettingStarted')">Getting Started</li>
+                            <li class="doc-menu-item" data-section="authentication" onclick="showDocumentation('authentication')">Authentication</li>
+                            <li class="doc-menu-item" data-section="endpoints" onclick="showDocumentation('endpoints')">API Endpoints</li>
+                            <li class="doc-menu-item" data-section="useCases" onclick="showDocumentation('useCases')">Use Cases</li>
+                            <li class="doc-menu-item" data-section="bestPractices" onclick="showDocumentation('bestPractices')">Best Practices</li>
+                        </ul>
+                    </div>
+                    <div class="doc-main">
+                        <div id="docContent"></div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
     
+    <!-- Statistics Modal -->
+    <div id="statsModal" class="stats-modal">
+        <div class="modal-content"></div>
+    </div>
+    
     <script src="/static/js/dashboard.js"></script>
+    <script src="/static/js/stats.js"></script>
+    <script src="/static/js/docs.js"></script>
 </body>
 </html>

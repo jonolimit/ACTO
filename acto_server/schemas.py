@@ -78,3 +78,10 @@ class WalletVerifyResponse(BaseModel):
     access_token: str
     token_type: str = "Bearer"
     expires_in: int
+
+
+class ApiKeyStatsResponse(BaseModel):
+    key_id: str
+    request_count: int
+    endpoint_usage: dict[str, int]
+    last_used_at: str | None

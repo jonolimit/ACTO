@@ -40,6 +40,7 @@ from .schemas import (
     ApiKeyCreateResponse,
     ApiKeyDeleteResponse,
     ApiKeyListResponse,
+    ApiKeyStatsResponse,
     ProofSubmitRequest,
     ProofSubmitResponse,
     VerifyRequest,
@@ -460,6 +461,31 @@ def create_app() -> FastAPI:
             raise
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Failed to delete API key: {str(e)}") from e
+
+    @app.get("/v1/keys/{key_id}/stats", response_model=ApiKeyStatsResponse, dependencies=[Depends(require_jwt(jwt_manager))])
+    def get_api_key_stats(key_id: str, request: Request) -> ApiKeyStatsResponse:
+        """Get usage statistics for a specific API key."""
+        try:
+            # Get current user from JWT token
+            current_user = get_current_user_optional(request)
+            if not current_user:
+                raise HTTPException(status_code=401, detail="Authentication required")
+            
+            user_id = current_user.get("user_id")
+            key_data = api_key_store.get_key(key_id, user_id=user_id)
+            if not key_data:
+                raise HTTPException(status_code=404, detail="API key not found")
+            
+            return ApiKeyStatsResponse(
+                key_id=key_data["key_id"],
+                request_count=key_data.get("request_count", 0),
+                endpoint_usage=key_data.get("endpoint_usage", {}),
+                last_used_at=key_data.get("last_used_at"),
+            )
+        except HTTPException:
+            raise
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Failed to get API key statistics: {str(e)}") from e
 
     # Dashboard endpoint - serve static HTML
     @app.get("/dashboard")

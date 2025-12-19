@@ -26,6 +26,9 @@ def require_api_key(store: ApiKeyStore):
         token = auth_header.replace("Bearer ", "").strip()
         try:
             store.require(token)
+            # Record usage statistics
+            endpoint = f"{request.method} {request.url.path}"
+            store.record_usage(token, endpoint)
         except AccessError as e:
             raise HTTPException(status_code=401, detail=str(e)) from e
         except Exception as e:

@@ -1,0 +1,323 @@
+/* Navigation and Tabs */
+
+.nav-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 24px;
+    border-bottom: 2px solid var(--color-border-light);
+}
+
+.nav-tab {
+    padding: 12px 24px;
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid transparent;
+    color: var(--color-text-secondary);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: 'Inter', sans-serif;
+    margin-bottom: -2px;
+}
+
+.nav-tab:hover {
+    color: var(--color-text-primary);
+}
+
+.nav-tab.active {
+    color: var(--color-text-primary);
+    border-bottom-color: var(--color-text-primary);
+}
+
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+/* Documentation Menu */
+.doc-sidebar {
+    width: 250px;
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border-light);
+    border-radius: var(--radius-md);
+    padding: 20px;
+    margin-right: 24px;
+    flex-shrink: 0;
+}
+
+.doc-menu {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.doc-menu-item {
+    padding: 10px 12px;
+    margin-bottom: 4px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    color: var(--color-text-secondary);
+    font-size: 14px;
+    transition: all 0.2s ease;
+}
+
+.doc-menu-item:hover {
+    background: var(--color-bg-primary);
+    color: var(--color-text-primary);
+}
+
+.doc-menu-item.active {
+    background: var(--color-bg-primary);
+    color: var(--color-text-primary);
+    font-weight: 500;
+}
+
+.doc-layout {
+    display: flex;
+    gap: 24px;
+}
+
+.doc-main {
+    flex: 1;
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border-light);
+    border-radius: var(--radius-md);
+    padding: 32px;
+}
+
+.doc-main h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 24px;
+    font-weight: 600;
+    color: var(--color-text-primary);
+    margin-bottom: 16px;
+    margin-top: 0;
+}
+
+.doc-main h4 {
+    font-family: 'Playfair Display', serif;
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--color-text-primary);
+    margin-top: 24px;
+    margin-bottom: 12px;
+}
+
+.doc-main p {
+    color: var(--color-text-secondary);
+    line-height: 1.7;
+    margin-bottom: 16px;
+}
+
+.doc-main ul, .doc-main ol {
+    color: var(--color-text-secondary);
+    line-height: 1.7;
+    margin-bottom: 16px;
+    padding-left: 24px;
+}
+
+.doc-main li {
+    margin-bottom: 8px;
+}
+
+.doc-main code {
+    background: var(--color-bg-primary);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: 'SF Mono', 'Monaco', 'Cascadia Code', monospace;
+    font-size: 13px;
+    color: var(--color-text-primary);
+}
+
+.doc-main pre {
+    background: var(--color-bg-primary);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: 16px;
+    overflow-x: auto;
+    margin-bottom: 16px;
+}
+
+.doc-main pre code {
+    background: transparent;
+    padding: 0;
+    color: var(--color-text-primary);
+    font-size: 13px;
+    line-height: 1.6;
+}
+
+/* Statistics */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.stat-card {
+    background: var(--color-bg-primary);
+    border: 1px solid var(--color-border-light);
+    border-radius: var(--radius-md);
+    padding: 20px;
+    text-align: center;
+}
+
+.stat-value {
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--color-text-primary);
+    margin-bottom: 8px;
+    font-family: 'Playfair Display', serif;
+}
+
+.stat-label {
+    font-size: 13px;
+    color: var(--color-text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.endpoint-usage {
+    margin-top: 24px;
+}
+
+.endpoint-usage h4 {
+    font-family: 'Playfair Display', serif;
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--color-text-primary);
+    margin-bottom: 16px;
+}
+
+.endpoint-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.endpoint-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    background: var(--color-bg-primary);
+    border: 1px solid var(--color-border-light);
+    border-radius: var(--radius-sm);
+}
+
+.endpoint-path {
+    font-family: 'SF Mono', 'Monaco', 'Cascadia Code', monospace;
+    font-size: 13px;
+    color: var(--color-text-primary);
+}
+
+.endpoint-count {
+    font-size: 13px;
+    color: var(--color-text-secondary);
+    font-weight: 500;
+}
+
+/* Modal for Statistics */
+.stats-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+}
+
+.stats-modal.show {
+    display: flex;
+}
+
+.modal-content {
+    background: var(--color-bg-overlay);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--color-border-light);
+    border-radius: var(--radius-lg);
+    padding: 0;
+    max-width: 700px;
+    width: 90%;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: var(--shadow-lg);
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 24px 32px;
+    border-bottom: 1px solid var(--color-border-light);
+}
+
+.modal-header h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--color-text-primary);
+    margin: 0;
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    font-size: 28px;
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    padding: 0;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-sm);
+    transition: all 0.2s ease;
+}
+
+.modal-close:hover {
+    background: var(--color-bg-primary);
+    color: var(--color-text-primary);
+}
+
+.modal-body {
+    padding: 32px;
+}
+
+.loading-state {
+    text-align: center;
+    padding: 40px;
+    color: var(--color-text-tertiary);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .doc-layout {
+        flex-direction: column;
+    }
+    
+    .doc-sidebar {
+        width: 100%;
+        margin-right: 0;
+        margin-bottom: 24px;
+    }
+    
+    .nav-tabs {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
