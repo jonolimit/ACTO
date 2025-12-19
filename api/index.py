@@ -11,9 +11,5 @@ print(f"DEBUG: ACTO_DB_URL = {db_url[:50]}..." if len(db_url) > 50 else f"DEBUG:
 # FastAPI app
 app = create_app()
 
-# Mangum adapter for Vercel
-mangum_handler = Mangum(app, lifespan="off")
-
-# Vercel expects a handler function
-def handler(request):
-    return mangum_handler(request.environ, lambda status, headers: None)
+# Mangum adapter for Vercel - export directly
+handler = Mangum(app, lifespan="off")
