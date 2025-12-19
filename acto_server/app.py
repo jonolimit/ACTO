@@ -103,17 +103,17 @@ def create_app() -> FastAPI:
         if encryption_manager:
             proof_encryption = ProofEncryption(encryption_manager)
 
-    # TLS
-    tls_manager: TLSManager | None = None
+    # TLS (available for future use)
+    _tls_manager: TLSManager | None = None
     if settings.tls_enabled:
-        tls_manager = TLSManager(
+        _tls_manager = TLSManager(
             cert_file=settings.tls_cert_file,
             key_file=settings.tls_key_file,
             ca_cert_file=settings.tls_ca_cert_file,
         )
 
-    # Secrets management
-    secrets_manager = get_secrets_manager(
+    # Secrets management (available for future use)
+    _secrets_manager = get_secrets_manager(
         backend=settings.secrets_backend,
         vault_url=settings.vault_url,
         vault_token=settings.vault_token,
@@ -122,11 +122,15 @@ def create_app() -> FastAPI:
         profile_name=settings.aws_secrets_profile,
     )
 
-    # PII masking
-    pii_masker = PIIMasker(
-        mask_char=settings.pii_mask_char,
-        preserve_length=settings.pii_preserve_length,
-    ) if settings.pii_masking_enabled else None
+    # PII masking (available for future use)
+    _pii_masker = (
+        PIIMasker(
+            mask_char=settings.pii_mask_char,
+            preserve_length=settings.pii_preserve_length,
+        )
+        if settings.pii_masking_enabled
+        else None
+    )
 
     @app.middleware("http")
     async def request_id_middleware(request: Request, call_next):
@@ -339,8 +343,6 @@ def create_app() -> FastAPI:
         req: VerifyRequest,
         request: Request,
     ) -> dict:
-        # Get current user from request state (set by JWT middleware if authenticated)
-        current_user = get_current_user_optional(request)
         try:
             verify_proof(req.envelope)
             result = scorer.score(req.envelope)
