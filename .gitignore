@@ -46,3 +46,6 @@ data/
 # Secrets
 .env
 .env.*
+
+# Alembic
+alembic.ini.bak
