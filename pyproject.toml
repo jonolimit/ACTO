@@ -28,6 +28,7 @@ dependencies = [
   "tenacity>=8.2",
   "pyjwt>=2.8",
   "cryptography>=42.0",
+  "mangum>=0.17.0",
 ]
 
 [project.optional-dependencies]
