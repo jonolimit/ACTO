@@ -44,6 +44,7 @@ from .schemas import (
     ApiKeyStatsResponse,
     ProofSubmitRequest,
     ProofSubmitResponse,
+    TokenGatingConfigResponse,
     VerifyRequest,
     VerifyResponse,
     WalletConnectRequest,
@@ -487,6 +488,17 @@ def create_app() -> FastAPI:
             raise
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Failed to get API key statistics: {str(e)}") from e
+
+    # Configuration endpoint - public, no auth required
+    @app.get("/v1/config/token-gating", response_model=TokenGatingConfigResponse)
+    def get_token_gating_config() -> TokenGatingConfigResponse:
+        """Get token gating configuration (public endpoint)."""
+        return TokenGatingConfigResponse(
+            enabled=settings.token_gating_enabled,
+            mint=settings.token_gating_mint,
+            minimum=settings.token_gating_minimum,
+            rpc_url=settings.token_gating_rpc_url,
+        )
 
     # Dashboard endpoint - serve static HTML
     @app.get("/dashboard")

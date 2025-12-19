@@ -2,6 +2,27 @@
 
 const API_BASE = window.location.origin;
 
+// Token gating configuration (loaded from API)
+let tokenGatingConfig = {
+    mint: "9wpLm21ab8ZMVJWH3pHeqgqNJqWos73G8qDRfaEwtray", // Default, will be loaded from API
+    minimum: 50000.0,
+    rpc_url: "https://api.mainnet-beta.solana.com"
+};
+
+// Load token gating configuration from API
+async function loadTokenGatingConfig() {
+    try {
+        const response = await fetch(`${API_BASE}/v1/config/token-gating`);
+        if (response.ok) {
+            const config = await response.json();
+            tokenGatingConfig = config;
+        }
+    } catch (error) {
+        console.error('Failed to load token gating config:', error);
+        // Use defaults if API call fails
+    }
+}
+
 const API_ENDPOINTS = {
     'GET /v1/proofs': {
         method: 'GET',
@@ -100,12 +121,12 @@ const API_ENDPOINTS = {
         path: '/v1/access/check',
         description: 'Check if a wallet has sufficient token balance',
         requiresBody: true,
-        exampleBody: {
-            rpc_url: "https://api.mainnet-beta.solana.com",
+        getExampleBody: () => ({
+            rpc_url: tokenGatingConfig.rpc_url,
             owner: "WALLET_ADDRESS",
-            mint: "9whFgsoNMhUukn3qsyT5xHTN9Q1dzzkr2qK2PAxtpump",
-            minimum: 50000.0
-        }
+            mint: tokenGatingConfig.mint,
+            minimum: tokenGatingConfig.minimum
+        })
     }
 };
 
@@ -132,6 +153,9 @@ function initPlayground() {
     
     // Load API keys for selection
     loadPlaygroundApiKeys();
+    
+    // Load token gating configuration
+    loadTokenGatingConfig();
 }
 
 async function loadPlaygroundApiKeys() {
@@ -218,6 +242,8 @@ function selectEndpoint(endpointKey) {
             bodyEditor.parentElement.style.display = 'block';
             if (currentEndpoint.exampleBody) {
                 bodyEditor.value = JSON.stringify(currentEndpoint.exampleBody, null, 2);
+            } else if (currentEndpoint.getExampleBody) {
+                bodyEditor.value = JSON.stringify(currentEndpoint.getExampleBody(), null, 2);
             } else {
                 bodyEditor.value = '{}';
             }

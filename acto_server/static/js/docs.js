@@ -1,5 +1,49 @@
 // Documentation module for API usage guide
 
+const API_BASE = window.location.origin;
+
+// Token gating configuration (loaded from API)
+let tokenGatingConfig = {
+    mint: "9wpLm21ab8ZMVJWH3pHeqgqNJqWos73G8qDRfaEwtray", // Default, will be loaded from API
+    minimum: 50000.0,
+    rpc_url: "https://api.mainnet-beta.solana.com"
+};
+
+// Load token gating configuration from API
+async function loadTokenGatingConfig() {
+    try {
+        const response = await fetch(`${API_BASE}/v1/config/token-gating`);
+        if (response.ok) {
+            const config = await response.json();
+            tokenGatingConfig = config;
+            // Update documentation with loaded values
+            updateDocumentationWithConfig();
+        }
+    } catch (error) {
+        console.error('Failed to load token gating config:', error);
+        // Use defaults if API call fails
+    }
+}
+
+// Update documentation content with loaded config values
+function updateDocumentationWithConfig() {
+    // Update DOM elements with IDs
+    const mintElements = document.querySelectorAll('#doc-token-mint, #doc-token-mint-2, #doc-token-mint-3');
+    mintElements.forEach(el => {
+        if (el) el.textContent = tokenGatingConfig.mint;
+    });
+    
+    const minimumElements = document.querySelectorAll('#doc-token-minimum, #doc-token-minimum-2');
+    minimumElements.forEach(el => {
+        if (el) el.textContent = tokenGatingConfig.minimum.toLocaleString();
+    });
+    
+    // Re-render current section if it's already displayed
+    if (currentDocSection) {
+        showDocumentation(currentDocSection);
+    }
+}
+
 const documentation = {
     overview: {
         title: "Overview",
@@ -22,7 +66,7 @@ const documentation = {
                 <li>A valid API key (Bearer token)</li>
                 <li>A Solana wallet address with at least <strong>50,000 tokens</strong></li>
             </ul>
-            <p>The wallet address must hold the required token balance for the token at address <code>9whFgsoNMhUukn3qsyT5xHTN9Q1dzzkr2qK2PAxtpump</code>.</p>
+            <p>The wallet address must hold the required token balance for the token at address <code id="doc-token-mint">Loading...</code>.</p>
             
             <h3>Key Features</h3>
             <ul>
@@ -49,7 +93,7 @@ const documentation = {
             </ul>
             
             <h3>Step 3: Ensure Token Balance</h3>
-            <p>Make sure your Solana wallet holds at least <strong>50,000 tokens</strong> of the required token (mint address: <code>9whFgsoNMhUukn3qsyT5xHTN9Q1dzzkr2qK2PAxtpump</code>).</p>
+            <p>Make sure your Solana wallet holds at least <strong id="doc-token-minimum">50,000</strong> tokens of the required token (mint address: <code id="doc-token-mint-2">Loading...</code>).</p>
             <p>The API will automatically verify your token balance on each request.</p>
             
             <h3>Step 4: Use Your Key in Requests</h3>
@@ -223,8 +267,8 @@ response = requests.post(
             
             <h3>Token Balance Requirements</h3>
             <ul>
-                <li><strong>Required Token:</strong> <code>9whFgsoNMhUukn3qsyT5xHTN9Q1dzzkr2qK2PAxtpump</code></li>
-                <li><strong>Minimum Balance:</strong> 50,000 tokens</li>
+                <li><strong>Required Token:</strong> <code id="doc-token-mint-3">Loading...</code></li>
+                <li><strong>Minimum Balance:</strong> <span id="doc-token-minimum-2">50,000</span> tokens</li>
                 <li><strong>Network:</strong> Solana Mainnet</li>
                 <li>The balance is checked on every API request via Solana RPC</li>
             </ul>
@@ -255,5 +299,7 @@ function showDocumentation(section = 'overview') {
 
 function initDocumentation() {
     showDocumentation('overview');
+    // Load token gating configuration
+    loadTokenGatingConfig();
 }
 

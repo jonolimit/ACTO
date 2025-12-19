@@ -6,7 +6,7 @@
 token_gating_enabled = true
 
 # Solana token mint address (contract address)
-token_gating_mint = "9whFgsoNMhUukn3qsyT5xHTN9Q1dzzkr2qK2PAxtpump"
+token_gating_mint = "9wpLm21ab8ZMVJWH3pHeqgqNJqWos73G8qDRfaEwtray"
 
 # Minimum token balance required (in tokens, not in smallest unit)
 token_gating_minimum = 50000.0

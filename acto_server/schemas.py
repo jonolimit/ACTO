@@ -85,3 +85,10 @@ class ApiKeyStatsResponse(BaseModel):
     request_count: int
     endpoint_usage: dict[str, int]
     last_used_at: str | None
+
+
+class TokenGatingConfigResponse(BaseModel):
+    enabled: bool
+    mint: str
+    minimum: float
+    rpc_url: str

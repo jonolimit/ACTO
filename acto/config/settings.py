@@ -105,6 +105,6 @@ class Settings(BaseSettings):
 
     # Token Gating
     token_gating_enabled: bool = True
-    token_gating_mint: str = "9whFgsoNMhUukn3qsyT5xHTN9Q1dzzkr2qK2PAxtpump"
+    token_gating_mint: str = "9wpLm21ab8ZMVJWH3pHeqgqNJqWos73G8qDRfaEwtray"
     token_gating_minimum: float = 50000.0
     token_gating_rpc_url: str = "https://api.mainnet-beta.solana.com"
