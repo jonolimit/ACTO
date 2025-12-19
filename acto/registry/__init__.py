@@ -1,3 +1,14 @@
+from .models import Base, ProofRecord
+from .search import SearchFilter, SortField, SortOrder, apply_sorting, extract_searchable_metadata
 from .service import ProofRegistry
 
-__all__ = ["ProofRegistry"]
+__all__ = [
+    "ProofRegistry",
+    "ProofRecord",
+    "Base",
+    "SearchFilter",
+    "SortField",
+    "SortOrder",
+    "apply_sorting",
+    "extract_searchable_metadata",
+]

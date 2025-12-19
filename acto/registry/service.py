@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import hashlib
+from pathlib import Path
+from typing import Any
 
 import orjson
 from sqlalchemy import select
@@ -11,6 +13,13 @@ from acto.errors import RegistryError
 from acto.proof.models import ProofEnvelope
 from acto.registry.db import make_engine, make_session_factory
 from acto.registry.models import Base, ProofRecord
+from acto.registry.search import (
+    SearchFilter,
+    SortField,
+    SortOrder,
+    apply_sorting,
+    extract_searchable_metadata,
+)
 
 
 def _proof_id_from_hash(payload_hash: str) -> str:
@@ -37,15 +46,21 @@ class ProofRegistry:
         self.cache = get_cache_backend(self.settings)
         Base.metadata.create_all(self.engine)
 
-    def upsert(self, envelope: ProofEnvelope) -> str:
+    def upsert(self, envelope: ProofEnvelope, tenant_id: str | None = None) -> str:
         proof_id = _proof_id_from_hash(envelope.payload.payload_hash)
         cache_key = _cache_key_proof(proof_id)
         try:
+            envelope_json_str = orjson.dumps(envelope.model_dump()).decode("utf-8")
+            metadata_search = extract_searchable_metadata(envelope_json_str)
+
             with self.SessionLocal() as session:
                 existing = session.get(ProofRecord, proof_id)
                 if existing:
-                    existing.envelope_json = orjson.dumps(envelope.model_dump()).decode("utf-8")
+                    existing.envelope_json = envelope_json_str
                     existing.anchor_ref = envelope.anchor_ref
+                    existing.metadata_search = metadata_search
+                    if tenant_id:
+                        existing.tenant_id = tenant_id
                 else:
                     rec = ProofRecord(
                         proof_id=proof_id,
@@ -56,8 +71,10 @@ class ProofRegistry:
                         payload_hash=envelope.payload.payload_hash,
                         signer_public_key_b64=envelope.signer_public_key_b64,
                         signature_b64=envelope.signature_b64,
-                        envelope_json=orjson.dumps(envelope.model_dump()).decode("utf-8"),
+                        envelope_json=envelope_json_str,
                         anchor_ref=envelope.anchor_ref,
+                        tenant_id=tenant_id,
+                        metadata_search=metadata_search,
                     )
                     session.add(rec)
                 session.commit()
@@ -93,9 +110,27 @@ class ProofRegistry:
 
         return envelope
 
-    def list(self, limit: int = 50) -> list[dict]:
+    def list(
+        self,
+        limit: int = 50,
+        offset: int = 0,
+        search_filter: SearchFilter | None = None,
+        sort_field: str = SortField.CREATED_AT,
+        sort_order: str = SortOrder.DESC,
+    ) -> list[dict]:
         with self.SessionLocal() as session:
-            stmt = select(ProofRecord).order_by(ProofRecord.created_at.desc()).limit(limit)
+            stmt = select(ProofRecord)
+
+            # Wende Filter an
+            if search_filter:
+                stmt = stmt.where(search_filter.to_sqlalchemy_filter())
+
+            # Wende Sortierung an
+            stmt = apply_sorting(stmt, sort_field, sort_order)
+
+            # Wende Pagination an
+            stmt = stmt.limit(limit).offset(offset)
+
             rows = session.execute(stmt).scalars().all()
             return [
                 {
@@ -106,6 +141,94 @@ class ProofRegistry:
                     "created_at": r.created_at,
                     "payload_hash": r.payload_hash,
                     "anchor_ref": r.anchor_ref,
+                    "tenant_id": r.tenant_id,
                 }
                 for r in rows
             ]
+
+    def search(
+        self,
+        search_text: str,
+        limit: int = 50,
+        offset: int = 0,
+        tenant_id: str | None = None,
+    ) -> list[dict]:
+        """Full-text search in proofs."""
+        filter_obj = SearchFilter()
+        filter_obj.search_text = search_text
+        filter_obj.tenant_id = tenant_id
+        return self.list(limit=limit, offset=offset, search_filter=filter_obj)
+
+    def get_by_hash(self, payload_hash: str) -> ProofEnvelope:
+        """Get a proof by payload hash."""
+        proof_id = _proof_id_from_hash(payload_hash)
+        return self.get(proof_id)
+
+    def export_json(self, output_path: str, search_filter: SearchFilter | None = None) -> None:
+        """Export proofs as JSON."""
+        proofs = self.list(limit=10000, search_filter=search_filter)
+        output = Path(output_path)
+        output.parent.mkdir(parents=True, exist_ok=True)
+        output.write_text(orjson.dumps(proofs, option=orjson.OPT_INDENT_2).decode("utf-8"), encoding="utf-8")
+
+    def export_csv(self, output_path: str, search_filter: SearchFilter | None = None) -> None:
+        """Export proofs as CSV."""
+        import csv
+
+        proofs = self.list(limit=10000, search_filter=search_filter)
+        if not proofs:
+            return
+
+        output = Path(output_path)
+        output.parent.mkdir(parents=True, exist_ok=True)
+
+        with output.open("w", encoding="utf-8", newline="") as f:
+            writer = csv.DictWriter(f, fieldnames=proofs[0].keys())
+            writer.writeheader()
+            writer.writerows(proofs)
+
+    def export_parquet(self, output_path: str, search_filter: SearchFilter | None = None) -> None:
+        """Export proofs as Parquet."""
+        try:
+            import pandas as pd  # type: ignore[import-untyped]
+        except ImportError:
+            raise RegistryError("pandas not installed. Install with: pip install 'acto[parquet]'") from None
+
+        proofs = self.list(limit=10000, search_filter=search_filter)
+        if not proofs:
+            return
+
+        df = pd.DataFrame(proofs)
+        output = Path(output_path)
+        output.parent.mkdir(parents=True, exist_ok=True)
+        df.to_parquet(output, index=False)
+
+    def backup(self, backup_path: str) -> None:
+        """Create a backup of the registry."""
+        import shutil
+        from pathlib import Path
+
+        # For SQLite: copy the database file
+        db_path = Path(self.settings.db_url.replace("sqlite:///", ""))
+        if db_path.exists():
+            backup_file = Path(backup_path)
+            backup_file.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(db_path, backup_file)
+        else:
+            raise RegistryError(f"Database file not found: {db_path}")
+
+    def restore(self, backup_path: str) -> None:
+        """Restore a backup."""
+        import shutil
+        from pathlib import Path
+
+        backup_file = Path(backup_path)
+        if not backup_file.exists():
+            raise RegistryError(f"Backup file not found: {backup_path}")
+
+        db_path = Path(self.settings.db_url.replace("sqlite:///", ""))
+        db_path.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(backup_file, db_path)
+
+        # Reload the database
+        Base.metadata.create_all(self.engine)
