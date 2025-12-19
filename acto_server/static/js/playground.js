@@ -1,5 +1,7 @@
 // API Playground module for testing API endpoints
 
+const API_BASE = window.location.origin;
+
 const API_ENDPOINTS = {
     'GET /v1/proofs': {
         method: 'GET',
@@ -108,6 +110,7 @@ const API_ENDPOINTS = {
 };
 
 let currentEndpoint = null;
+let playgroundApiKey = '';
 
 function initPlayground() {
     const endpointSelect = document.getElementById('playgroundEndpoint');
@@ -126,6 +129,75 @@ function initPlayground() {
         endpointSelect.value = endpointSelect.options[0].value;
         selectEndpoint(endpointSelect.value);
     }
+    
+    // Load API keys for selection
+    loadPlaygroundApiKeys();
+}
+
+async function loadPlaygroundApiKeys() {
+    const apiKeySelect = document.getElementById('playgroundApiKeySelect');
+    if (!apiKeySelect) return;
+    
+    const token = window.accessToken || (typeof accessToken !== 'undefined' ? accessToken : null);
+    if (!token) {
+        apiKeySelect.innerHTML = '<option value="">Please connect your wallet first</option>';
+        return;
+    }
+    
+    try {
+        const response = await fetch(`${API_BASE}/v1/keys`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            apiKeySelect.innerHTML = '<option value="">Select API Key...</option>';
+            
+            if (data.keys && data.keys.length > 0) {
+                data.keys.forEach(key => {
+                    const option = document.createElement('option');
+                    option.value = key.key_id;
+                    option.textContent = `${key.name} (${key.key_id.substring(0, 8)}...)`;
+                    option.dataset.keyId = key.key_id;
+                    apiKeySelect.appendChild(option);
+                });
+            } else {
+                apiKeySelect.innerHTML = '<option value="">No API keys found. Create one in the API Keys tab.</option>';
+            }
+        } else {
+            apiKeySelect.innerHTML = '<option value="">Failed to load API keys</option>';
+        }
+    } catch (error) {
+        apiKeySelect.innerHTML = '<option value="">Error loading API keys</option>';
+        console.error('Failed to load API keys:', error);
+    }
+}
+
+function selectPlaygroundApiKey(keyId) {
+    const apiKeyInput = document.getElementById('playgroundApiKey');
+    if (!apiKeyInput || !keyId) return;
+    
+    // Try to get from localStorage if available (stored when key was created)
+    const storedKey = localStorage.getItem(`api_key_${keyId}`);
+    if (storedKey) {
+        apiKeyInput.value = storedKey;
+        playgroundApiKey = storedKey;
+    } else {
+        // Key not in localStorage - user needs to enter it manually
+        apiKeyInput.placeholder = `API key for this ID not found. Please enter it manually.`;
+        apiKeyInput.value = '';
+        playgroundApiKey = '';
+        if (typeof showAlert === 'function') {
+            showAlert('API key not found in storage. Please enter it manually.', 'info');
+        }
+    }
+}
+
+function updatePlaygroundApiKey(key) {
+    playgroundApiKey = key;
 }
 
 function selectEndpoint(endpointKey) {
@@ -175,9 +247,17 @@ function selectEndpoint(endpointKey) {
 }
 
 async function executePlaygroundRequest() {
-    const token = window.accessToken || accessToken;
-    if (!currentEndpoint || !token) {
-        showAlert('Please connect your wallet first', 'error');
+    if (!currentEndpoint) {
+        showAlert('Please select an endpoint', 'error');
+        return;
+    }
+    
+    // Get API key from input or select
+    const apiKeyInput = document.getElementById('playgroundApiKey');
+    const apiKey = apiKeyInput ? apiKeyInput.value.trim() : playgroundApiKey;
+    
+    if (!apiKey) {
+        showAlert('Please enter or select an API key', 'error');
         return;
     }
     
@@ -228,7 +308,7 @@ async function executePlaygroundRequest() {
         const options = {
             method: currentEndpoint.method,
             headers: {
-                'Authorization': `Bearer ${token}`,
+                'Authorization': `Bearer ${apiKey}`,
                 'X-Wallet-Address': walletAddress,
                 'Content-Type': 'application/json'
             }

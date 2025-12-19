@@ -329,8 +329,19 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.getElementById('newKeyValue').textContent = result.key;
                 document.getElementById('newKeyDisplay').classList.add('show');
                 showAlert('API key created successfully!', 'success');
+                
+                // Store API key in localStorage for playground use
+                if (result.key && result.key_id) {
+                    localStorage.setItem(`api_key_${result.key_id}`, result.key);
+                }
+                
                 form.reset();
                 await loadKeys();
+                
+                // Reload playground API keys if playground is active
+                if (typeof loadPlaygroundApiKeys === 'function') {
+                    loadPlaygroundApiKeys();
+                }
             }
         });
     }
