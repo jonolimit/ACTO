@@ -279,6 +279,7 @@ response = requests.post(
 };
 
 let currentDocSection = 'overview';
+let menuListenersSetup = false;
 
 function showDocumentation(section = 'overview') {
     currentDocSection = section;
@@ -322,11 +323,49 @@ function initDocumentation() {
         return;
     }
     
+    // Set up event listeners for documentation menu items
+    setupDocumentationMenuListeners();
+    
     showDocumentation('overview');
     // Load token gating configuration
     loadTokenGatingConfig();
 }
 
+// Set up event listeners for documentation navigation menu
+function setupDocumentationMenuListeners() {
+    // Only set up listeners once to avoid duplicates
+    if (menuListenersSetup) {
+        return;
+    }
+    
+    const menuItems = document.querySelectorAll('.doc-menu-item');
+    if (menuItems.length === 0) {
+        return;
+    }
+    
+    menuItems.forEach(item => {
+        // Add click event listener
+        item.addEventListener('click', function() {
+            const section = this.dataset.section;
+            if (section) {
+                showDocumentation(section);
+            }
+        });
+    });
+    
+    menuListenersSetup = true;
+}
+
 // Make initDocumentation globally available immediately
 window.initDocumentation = initDocumentation;
+
+// Set up event listeners when DOM is ready
+document.addEventListener('DOMContentLoaded', function() {
+    // Set up documentation menu listeners if the menu exists
+    // Note: The menu might not exist yet if user hasn't logged in
+    // In that case, initDocumentation() will set up the listeners when the docs tab is opened
+    if (document.querySelector('.doc-menu-item')) {
+        setupDocumentationMenuListeners();
+    }
+});
 
