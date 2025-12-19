@@ -3,6 +3,7 @@ from .audit import AuditAction, AuditLogger, AuditResult
 from .auth import (
     create_jwt_dependency,
     get_current_user,
+    get_current_user_optional,
     require_api_key,
     require_jwt,
     require_permission,
@@ -33,6 +34,7 @@ __all__ = [
     "require_jwt",
     "create_jwt_dependency",
     "get_current_user",
+    "get_current_user_optional",
     "require_permission",
     "require_scope",
     "RBACManager",

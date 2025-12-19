@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "acto"
 version = "0.3.1"
-description = "Robotics proof-of-execution SDK with optional verification API and token gating."
+description = "Robotics proof-of-execution SDK"
 readme = "README.md"
 requires-python = ">=3.10"
 license = { file = "LICENSE" }

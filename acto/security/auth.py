@@ -86,3 +86,14 @@ def get_current_user(request: Request) -> dict:
         "roles": getattr(request.state, "user_roles", []),
         "scopes": getattr(request.state, "user_scopes", []),
     }
+
+
+def get_current_user_optional(request: Request) -> dict | None:
+    """Get current authenticated user from request state, returns None if not authenticated."""
+    if not hasattr(request.state, "user_id"):
+        return None
+    return {
+        "user_id": request.state.user_id,
+        "roles": getattr(request.state, "user_roles", []),
+        "scopes": getattr(request.state, "user_scopes", []),
+    }

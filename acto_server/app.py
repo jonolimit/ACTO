@@ -28,7 +28,7 @@ from acto.security import (
     TLSManager,
     TokenBucketRateLimiter,
     create_jwt_dependency,
-    get_current_user,
+    get_current_user_optional,
     get_secrets_manager,
     require_api_key,
     require_jwt,
@@ -221,7 +221,7 @@ def create_app() -> FastAPI:
     def submit(
         req: ProofSubmitRequest,
         request: Request,
-        current_user: dict | None = Depends(get_current_user) if jwt_manager else None,
+        current_user: dict | None = Depends(get_current_user_optional),
     ) -> ProofSubmitResponse:
         try:
             # RBAC check
@@ -267,7 +267,7 @@ def create_app() -> FastAPI:
     def get_proof(
         proof_id: str,
         request: Request,
-        current_user: dict | None = Depends(get_current_user) if jwt_manager else None,
+        current_user: dict | None = Depends(get_current_user_optional),
     ) -> dict:
         try:
             # RBAC check
@@ -303,7 +303,7 @@ def create_app() -> FastAPI:
     def verify(
         req: VerifyRequest,
         request: Request,
-        current_user: dict | None = Depends(get_current_user) if jwt_manager else None,
+        current_user: dict | None = Depends(get_current_user_optional),
     ) -> VerifyResponse:
         try:
             verify_proof(req.envelope)
@@ -330,7 +330,11 @@ def create_app() -> FastAPI:
             return VerifyResponse(valid=False, reason=str(e))
 
     @app.post("/v1/score", dependencies=auth_dependency() or [])
-    def score(req: VerifyRequest, current_user: dict | None = Depends(get_current_user) if jwt_manager else None) -> dict:
+    def score(
+        req: VerifyRequest,
+        request: Request,
+        current_user: dict | None = Depends(get_current_user_optional),
+    ) -> dict:
         try:
             verify_proof(req.envelope)
             result = scorer.score(req.envelope)
