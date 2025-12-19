@@ -125,6 +125,13 @@ function showMainContent() {
     if (typeof initDocumentation === 'function') {
         initDocumentation();
     }
+    // Initialize playground if the tab is active
+    const playgroundTab = document.getElementById('tab-playground');
+    if (playgroundTab && playgroundTab.classList.contains('active')) {
+        if (typeof initPlayground === 'function') {
+            initPlayground();
+        }
+    }
 }
 
 // Get current user

@@ -281,10 +281,17 @@ let currentDocSection = 'overview';
 function showDocumentation(section = 'overview') {
     currentDocSection = section;
     const docContent = document.getElementById('docContent');
-    if (!docContent) return;
+    if (!docContent) {
+        console.error('docContent element not found');
+        return;
+    }
     
     const doc = documentation[section];
-    if (!doc) return;
+    if (!doc) {
+        console.error(`Documentation section '${section}' not found`);
+        docContent.innerHTML = '<p>Documentation section not found.</p>';
+        return;
+    }
     
     docContent.innerHTML = doc.content;
     
@@ -295,11 +302,27 @@ function showDocumentation(section = 'overview') {
             item.classList.add('active');
         }
     });
+    
+    // Update config values after rendering
+    setTimeout(() => {
+        updateDocumentationWithConfig();
+    }, 100);
 }
 
 function initDocumentation() {
+    const docContent = document.getElementById('docContent');
+    if (!docContent) {
+        // If element doesn't exist yet, try again after a short delay
+        setTimeout(initDocumentation, 100);
+        return;
+    }
+    
     showDocumentation('overview');
     // Load token gating configuration
     loadTokenGatingConfig();
 }
+
+// Make functions globally available
+window.showDocumentation = showDocumentation;
+window.initDocumentation = initDocumentation;
 

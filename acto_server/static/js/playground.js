@@ -135,7 +135,11 @@ let playgroundApiKey = '';
 
 function initPlayground() {
     const endpointSelect = document.getElementById('playgroundEndpoint');
-    if (!endpointSelect) return;
+    if (!endpointSelect) {
+        // If element doesn't exist yet, try again after a short delay
+        setTimeout(initPlayground, 100);
+        return;
+    }
     
     // Clear existing options (including "Loading...")
     endpointSelect.innerHTML = '';
@@ -158,6 +162,22 @@ function initPlayground() {
     loadTokenGatingConfig();
 }
 
+// Initialize playground when DOM is ready or if already loaded
+(function() {
+    function tryInit() {
+        const playgroundTab = document.getElementById('tab-playground');
+        if (playgroundTab && playgroundTab.classList.contains('active')) {
+            initPlayground();
+        }
+    }
+    
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', tryInit);
+    } else {
+        // DOM is already loaded
+        setTimeout(tryInit, 100);
+    }
+})();
 
 function updatePlaygroundApiKey(key) {
     playgroundApiKey = key;
