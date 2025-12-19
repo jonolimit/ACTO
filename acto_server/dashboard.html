@@ -125,14 +125,9 @@
                         
                         <div class="playground-form-group">
                             <label for="playgroundApiKey">API Key (Bearer Token)</label>
-                            <div style="display: flex; gap: 8px;">
-                                <select id="playgroundApiKeySelect" class="form-control" style="flex: 1;" onchange="selectPlaygroundApiKey(this.value)">
-                                    <option value="">Select API Key...</option>
-                                </select>
-                                <input type="text" id="playgroundApiKey" class="form-control" style="flex: 2;" placeholder="Or enter API key manually" onchange="updatePlaygroundApiKey(this.value)">
-                            </div>
+                            <input type="text" id="playgroundApiKey" class="form-control" placeholder="Enter your API key" onchange="updatePlaygroundApiKey(this.value)">
                             <small style="color: var(--color-text-tertiary); font-size: 12px; margin-top: 4px; display: block;">
-                                Select a key from your account or enter one manually. The API key is required for all requests.
+                                Enter your API key. The API key is required for all requests. You can create a new key in the API Keys tab.
                             </small>
                         </div>
                         

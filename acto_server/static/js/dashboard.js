@@ -338,10 +338,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 form.reset();
                 await loadKeys();
                 
-                // Reload playground API keys if playground is active
-                if (typeof loadPlaygroundApiKeys === 'function') {
-                    loadPlaygroundApiKeys();
-                }
             }
         });
     }
