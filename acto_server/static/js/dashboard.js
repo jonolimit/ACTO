@@ -125,8 +125,8 @@ function showMainContent() {
     }
     // Load keys and initialize documentation
     loadKeys();
-    if (typeof initDocumentation === 'function') {
-        initDocumentation();
+    if (typeof window.initDocumentation === 'function') {
+        window.initDocumentation();
     }
 }
 
@@ -293,10 +293,19 @@ function switchTab(tabName) {
     } else if (tabName === 'docs') {
         // Use setTimeout to ensure DOM is updated after tab switch
         setTimeout(() => {
-            if (typeof initDocumentation === 'function') {
-                initDocumentation();
+            // Check for window.initDocumentation (from docs.js)
+            if (typeof window.initDocumentation === 'function') {
+                window.initDocumentation();
             } else {
-                console.error('initDocumentation function not found');
+                console.warn('initDocumentation not yet available, retrying...');
+                // Retry after a short delay in case docs.js is still loading
+                setTimeout(() => {
+                    if (typeof window.initDocumentation === 'function') {
+                        window.initDocumentation();
+                    } else {
+                        console.error('initDocumentation function not found after retry');
+                    }
+                }, 100);
             }
         }, 10);
     }
