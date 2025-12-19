@@ -295,9 +295,16 @@ function switchTab(tabName) {
     if (tabName === 'stats') {
         loadStatsKeys();
     } else if (tabName === 'playground') {
-        if (typeof initPlayground === 'function') {
-            initPlayground();
-        }
+        // Always call initPlayground when playground tab is opened
+        setTimeout(() => {
+            if (typeof window.initPlayground === 'function') {
+                window.initPlayground();
+            } else if (typeof initPlayground === 'function') {
+                initPlayground();
+            } else {
+                console.error('initPlayground function not found');
+            }
+        }, 100);
     } else if (tabName === 'docs') {
         if (typeof initDocumentation === 'function') {
             initDocumentation();

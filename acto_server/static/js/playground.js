@@ -144,6 +144,13 @@ function initPlayground() {
     // Clear existing options (including "Loading...")
     endpointSelect.innerHTML = '';
     
+    // Check if API_ENDPOINTS is defined and has entries
+    if (!API_ENDPOINTS || Object.keys(API_ENDPOINTS).length === 0) {
+        console.error('API_ENDPOINTS is not defined or empty');
+        endpointSelect.innerHTML = '<option value="">No endpoints available</option>';
+        return;
+    }
+    
     // Populate endpoint dropdown
     Object.keys(API_ENDPOINTS).forEach(key => {
         const option = document.createElement('option');
@@ -161,6 +168,9 @@ function initPlayground() {
     // Load token gating configuration
     loadTokenGatingConfig();
 }
+
+// Make function globally available
+window.initPlayground = initPlayground;
 
 // Initialize playground when DOM is ready or if already loaded
 (function() {
