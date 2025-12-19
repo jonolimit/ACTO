@@ -218,6 +218,64 @@ ACTO can gate access based on SPL token holdings by checking a wallet's token ba
 acto access check   --rpc https://api.mainnet-beta.solana.com   --owner <WALLET_ADDRESS>   --mint <TOKEN_MINT>   --minimum 50000
 ```
 
+## API Access
+
+ACTO provides a hosted API service at `https://api.actobotics.net` for submitting and verifying proofs.
+
+### Getting Started with the API
+
+1. **Get Your API Key**:
+   - Visit the [API Key Dashboard](https://api.actobotics.net/dashboard)
+   - Create a new API key with a descriptive name
+   - **Copy the key immediately** - it's only shown once
+
+2. **Use Your API Key**:
+   All API requests require Bearer token authentication:
+   ```bash
+   curl -X POST https://api.actobotics.net/v1/proofs \
+     -H "Authorization: Bearer your-api-key-here" \
+     -H "Content-Type: application/json" \
+     -d '{"envelope": {...}}'
+   ```
+
+3. **Manage Your Keys**:
+   - View all your keys at the [dashboard](https://api.actobotics.net/dashboard)
+   - See creation date and last used time
+   - Delete keys you no longer need
+
+### API Endpoints
+
+- `POST /v1/proofs` - Submit a proof
+- `GET /v1/proofs` - List proofs
+- `GET /v1/proofs/{proof_id}` - Get a proof
+- `POST /v1/verify` - Verify a proof
+- `POST /v1/score` - Score a proof
+- `POST /v1/access/check` - Check Solana token access
+
+For complete API documentation, see [docs/API.md](docs/API.md).
+
+### Python Example
+
+```python
+import httpx
+from acto.proof import create_proof
+
+# Create proof locally
+envelope = create_proof(bundle, private_key, public_key)
+
+# Submit to API
+response = httpx.post(
+    "https://api.actobotics.net/v1/proofs",
+    headers={
+        "Authorization": "Bearer your-api-key-here",
+        "Content-Type": "application/json"
+    },
+    json={"envelope": envelope.model_dump()}
+)
+
+proof_id = response.json()["proof_id"]
+```
+
 ## License
 
 MIT. See `LICENSE`.

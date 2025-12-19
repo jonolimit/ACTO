@@ -1,4 +1,5 @@
-from .api_keys import ApiKeyStore, generate_api_key, hash_api_key
+from .api_keys import ApiKeyStore as LegacyApiKeyStore, generate_api_key, hash_api_key
+from .api_key_store import ApiKeyStore
 from .audit import AuditAction, AuditLogger, AuditResult
 from .auth import (
     create_jwt_dependency,
@@ -27,6 +28,7 @@ from .tls import TLSManager
 
 __all__ = [
     "ApiKeyStore",
+    "LegacyApiKeyStore",
     "generate_api_key",
     "hash_api_key",
     "require_api_key",

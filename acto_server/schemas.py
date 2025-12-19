@@ -33,3 +33,24 @@ class AccessCheckResponse(BaseModel):
     allowed: bool
     reason: str
     balance: float | None = None
+
+
+class ApiKeyCreateRequest(BaseModel):
+    name: str
+
+
+class ApiKeyCreateResponse(BaseModel):
+    key_id: str
+    key: str
+    name: str
+    created_at: str
+    created_by: str | None = None
+
+
+class ApiKeyListResponse(BaseModel):
+    keys: list[dict]
+
+
+class ApiKeyDeleteResponse(BaseModel):
+    success: bool
+    key_id: str

@@ -4,7 +4,7 @@ from fastapi import Depends, Header, HTTPException, Request
 from fastapi.security import HTTPBearer
 
 from acto.errors import AccessError
-from acto.security.api_keys import ApiKeyStore
+from acto.security.api_key_store import ApiKeyStore
 from acto.security.jwt import JWTManager
 from acto.security.rbac import RBACManager, extract_roles_from_token, extract_scopes_from_token
 
@@ -12,13 +12,24 @@ security = HTTPBearer(auto_error=False)
 
 
 def require_api_key(store: ApiKeyStore):
-    """Dependency for API key authentication."""
+    """Dependency for API key authentication via Bearer token."""
 
-    async def _dep(request: Request, x_api_key: str | None = Header(default=None, alias="X-API-Key")) -> None:
+    async def _dep(request: Request) -> None:
+        # Get Bearer token from Authorization header
+        auth_header = request.headers.get("Authorization")
+        if not auth_header or not auth_header.startswith("Bearer "):
+            raise HTTPException(
+                status_code=401,
+                detail="Missing or invalid authorization header. Please provide a Bearer token.",
+            )
+
+        token = auth_header.replace("Bearer ", "").strip()
         try:
-            store.require(x_api_key)
-        except Exception as e:
+            store.require(token)
+        except AccessError as e:
             raise HTTPException(status_code=401, detail=str(e)) from e
+        except Exception as e:
+            raise HTTPException(status_code=401, detail=f"Authentication failed: {str(e)}") from e
 
     return _dep
 
