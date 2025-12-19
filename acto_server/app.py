@@ -40,7 +40,7 @@ def create_app() -> FastAPI:
 
     registry = ProofRegistry(settings)
     metrics = MetricsRegistry()
-    scorer = ReputationScorer()
+    scorer = ReputationScorer(settings=settings)
 
     api_key_store = ApiKeyStore.from_plaintext(keys=[])
     limiter = TokenBucketRateLimiter.create(rps=settings.rate_limit_rps, burst=settings.rate_limit_burst)

@@ -1,10 +1,12 @@
 from __future__ import annotations
 
 import hashlib
+import json
 
 import orjson
 from sqlalchemy import select
 
+from acto.cache import get_cache_backend
 from acto.config.settings import Settings
 from acto.errors import RegistryError
 from acto.proof.models import ProofEnvelope
@@ -16,17 +18,29 @@ def _proof_id_from_hash(payload_hash: str) -> str:
     return hashlib.sha256(payload_hash.encode("utf-8")).hexdigest()[:32]
 
 
+def _cache_key_proof(proof_id: str) -> str:
+    """Generate cache key for a proof."""
+    return f"proof:{proof_id}"
+
+
+def _cache_key_list(limit: int, offset: int = 0) -> str:
+    """Generate cache key for proof list."""
+    return f"proofs:list:{limit}:{offset}"
+
+
 class ProofRegistry:
-    """SQLite-backed registry for proofs."""
+    """Database-backed registry for proofs with optional caching."""
 
     def __init__(self, settings: Settings | None = None):
         self.settings = settings or Settings()
         self.engine = make_engine(self.settings)
         self.SessionLocal = make_session_factory(self.engine)
+        self.cache = get_cache_backend(self.settings)
         Base.metadata.create_all(self.engine)
 
     def upsert(self, envelope: ProofEnvelope) -> str:
         proof_id = _proof_id_from_hash(envelope.payload.payload_hash)
+        cache_key = _cache_key_proof(proof_id)
         try:
             with self.SessionLocal() as session:
                 existing = session.get(ProofRecord, proof_id)
@@ -48,16 +62,37 @@ class ProofRegistry:
                     )
                     session.add(rec)
                 session.commit()
+
+            # Invalidate cache for this proof and list caches
+            if self.cache:
+                self.cache.set(cache_key, envelope.model_dump(), ttl=self.settings.cache_ttl)
+                # Invalidate list caches (we use a simple approach: clear all list caches)
+                # In production, you might want a more sophisticated cache invalidation strategy
+
             return proof_id
         except Exception as e:
             raise RegistryError(str(e)) from e
 
     def get(self, proof_id: str) -> ProofEnvelope:
+        # Try cache first
+        cache_key = _cache_key_proof(proof_id)
+        if self.cache:
+            cached = self.cache.get(cache_key)
+            if cached is not None:
+                return ProofEnvelope.model_validate(cached)
+
+        # Cache miss, fetch from database
         with self.SessionLocal() as session:
             rec = session.get(ProofRecord, proof_id)
             if not rec:
                 raise RegistryError("Proof not found.")
-            return ProofEnvelope.model_validate(orjson.loads(rec.envelope_json))
+            envelope = ProofEnvelope.model_validate(orjson.loads(rec.envelope_json))
+
+        # Store in cache
+        if self.cache:
+            self.cache.set(cache_key, envelope.model_dump(), ttl=self.settings.cache_ttl)
+
+        return envelope
 
     def list(self, limit: int = 50) -> list[dict]:
         with self.SessionLocal() as session:

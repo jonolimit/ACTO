@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+from acto.cache import CacheBackend, get_cache_backend
+from acto.config.settings import Settings
 from acto.proof.models import ProofEnvelope
 
 
@@ -11,13 +13,28 @@ class ScoreResult:
     reasons: dict[str, float]
 
 
-class ReputationScorer:
-    """Explainable reputation score derived from proof payload."""
+def _cache_key_score(payload_hash: str) -> str:
+    """Generate cache key for a reputation score."""
+    return f"score:{payload_hash}"
 
-    def __init__(self, weights: dict[str, float] | None = None):
+
+class ReputationScorer:
+    """Explainable reputation score derived from proof payload with optional caching."""
+
+    def __init__(self, weights: dict[str, float] | None = None, settings: Settings | None = None, cache: CacheBackend | None = None):
         self.weights = weights or {"events_count": 0.4, "safety_ok_ratio": 0.4, "freshness": 0.2}
+        self.settings = settings or Settings()
+        self.cache = cache or get_cache_backend(self.settings)
 
     def score(self, env: ProofEnvelope) -> ScoreResult:
+        # Try cache first (score is deterministic based on payload_hash)
+        cache_key = _cache_key_score(env.payload.payload_hash)
+        if self.cache:
+            cached = self.cache.get(cache_key)
+            if cached is not None:
+                return ScoreResult(score=cached["score"], reasons=cached["reasons"])
+
+        # Cache miss, compute score
         reasons: dict[str, float] = {}
         events = env.payload.telemetry_normalized.get("events", [])
         events_count = float(len(events))
@@ -51,4 +68,11 @@ class ReputationScorer:
         for k, wgt in self.weights.items():
             score += wgt * reasons.get(k, 0.0)
 
-        return ScoreResult(score=float(round(score, 6)), reasons=reasons)
+        result = ScoreResult(score=float(round(score, 6)), reasons=reasons)
+
+        # Store in cache (with longer TTL since scores don't change for a given proof)
+        if self.cache:
+            cache_ttl = self.settings.cache_ttl * 24  # 24 hours for scores
+            self.cache.set(cache_key, {"score": result.score, "reasons": result.reasons}, ttl=cache_ttl)
+
+        return result

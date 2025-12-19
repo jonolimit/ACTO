@@ -10,6 +10,10 @@ class Settings(BaseSettings):
 
     # Storage
     db_url: str = "sqlite:///./data/acto.sqlite"
+    db_pool_size: int = 5
+    db_max_overflow: int = 10
+    db_pool_timeout: int = 30
+    db_pool_recycle: int = 3600
 
     # Logging
     log_level: str = "INFO"
@@ -34,3 +38,10 @@ class Settings(BaseSettings):
 
     # Upload limits
     max_telemetry_bytes: int = 8_000_000
+
+    # Caching
+    cache_enabled: bool = False
+    cache_backend: str = "memory"  # "memory" or "redis"
+    cache_ttl: int = 3600  # Time-to-live in seconds
+    redis_url: str = "redis://localhost:6379/0"
+    redis_password: str | None = None
