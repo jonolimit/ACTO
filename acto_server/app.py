@@ -5,6 +5,7 @@ import uuid
 
 from fastapi import Depends, FastAPI, HTTPException, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 
 from acto import __version__
 from acto.access import SolanaTokenGate
@@ -54,6 +55,12 @@ settings = Settings()
 
 def create_app() -> FastAPI:
     app = FastAPI(title="ACTO Verification API", version=__version__)
+
+    # Mount static files
+    from pathlib import Path
+    static_dir = Path(__file__).parent / "static"
+    if static_dir.exists():
+        app.mount("/static", StaticFiles(directory=str(static_dir)), name="static")
 
     app.add_middleware(
         CORSMiddleware,

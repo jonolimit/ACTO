@@ -3,183 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ACTO API Key Management</title>
+    <title>ACTO Dashboard - API Key Management</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/dashboard.css">
     <script src="https://unpkg.com/@solana/web3.js@latest/lib/index.iife.min.js"></script>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
-        }
-        .container { max-width: 1200px; margin: 0 auto; }
-        .header {
-            background: white;
-            border-radius: 12px;
-            padding: 30px;
-            margin-bottom: 30px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .header h1 { color: #333; margin-bottom: 10px; }
-        .header p { color: #666; font-size: 14px; }
-        .wallet-info {
-            text-align: right;
-        }
-        .wallet-address {
-            font-family: monospace;
-            color: #667eea;
-            font-size: 14px;
-            margin-bottom: 10px;
-        }
-        .card {
-            background: white;
-            border-radius: 12px;
-            padding: 30px;
-            margin-bottom: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-        }
-        .login-card {
-            text-align: center;
-            padding: 60px 30px;
-        }
-        .login-card h2 {
-            margin-bottom: 20px;
-            color: #333;
-        }
-        .login-card p {
-            color: #666;
-            margin-bottom: 30px;
-        }
-        .btn {
-            padding: 12px 24px;
-            border: none;
-            border-radius: 8px;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-        .btn-primary {
-            background: #667eea;
-            color: white;
-        }
-        .btn-primary:hover {
-            background: #5568d3;
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
-        }
-        .btn-danger {
-            background: #ef4444;
-            color: white;
-        }
-        .btn-danger:hover { background: #dc2626; }
-        .btn:disabled { opacity: 0.6; cursor: not-allowed; }
-        .form-group { margin-bottom: 20px; }
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            color: #333;
-            font-weight: 500;
-        }
-        .form-group input {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
-            font-size: 14px;
-        }
-        .form-group input:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-        .alert {
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            display: none;
-        }
-        .alert.show { display: block; }
-        .alert-success { background: #d1fae5; color: #065f46; border: 1px solid #6ee7b7; }
-        .alert-error { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
-        .alert-info { background: #dbeafe; color: #1e40af; border: 1px solid #93c5fd; }
-        .keys-list { margin-top: 20px; }
-        .key-item {
-            background: #f8f9fa;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
-            padding: 20px;
-            margin-bottom: 15px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .key-info { flex: 1; }
-        .key-info h3 { color: #333; margin-bottom: 8px; font-size: 16px; }
-        .key-info p { color: #666; font-size: 12px; margin: 4px 0; }
-        .key-actions { display: flex; gap: 10px; }
-        .new-key-display {
-            background: #f0f9ff;
-            border: 2px solid #3b82f6;
-            border-radius: 8px;
-            padding: 20px;
-            margin-top: 20px;
-            display: none;
-        }
-        .new-key-display.show { display: block; }
-        .new-key-display h3 { color: #1e40af; margin-bottom: 15px; }
-        .key-value {
-            background: white;
-            border: 2px solid #3b82f6;
-            border-radius: 8px;
-            padding: 15px;
-            font-family: 'Courier New', monospace;
-            font-size: 14px;
-            word-break: break-all;
-            margin-bottom: 15px;
-            color: #1e40af;
-            font-weight: 600;
-        }
-        .warning {
-            background: #fef3c7;
-            border-left: 4px solid #f59e0b;
-            padding: 15px;
-            border-radius: 4px;
-            margin-top: 15px;
-            color: #92400e;
-            font-size: 13px;
-        }
-        .loading {
-            display: inline-block;
-            width: 16px;
-            height: 16px;
-            border: 2px solid #f3f3f3;
-            border-top: 2px solid #667eea;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin-left: 10px;
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        .empty-state {
-            text-align: center;
-            padding: 40px;
-            color: #999;
-        }
-        .hidden { display: none !important; }
-    </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <div>
-                <h1>🔑 ACTO API Key Management</h1>
-                <p>Create and manage API keys for accessing the ACTO Verification API</p>
+            <div class="header-content">
+                <h1>ACTO Dashboard</h1>
+                <p>API Key Management & Verification</p>
             </div>
             <div class="wallet-info" id="walletInfo" style="display: none;">
                 <div class="wallet-address" id="walletAddress"></div>
@@ -191,8 +27,8 @@
         
         <!-- Login Card -->
         <div class="card login-card" id="loginCard">
-            <h2>Connect Your Phantom Wallet</h2>
-            <p>Please connect your Phantom wallet to access the API key management dashboard.</p>
+            <h2>Connect Your Wallet</h2>
+            <p>Connect your Phantom wallet to access the API key management dashboard and start managing your ACTO API keys.</p>
             <button class="btn btn-primary" id="connectBtn" onclick="connectWallet()">
                 Connect Phantom Wallet
             </button>
@@ -201,7 +37,7 @@
         <!-- Main Content (hidden until logged in) -->
         <div id="mainContent" class="hidden">
             <div class="card">
-                <h2 style="margin-bottom: 20px; color: #333;">Create New API Key</h2>
+                <h2>Create New API Key</h2>
                 <form id="createKeyForm">
                     <div class="form-group">
                         <label for="keyName">Key Name</label>
@@ -219,17 +55,17 @@
                 </form>
                 
                 <div id="newKeyDisplay" class="new-key-display">
-                    <h3>✅ API Key Created Successfully!</h3>
-                    <p style="color: #666; margin-bottom: 15px;">Copy this key now - you won't be able to see it again:</p>
+                    <h3>API Key Created Successfully</h3>
+                    <p>Copy this key now - you won't be able to see it again:</p>
                     <div class="key-value" id="newKeyValue"></div>
                     <div class="warning">
-                        ⚠️ <strong>Important:</strong> Store this key securely. It will not be shown again after you close this dialog.
+                        <strong>Important:</strong> Store this key securely. It will not be shown again after you close this dialog.
                     </div>
                 </div>
             </div>
             
             <div class="card">
-                <h2 style="margin-bottom: 20px; color: #333;">Your API Keys</h2>
+                <h2>Your API Keys</h2>
                 <div id="keysList" class="keys-list">
                     <div class="empty-state">
                         <p>Loading keys...</p>
@@ -239,269 +75,6 @@
         </div>
     </div>
     
-    <script>
-        const API_BASE = window.location.origin;
-        let phantomWallet = null;
-        let currentUser = null;
-        let accessToken = null;
-        
-        // Check for existing session
-        window.addEventListener('DOMContentLoaded', async () => {
-            accessToken = localStorage.getItem('acto_access_token');
-            if (accessToken) {
-                const user = await getCurrentUser();
-                if (user) {
-                    currentUser = user;
-                    showMainContent();
-                } else {
-                    localStorage.removeItem('acto_access_token');
-                }
-            }
-        });
-        
-        // Connect Phantom Wallet
-        async function connectWallet() {
-            try {
-                if (!window.solana || !window.solana.isPhantom) {
-                    showAlert('Phantom wallet not found. Please install Phantom wallet extension.', 'error');
-                    return;
-                }
-                
-                phantomWallet = window.solana;
-                const response = await phantomWallet.connect();
-                const walletAddress = response.publicKey.toString();
-                
-                // Get challenge from server
-                const challengeRes = await fetch(`${API_BASE}/v1/auth/wallet/connect`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ wallet_address: walletAddress })
-                });
-                
-                if (!challengeRes.ok) {
-                    throw new Error('Failed to get challenge');
-                }
-                
-                const { challenge } = await challengeRes.json();
-                
-                // Sign message with wallet
-                const message = new TextEncoder().encode(challenge);
-                const signature = await phantomWallet.signMessage(message, 'utf8');
-                
-                // Convert signature to base64
-                const signatureBase64 = btoa(String.fromCharCode(...signature.signature));
-                
-                // Verify signature with server
-                const verifyRes = await fetch(`${API_BASE}/v1/auth/wallet/verify`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        wallet_address: walletAddress,
-                        signature: signatureBase64,
-                        challenge: challenge
-                    })
-                });
-                
-                if (!verifyRes.ok) {
-                    throw new Error('Signature verification failed');
-                }
-                
-                const data = await verifyRes.json();
-                accessToken = data.access_token;
-                localStorage.setItem('acto_access_token', accessToken);
-                currentUser = { user_id: data.user_id, wallet_address: data.wallet_address };
-                
-                showMainContent();
-                showAlert('Successfully connected!', 'success');
-                await loadKeys();
-                
-            } catch (error) {
-                console.error('Wallet connection error:', error);
-                showAlert(`Error: ${error.message}`, 'error');
-            }
-        }
-        
-        // Disconnect wallet
-        async function disconnectWallet() {
-            if (phantomWallet) {
-                try {
-                    await phantomWallet.disconnect();
-                } catch (e) {
-                    console.error('Disconnect error:', e);
-                }
-            }
-            phantomWallet = null;
-            currentUser = null;
-            accessToken = null;
-            localStorage.removeItem('acto_access_token');
-            document.getElementById('loginCard').classList.remove('hidden');
-            document.getElementById('mainContent').classList.add('hidden');
-            document.getElementById('walletInfo').style.display = 'none';
-            showAlert('Disconnected successfully', 'info');
-        }
-        
-        // Show main content
-        function showMainContent() {
-            document.getElementById('loginCard').classList.add('hidden');
-            document.getElementById('mainContent').classList.remove('hidden');
-            if (currentUser) {
-                document.getElementById('walletAddress').textContent = 
-                    `${currentUser.wallet_address.substring(0, 4)}...${currentUser.wallet_address.substring(currentUser.wallet_address.length - 4)}`;
-                document.getElementById('walletInfo').style.display = 'block';
-            }
-        }
-        
-        // Get current user
-        async function getCurrentUser() {
-            if (!accessToken) return null;
-            try {
-                const res = await fetch(`${API_BASE}/v1/auth/me`, {
-                    headers: { 'Authorization': `Bearer ${accessToken}` }
-                });
-                if (res.ok) {
-                    return await res.json();
-                }
-            } catch (e) {
-                console.error('Get user error:', e);
-            }
-            return null;
-        }
-        
-        // Show alert
-        function showAlert(message, type = 'info') {
-            const alert = document.getElementById('alert');
-            alert.className = `alert alert-${type} show`;
-            alert.textContent = message;
-            setTimeout(() => alert.classList.remove('show'), 5000);
-        }
-        
-        // Make API request
-        async function apiRequest(endpoint, options = {}) {
-            if (!accessToken) {
-                showAlert('Please connect your wallet first', 'error');
-                return null;
-            }
-            
-            const headers = {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${accessToken}`,
-                ...options.headers,
-            };
-            
-            try {
-                const response = await fetch(`${API_BASE}${endpoint}`, {
-                    ...options,
-                    headers,
-                });
-                
-                if (response.status === 401) {
-                    showAlert('Session expired. Please reconnect your wallet.', 'error');
-                    disconnectWallet();
-                    return null;
-                }
-                
-                if (!response.ok) {
-                    const error = await response.json().catch(() => ({ detail: 'Unknown error' }));
-                    throw new Error(error.detail || `HTTP ${response.status}`);
-                }
-                
-                return await response.json();
-            } catch (error) {
-                showAlert(`Error: ${error.message}`, 'error');
-                return null;
-            }
-        }
-        
-        // Load and display keys
-        async function loadKeys() {
-            if (!accessToken) return;
-            
-            const keysList = document.getElementById('keysList');
-            keysList.innerHTML = '<div class="empty-state"><p>Loading keys...</p></div>';
-            
-            const result = await apiRequest('/v1/keys');
-            if (!result) {
-                keysList.innerHTML = '<div class="empty-state"><p>Failed to load keys.</p></div>';
-                return;
-            }
-            
-            if (!result.keys || result.keys.length === 0) {
-                keysList.innerHTML = '<div class="empty-state"><p>No API keys found. Create your first key above!</p></div>';
-                return;
-            }
-            
-            keysList.innerHTML = result.keys.map(key => `
-                <div class="key-item">
-                    <div class="key-info">
-                        <h3>${escapeHtml(key.name)}</h3>
-                        <p><strong>ID:</strong> ${escapeHtml(key.key_id)}</p>
-                        <p><strong>Created:</strong> ${new Date(key.created_at).toLocaleString()}</p>
-                        ${key.last_used_at ? `<p><strong>Last Used:</strong> ${new Date(key.last_used_at).toLocaleString()}</p>` : '<p><strong>Last Used:</strong> Never</p>'}
-                        <p><strong>Status:</strong> <span style="color: ${key.is_active ? '#10b981' : '#ef4444'}">${key.is_active ? 'Active' : 'Inactive'}</span></p>
-                    </div>
-                    <div class="key-actions">
-                        ${key.is_active ? `<button class="btn btn-danger" onclick="deleteKey('${key.key_id}')">Delete</button>` : ''}
-                    </div>
-                </div>
-            `).join('');
-        }
-        
-        // Create new key
-        document.getElementById('createKeyForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            const form = e.target;
-            const name = form.name.value.trim();
-            const createBtn = document.getElementById('createBtn');
-            
-            if (!name) {
-                showAlert('Please enter a key name', 'error');
-                return;
-            }
-            
-            createBtn.disabled = true;
-            createBtn.innerHTML = 'Creating... <span class="loading"></span>';
-            
-            const result = await apiRequest('/v1/keys', {
-                method: 'POST',
-                body: JSON.stringify({ name }),
-            });
-            
-            createBtn.disabled = false;
-            createBtn.innerHTML = 'Create API Key';
-            
-            if (result) {
-                document.getElementById('newKeyValue').textContent = result.key;
-                document.getElementById('newKeyDisplay').classList.add('show');
-                showAlert('API key created successfully!', 'success');
-                form.reset();
-                await loadKeys();
-            }
-        });
-        
-        // Delete key
-        async function deleteKey(keyId) {
-            if (!confirm('Are you sure you want to delete this API key? This action cannot be undone.')) {
-                return;
-            }
-            
-            const result = await apiRequest(`/v1/keys/${keyId}`, {
-                method: 'DELETE',
-            });
-            
-            if (result && result.success) {
-                showAlert('API key deleted successfully', 'success');
-                await loadKeys();
-            }
-        }
-        
-        // Escape HTML
-        function escapeHtml(text) {
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
-        }
-    </script>
+    <script src="/static/js/dashboard.js"></script>
 </body>
 </html>
-
