@@ -4,6 +4,54 @@
 const API_BASE = window.API_BASE || window.location.origin;
 window.API_BASE = API_BASE;
 
+// Define initDocumentation function immediately and make it globally available
+// This ensures it's available even if called before the script fully loads
+window.initDocumentation = function initDocumentation() {
+    // Use a small delay to ensure DOM is ready and all functions are loaded
+    setTimeout(() => {
+        // Check if required functions are available
+        if (typeof window.showDocumentation !== 'function') {
+            console.warn('showDocumentation not yet available, retrying...');
+            setTimeout(initDocumentation, 50);
+            return;
+        }
+        
+        const docContent = document.getElementById('docContent');
+        
+        if (!docContent) {
+            console.error('docContent element not found, retrying...');
+            // Try again after a short delay
+            setTimeout(initDocumentation, 100);
+            return;
+        }
+        
+        console.log('Initializing documentation, current content:', docContent.innerHTML ? 'has content' : 'empty');
+        
+        // Reset the flag to allow re-setting listeners when tab is opened
+        if (typeof menuListenersSetup !== 'undefined') {
+            menuListenersSetup = false;
+        }
+        
+        // Set up event listeners for documentation menu items
+        if (typeof setupDocumentationMenuListeners === 'function') {
+            setupDocumentationMenuListeners();
+        } else {
+            console.warn('setupDocumentationMenuListeners not yet available, will retry');
+            setTimeout(initDocumentation, 50);
+            return;
+        }
+        
+        // Always show overview section when initializing
+        // This ensures content is displayed even if the tab was just opened
+        window.showDocumentation('overview');
+        
+        // Load token gating configuration
+        if (typeof loadTokenGatingConfig === 'function') {
+            loadTokenGatingConfig();
+        }
+    }, 50);
+};
+
 // Token gating configuration (loaded from API)
 let tokenGatingConfig = {
     mint: "9wpLm21ab8ZMVJWH3pHeqgqNJqWos73G8qDRfaEwtray", // Default, will be loaded from API
@@ -41,8 +89,8 @@ function updateDocumentationWithConfig() {
     });
     
     // Re-render current section if it's already displayed
-    if (currentDocSection) {
-        showDocumentation(currentDocSection);
+    if (currentDocSection && typeof window.showDocumentation === 'function') {
+        window.showDocumentation(currentDocSection);
     }
 }
 
@@ -281,7 +329,8 @@ response = requests.post(
 let currentDocSection = 'overview';
 let menuListenersSetup = false;
 
-function showDocumentation(section = 'overview') {
+// Define showDocumentation and make it globally available immediately
+window.showDocumentation = function showDocumentation(section = 'overview') {
     console.log('showDocumentation called with section:', section);
     currentDocSection = section;
     
@@ -291,7 +340,9 @@ function showDocumentation(section = 'overview') {
         console.warn('docContent element not found, retrying...');
         // Try to find it again after a short delay
         setTimeout(() => {
-            showDocumentation(section);
+            if (typeof window.showDocumentation === 'function') {
+                window.showDocumentation(section);
+            }
         }, 100);
         return;
     }
@@ -330,40 +381,7 @@ function showDocumentation(section = 'overview') {
     }, 100);
     
     console.log('Documentation section displayed:', section, 'Content set:', docContent.innerHTML.length > 0);
-}
-
-// Make showDocumentation globally available immediately
-window.showDocumentation = showDocumentation;
-
-function initDocumentation() {
-    // Use a small delay to ensure DOM is ready
-    setTimeout(() => {
-        const docContent = document.getElementById('docContent');
-        
-        if (!docContent) {
-            console.error('docContent element not found, retrying...');
-            // Try again after a short delay
-            setTimeout(initDocumentation, 100);
-            return;
-        }
-        
-        console.log('Initializing documentation, current content:', docContent.innerHTML ? 'has content' : 'empty');
-        
-        // Reset the flag to allow re-setting listeners when tab is opened
-        menuListenersSetup = false;
-        
-        // Set up event listeners for documentation menu items
-        setupDocumentationMenuListeners();
-        
-        // Always show overview section when initializing
-        // This ensures content is displayed even if the tab was just opened
-        // Force display even if content seems to exist (might be stale)
-        showDocumentation('overview');
-        
-        // Load token gating configuration
-        loadTokenGatingConfig();
-    }, 50);
-}
+};
 
 // Set up event listeners for documentation navigation menu
 function setupDocumentationMenuListeners() {
@@ -390,7 +408,11 @@ function setupDocumentationMenuListeners() {
             console.log('Menu item clicked, section:', section, 'index:', index);
             if (section) {
                 console.log('Switching to documentation section:', section);
-                showDocumentation(section);
+                if (typeof window.showDocumentation === 'function') {
+                    window.showDocumentation(section);
+                } else {
+                    console.error('showDocumentation function not available');
+                }
             } else {
                 console.error('No section found in dataset for menu item');
             }
@@ -402,7 +424,4 @@ function setupDocumentationMenuListeners() {
     menuListenersSetup = true;
     console.log('Documentation menu listeners setup complete');
 }
-
-// Make initDocumentation globally available immediately
-window.initDocumentation = initDocumentation;
 
