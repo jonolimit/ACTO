@@ -201,9 +201,7 @@ class TestProofProperties:
             keypair.public_key_b64
         )
         
-        # Small delay to ensure different timestamps
-        import time
-        time.sleep(0.001)
+        # Note: created_at will be different, but telemetry_hash should be the same
         
         envelope2 = create_proof(
             bundle,
