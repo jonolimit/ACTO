@@ -18,7 +18,6 @@ from acto.security import (
     ApiKeyStore,
     AuditAction,
     AuditLogger,
-    AuditResult,
     EncryptionManager,
     JWTManager,
     OAuth2TokenResponse,
@@ -27,12 +26,10 @@ from acto.security import (
     RBACManager,
     TLSManager,
     TokenBucketRateLimiter,
-    create_jwt_dependency,
     create_jwt_dependency_optional,
     get_current_user_optional,
     get_secrets_manager,
     require_api_key,
-    require_jwt,
 )
 from acto.security.audit import FileAuditBackend, MemoryAuditBackend
 from acto.telemetry.pii import PIIMasker
@@ -92,7 +89,7 @@ def create_app() -> FastAPI:
 
     # Encryption at rest
     encryption_manager: EncryptionManager | None = None
-    proof_encryption: ProofEncryption | None = None
+    _proof_encryption: ProofEncryption | None = None
     if settings.encryption_enabled:
         if settings.encryption_key:
             key = base64.b64decode(settings.encryption_key.encode())
@@ -101,7 +98,7 @@ def create_app() -> FastAPI:
             salt = base64.b64decode(settings.encryption_salt.encode())
             encryption_manager = EncryptionManager(password=settings.encryption_password, salt=salt)
         if encryption_manager:
-            proof_encryption = ProofEncryption(encryption_manager)
+            _proof_encryption = ProofEncryption(encryption_manager)
 
     # TLS (available for future use)
     _tls_manager: TLSManager | None = None
