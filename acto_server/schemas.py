@@ -54,3 +54,27 @@ class ApiKeyListResponse(BaseModel):
 class ApiKeyDeleteResponse(BaseModel):
     success: bool
     key_id: str
+
+
+class WalletConnectRequest(BaseModel):
+    wallet_address: str
+
+
+class WalletConnectResponse(BaseModel):
+    challenge: str
+    message: str
+
+
+class WalletVerifyRequest(BaseModel):
+    wallet_address: str
+    signature: str
+    challenge: str
+
+
+class WalletVerifyResponse(BaseModel):
+    success: bool
+    user_id: str
+    wallet_address: str
+    access_token: str
+    token_type: str = "Bearer"
+    expires_in: int

@@ -10,6 +10,7 @@ from sqlalchemy.orm import Mapped, mapped_column
 
 from acto.errors import AccessError
 from acto.registry.models import Base
+from acto.registry.user_models import User
 from acto.registry.db import make_engine, make_session_factory
 from acto.config.settings import Settings
 
@@ -26,6 +27,7 @@ class ApiKeyRecord(Base):
     last_used_at: Mapped[str | None] = mapped_column(String(64), nullable=True)
     is_active: Mapped[bool] = mapped_column(default=True, index=True)
     created_by: Mapped[str | None] = mapped_column(String(256), nullable=True)
+    user_id: Mapped[str | None] = mapped_column(String(64), nullable=True, index=True)
 
 
 def generate_api_key(prefix: str = "acto") -> str:
@@ -51,7 +53,7 @@ class ApiKeyStore:
         """Ensure database tables exist."""
         Base.metadata.create_all(self.engine)
 
-    def create_key(self, name: str, created_by: str | None = None) -> dict[str, Any]:
+    def create_key(self, name: str, user_id: str | None = None, created_by: str | None = None) -> dict[str, Any]:
         """Create a new API key and return both the key and its metadata."""
         key = generate_api_key()
         key_hash = hash_api_key(key)
@@ -67,6 +69,7 @@ class ApiKeyStore:
             last_used_at=None,
             is_active=True,
             created_by=created_by,
+            user_id=user_id,
         )
 
         with self.Session() as session:
@@ -79,6 +82,7 @@ class ApiKeyStore:
             "name": name,
             "created_at": now,
             "created_by": created_by,
+            "user_id": user_id,
         }
 
     def is_valid(self, key: str) -> bool:
@@ -101,10 +105,12 @@ class ApiKeyStore:
         if not key or not self.is_valid(key):
             raise AccessError("Invalid or missing API key. Please provide a valid Bearer token.")
 
-    def list_keys(self, include_inactive: bool = False) -> list[dict[str, Any]]:
-        """List all API keys (without the actual key values)."""
+    def list_keys(self, user_id: str | None = None, include_inactive: bool = False) -> list[dict[str, Any]]:
+        """List API keys (without the actual key values). Filter by user_id if provided."""
         with self.Session() as session:
             query = session.query(ApiKeyRecord)
+            if user_id:
+                query = query.filter(ApiKeyRecord.user_id == user_id)
             if not include_inactive:
                 query = query.filter(ApiKeyRecord.is_active == True)  # noqa: E712
             records = query.order_by(ApiKeyRecord.created_at.desc()).all()
@@ -117,24 +123,18 @@ class ApiKeyStore:
                     "last_used_at": record.last_used_at,
                     "is_active": record.is_active,
                     "created_by": record.created_by,
+                    "user_id": record.user_id,
                 }
                 for record in records
             ]
 
-    def delete_key(self, key_id: str) -> bool:
-        """Delete (deactivate) an API key."""
+    def get_key(self, key_id: str, user_id: str | None = None) -> dict[str, Any] | None:
+        """Get API key metadata by ID. Optionally filter by user_id."""
         with self.Session() as session:
-            record = session.query(ApiKeyRecord).filter(ApiKeyRecord.key_id == key_id).first()
-            if record:
-                record.is_active = False
-                session.commit()
-                return True
-        return False
-
-    def get_key(self, key_id: str) -> dict[str, Any] | None:
-        """Get API key metadata by ID."""
-        with self.Session() as session:
-            record = session.query(ApiKeyRecord).filter(ApiKeyRecord.key_id == key_id).first()
+            query = session.query(ApiKeyRecord).filter(ApiKeyRecord.key_id == key_id)
+            if user_id:
+                query = query.filter(ApiKeyRecord.user_id == user_id)
+            record = query.first()
             if record:
                 return {
                     "key_id": record.key_id,
@@ -143,6 +143,20 @@ class ApiKeyStore:
                     "last_used_at": record.last_used_at,
                     "is_active": record.is_active,
                     "created_by": record.created_by,
+                    "user_id": record.user_id,
                 }
         return None
+    
+    def delete_key(self, key_id: str, user_id: str | None = None) -> bool:
+        """Delete (deactivate) an API key. Optionally filter by user_id."""
+        with self.Session() as session:
+            query = session.query(ApiKeyRecord).filter(ApiKeyRecord.key_id == key_id)
+            if user_id:
+                query = query.filter(ApiKeyRecord.user_id == user_id)
+            record = query.first()
+            if record:
+                record.is_active = False
+                session.commit()
+                return True
+        return False
 

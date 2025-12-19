@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import secrets
 import uuid
 
 from fastapi import Depends, FastAPI, HTTPException, Request, Response
@@ -24,8 +25,11 @@ from acto.security import (
     create_jwt_dependency_optional,
     get_current_user_optional,
     require_api_key,
+    require_jwt,
 )
 from acto.security.api_key_store import ApiKeyStore
+from acto.security.user_store import UserStore
+from acto.security.wallet_auth import create_wallet_challenge, verify_wallet_challenge
 from acto.security.audit import FileAuditBackend, MemoryAuditBackend
 
 from .schemas import (
@@ -39,6 +43,10 @@ from .schemas import (
     ProofSubmitResponse,
     VerifyRequest,
     VerifyResponse,
+    WalletConnectRequest,
+    WalletConnectResponse,
+    WalletVerifyRequest,
+    WalletVerifyResponse,
 )
 
 settings = Settings()
@@ -62,17 +70,17 @@ def create_app() -> FastAPI:
     # Security components initialization
     # Use database-backed API key store
     api_key_store = ApiKeyStore(settings)
+    user_store = UserStore(settings)
     limiter = TokenBucketRateLimiter.create(rps=settings.rate_limit_rps, burst=settings.rate_limit_burst)
 
-    # JWT/OAuth2
-    jwt_manager: JWTManager | None = None
-    if settings.jwt_enabled and settings.jwt_secret_key:
-        jwt_manager = JWTManager(
-            secret_key=settings.jwt_secret_key,
-            algorithm=settings.jwt_algorithm,
-            access_token_expire_minutes=settings.jwt_access_token_expire_minutes,
-            refresh_token_expire_days=settings.jwt_refresh_token_expire_days,
-        )
+    # JWT/OAuth2 - Always enabled for wallet authentication
+    jwt_secret = settings.jwt_secret_key or "change-me-in-production-" + secrets.token_urlsafe(32)
+    jwt_manager = JWTManager(
+        secret_key=jwt_secret,
+        algorithm=settings.jwt_algorithm,
+        access_token_expire_minutes=settings.jwt_access_token_expire_minutes or 60 * 24 * 7,  # 7 days
+        refresh_token_expire_days=settings.jwt_refresh_token_expire_days or 30,
+    )
 
     # RBAC
     rbac_manager = RBACManager() if settings.rbac_enabled else None
@@ -338,37 +346,105 @@ def create_app() -> FastAPI:
         except AccessError as e:
             raise HTTPException(status_code=400, detail=str(e)) from e
 
+    # Wallet Authentication Endpoints
+    @app.post("/v1/auth/wallet/connect", response_model=WalletConnectResponse)
+    def wallet_connect(req: WalletConnectRequest) -> WalletConnectResponse:
+        """Initiate wallet connection by generating a challenge."""
+        challenge = create_wallet_challenge(req.wallet_address)
+        return WalletConnectResponse(
+            challenge=challenge,
+            message=challenge
+        )
+
+    @app.post("/v1/auth/wallet/verify", response_model=WalletVerifyResponse)
+    def wallet_verify(req: WalletVerifyRequest) -> WalletVerifyResponse:
+        """Verify wallet signature and create user session."""
+        # Verify signature
+        if not verify_wallet_challenge(req.wallet_address, req.challenge, req.signature):
+            raise HTTPException(status_code=401, detail="Invalid signature")
+        
+        # Get or create user
+        user = user_store.get_or_create_user(req.wallet_address)
+        
+        # Create JWT token - use user_id as subject
+        access_token = jwt_manager.create_access_token(
+            subject=user["user_id"],
+            roles=["user"],
+            additional_claims={"wallet_address": req.wallet_address}
+        )
+        
+        return WalletVerifyResponse(
+            success=True,
+            user_id=user["user_id"],
+            wallet_address=req.wallet_address,
+            access_token=access_token,
+            expires_in=jwt_manager.access_token_expire_minutes * 60
+        )
+
+    @app.get("/v1/auth/me", dependencies=[Depends(require_jwt(jwt_manager))])
+    def get_current_user_info(request: Request) -> dict:
+        """Get current authenticated user information."""
+        current_user = get_current_user_optional(request)
+        if not current_user:
+            raise HTTPException(status_code=401, detail="Not authenticated")
+        
+        user_id = current_user.get("user_id")
+        if not user_id:
+            raise HTTPException(status_code=401, detail="Invalid user ID")
+        user = user_store.get_user(user_id)
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        return user
+
     # API Key Management Endpoints
-    # Allow creating first key without authentication, but require auth for listing/deleting
-    @app.post("/v1/keys", response_model=ApiKeyCreateResponse)
+    @app.post("/v1/keys", response_model=ApiKeyCreateResponse, dependencies=[Depends(require_jwt(jwt_manager))])
     def create_api_key(req: ApiKeyCreateRequest, request: Request) -> ApiKeyCreateResponse:
         """Create a new API key."""
         try:
-            # Get client identifier from request (IP or user agent)
-            client_id = request.headers.get("X-Forwarded-For") or (
-                request.client.host if request.client else "unknown"
-            )
-            result = api_key_store.create_key(name=req.name, created_by=client_id)
+            # Get current user from JWT token
+            current_user = get_current_user_optional(request)
+            if not current_user:
+                raise HTTPException(status_code=401, detail="Authentication required")
+            
+            user_id = current_user.get("user_id")
+            result = api_key_store.create_key(name=req.name, user_id=user_id, created_by=user_id)
             metrics.inc("acto.keys.create")
             return ApiKeyCreateResponse(**result)
+        except HTTPException:
+            raise
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Failed to create API key: {str(e)}") from e
 
-    @app.get("/v1/keys", response_model=ApiKeyListResponse, dependencies=[auth_dependency()])
-    def list_api_keys() -> ApiKeyListResponse:
-        """List all API keys (without the actual key values)."""
+    @app.get("/v1/keys", response_model=ApiKeyListResponse, dependencies=[Depends(require_jwt(jwt_manager))])
+    def list_api_keys(request: Request) -> ApiKeyListResponse:
+        """List all your API keys (without the actual key values)."""
         try:
-            keys = api_key_store.list_keys(include_inactive=False)
+            # Get current user from JWT token
+            current_user = get_current_user_optional(request)
+            if not current_user:
+                raise HTTPException(status_code=401, detail="Authentication required")
+            
+            user_id = current_user.get("user_id")
+            keys = api_key_store.list_keys(user_id=user_id, include_inactive=False)
             metrics.inc("acto.keys.list")
             return ApiKeyListResponse(keys=keys)
+        except HTTPException:
+            raise
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Failed to list API keys: {str(e)}") from e
 
-    @app.delete("/v1/keys/{key_id}", response_model=ApiKeyDeleteResponse, dependencies=[auth_dependency()])
-    def delete_api_key(key_id: str) -> ApiKeyDeleteResponse:
-        """Delete (deactivate) an API key."""
+    @app.delete("/v1/keys/{key_id}", response_model=ApiKeyDeleteResponse, dependencies=[Depends(require_jwt(jwt_manager))])
+    def delete_api_key(key_id: str, request: Request) -> ApiKeyDeleteResponse:
+        """Deactivate an API key."""
         try:
-            success = api_key_store.delete_key(key_id)
+            # Get current user from JWT token
+            current_user = get_current_user_optional(request)
+            if not current_user:
+                raise HTTPException(status_code=401, detail="Authentication required")
+            
+            user_id = current_user.get("user_id")
+            success = api_key_store.delete_key(key_id, user_id=user_id)
             if not success:
                 raise HTTPException(status_code=404, detail="API key not found")
             metrics.inc("acto.keys.delete")
@@ -382,465 +458,9 @@ def create_app() -> FastAPI:
     @app.get("/dashboard")
     def dashboard() -> Response:
         """Serve the API key management dashboard."""
-        html_content = """
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ACTO API Key Management</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
-        }
-        
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-        
-        .header {
-            background: white;
-            border-radius: 12px;
-            padding: 30px;
-            margin-bottom: 30px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-        }
-        
-        .header h1 {
-            color: #333;
-            margin-bottom: 10px;
-        }
-        
-        .header p {
-            color: #666;
-            font-size: 14px;
-        }
-        
-        .card {
-            background: white;
-            border-radius: 12px;
-            padding: 30px;
-            margin-bottom: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-        }
-        
-        .form-group {
-            margin-bottom: 20px;
-        }
-        
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            color: #333;
-            font-weight: 500;
-        }
-        
-        .form-group input {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
-            font-size: 14px;
-            transition: border-color 0.3s;
-        }
-        
-        .form-group input:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-        
-        .btn {
-            padding: 12px 24px;
-            border: none;
-            border-radius: 8px;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-        
-        .btn-primary {
-            background: #667eea;
-            color: white;
-        }
-        
-        .btn-primary:hover {
-            background: #5568d3;
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
-        }
-        
-        .btn-danger {
-            background: #ef4444;
-            color: white;
-        }
-        
-        .btn-danger:hover {
-            background: #dc2626;
-        }
-        
-        .btn:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-        }
-        
-        .keys-list {
-            margin-top: 20px;
-        }
-        
-        .key-item {
-            background: #f8f9fa;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
-            padding: 20px;
-            margin-bottom: 15px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .key-info {
-            flex: 1;
-        }
-        
-        .key-info h3 {
-            color: #333;
-            margin-bottom: 8px;
-            font-size: 16px;
-        }
-        
-        .key-info p {
-            color: #666;
-            font-size: 12px;
-            margin: 4px 0;
-        }
-        
-        .key-actions {
-            display: flex;
-            gap: 10px;
-        }
-        
-        .alert {
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            display: none;
-        }
-        
-        .alert-success {
-            background: #d1fae5;
-            color: #065f46;
-            border: 1px solid #6ee7b7;
-        }
-        
-        .alert-error {
-            background: #fee2e2;
-            color: #991b1b;
-            border: 1px solid #fca5a5;
-        }
-        
-        .alert-info {
-            background: #dbeafe;
-            color: #1e40af;
-            border: 1px solid #93c5fd;
-        }
-        
-        .alert.show {
-            display: block;
-        }
-        
-        .new-key-display {
-            background: #f0f9ff;
-            border: 2px solid #3b82f6;
-            border-radius: 8px;
-            padding: 20px;
-            margin-top: 20px;
-            display: none;
-        }
-        
-        .new-key-display.show {
-            display: block;
-        }
-        
-        .new-key-display h3 {
-            color: #1e40af;
-            margin-bottom: 15px;
-        }
-        
-        .key-value {
-            background: white;
-            border: 2px solid #3b82f6;
-            border-radius: 8px;
-            padding: 15px;
-            font-family: 'Courier New', monospace;
-            font-size: 14px;
-            word-break: break-all;
-            margin-bottom: 15px;
-            color: #1e40af;
-            font-weight: 600;
-        }
-        
-        .warning {
-            background: #fef3c7;
-            border-left: 4px solid #f59e0b;
-            padding: 15px;
-            border-radius: 4px;
-            margin-top: 15px;
-            color: #92400e;
-            font-size: 13px;
-        }
-        
-        .loading {
-            display: inline-block;
-            width: 16px;
-            height: 16px;
-            border: 2px solid #f3f3f3;
-            border-top: 2px solid #667eea;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin-left: 10px;
-        }
-        
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        
-        .empty-state {
-            text-align: center;
-            padding: 40px;
-            color: #999;
-        }
-        
-        .empty-state p {
-            margin-top: 10px;
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="header">
-            <h1>🔑 ACTO API Key Management</h1>
-            <p>Create and manage API keys for accessing the ACTO Verification API</p>
-        </div>
-        
-        <div id="alert" class="alert"></div>
-        
-        <div class="card">
-            <h2 style="margin-bottom: 20px; color: #333;">Create New API Key</h2>
-            <form id="createKeyForm">
-                <div class="form-group">
-                    <label for="keyName">Key Name</label>
-                    <input 
-                        type="text" 
-                        id="keyName" 
-                        name="name" 
-                        placeholder="e.g., Production Key, Development Key"
-                        required
-                    >
-                </div>
-                <button type="submit" class="btn btn-primary" id="createBtn">
-                    Create API Key
-                </button>
-            </form>
-            
-            <div id="newKeyDisplay" class="new-key-display">
-                <h3>✅ API Key Created Successfully!</h3>
-                <p style="color: #666; margin-bottom: 15px;">Copy this key now - you won't be able to see it again:</p>
-                <div class="key-value" id="newKeyValue"></div>
-                <div class="warning">
-                    ⚠️ <strong>Important:</strong> Store this key securely. It will not be shown again after you close this dialog.
-                </div>
-            </div>
-        </div>
-        
-        <div class="card">
-            <h2 style="margin-bottom: 20px; color: #333;">Your API Keys</h2>
-            <div id="keysList" class="keys-list">
-                <div class="empty-state">
-                    <p>Loading keys...</p>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <script>
-        const API_BASE = window.location.origin;
-        let currentBearerToken = null;
-        
-        // Check if we have a token in localStorage
-        function getBearerToken() {
-            if (!currentBearerToken) {
-                currentBearerToken = localStorage.getItem('acto_bearer_token');
-            }
-            return currentBearerToken;
-        }
-        
-        // Show alert
-        function showAlert(message, type = 'info') {
-            const alert = document.getElementById('alert');
-            alert.className = `alert alert-${type} show`;
-            alert.textContent = message;
-            setTimeout(() => {
-                alert.classList.remove('show');
-            }, 5000);
-        }
-        
-        // Make API request
-        async function apiRequest(endpoint, options = {}) {
-            const token = getBearerToken();
-            if (!token && endpoint !== '/v1/keys') {
-                showAlert('Please set your Bearer token first. Use an existing key or create a new one.', 'error');
-                return null;
-            }
-            
-            const headers = {
-                'Content-Type': 'application/json',
-                ...options.headers,
-            };
-            
-            if (token) {
-                headers['Authorization'] = `Bearer ${token}`;
-            }
-            
-            try {
-                const response = await fetch(`${API_BASE}${endpoint}`, {
-                    ...options,
-                    headers,
-                });
-                
-                if (response.status === 401) {
-                    showAlert('Authentication failed. Please check your Bearer token.', 'error');
-                    return null;
-                }
-                
-                if (!response.ok) {
-                    const error = await response.json().catch(() => ({ detail: 'Unknown error' }));
-                    throw new Error(error.detail || `HTTP ${response.status}`);
-                }
-                
-                return await response.json();
-            } catch (error) {
-                showAlert(`Error: ${error.message}`, 'error');
-                return null;
-            }
-        }
-        
-        // Load and display keys
-        async function loadKeys() {
-            const keysList = document.getElementById('keysList');
-            keysList.innerHTML = '<div class="empty-state"><p>Loading keys...</p></div>';
-            
-            const result = await apiRequest('/v1/keys');
-            if (!result) {
-                keysList.innerHTML = '<div class="empty-state"><p>Failed to load keys. Make sure you have a valid Bearer token set.</p></div>';
-                return;
-            }
-            
-            if (!result.keys || result.keys.length === 0) {
-                keysList.innerHTML = '<div class="empty-state"><p>No API keys found. Create your first key above!</p></div>';
-                return;
-            }
-            
-            keysList.innerHTML = result.keys.map(key => `
-                <div class="key-item">
-                    <div class="key-info">
-                        <h3>${escapeHtml(key.name)}</h3>
-                        <p><strong>ID:</strong> ${escapeHtml(key.key_id)}</p>
-                        <p><strong>Created:</strong> ${new Date(key.created_at).toLocaleString()}</p>
-                        ${key.last_used_at ? `<p><strong>Last Used:</strong> ${new Date(key.last_used_at).toLocaleString()}</p>` : '<p><strong>Last Used:</strong> Never</p>'}
-                        <p><strong>Status:</strong> <span style="color: ${key.is_active ? '#10b981' : '#ef4444'}">${key.is_active ? 'Active' : 'Inactive'}</span></p>
-                    </div>
-                    <div class="key-actions">
-                        ${key.is_active ? `<button class="btn btn-danger" onclick="deleteKey('${key.key_id}')">Delete</button>` : ''}
-                    </div>
-                </div>
-            `).join('');
-        }
-        
-        // Create new key
-        document.getElementById('createKeyForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            const form = e.target;
-            const name = form.name.value.trim();
-            const createBtn = document.getElementById('createBtn');
-            
-            if (!name) {
-                showAlert('Please enter a key name', 'error');
-                return;
-            }
-            
-            createBtn.disabled = true;
-            createBtn.innerHTML = 'Creating... <span class="loading"></span>';
-            
-            const result = await apiRequest('/v1/keys', {
-                method: 'POST',
-                body: JSON.stringify({ name }),
-            });
-            
-            createBtn.disabled = false;
-            createBtn.innerHTML = 'Create API Key';
-            
-            if (result) {
-                // Show the new key
-                document.getElementById('newKeyValue').textContent = result.key;
-                document.getElementById('newKeyDisplay').classList.add('show');
-                
-                // Store token for future requests
-                localStorage.setItem('acto_bearer_token', result.key);
-                currentBearerToken = result.key;
-                
-                showAlert('API key created successfully!', 'success');
-                form.reset();
-                
-                // Reload keys list
-                await loadKeys();
-            }
-        });
-        
-        // Delete key
-        async function deleteKey(keyId) {
-            if (!confirm('Are you sure you want to delete this API key? This action cannot be undone.')) {
-                return;
-            }
-            
-            const result = await apiRequest(`/v1/keys/${keyId}`, {
-                method: 'DELETE',
-            });
-            
-            if (result && result.success) {
-                showAlert('API key deleted successfully', 'success');
-                await loadKeys();
-            }
-        }
-        
-        // Escape HTML
-        function escapeHtml(text) {
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
-        }
-        
-        // Initial load
-        loadKeys();
-        
-        // Auto-refresh every 30 seconds
-        setInterval(loadKeys, 30000);
-    </script>
-</body>
-</html>
-        """
+        from pathlib import Path
+        dashboard_path = Path(__file__).parent / "dashboard.html"
+        html_content = dashboard_path.read_text(encoding="utf-8")
         return Response(content=html_content, media_type="text/html")
 
     return app
