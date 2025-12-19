@@ -6,6 +6,7 @@ let keysList = [];
 // Make variables globally accessible for other modules
 window.keysList = keysList;
 window.accessToken = null; // Will be updated when token is set
+window.currentUser = null; // Will be updated when user is set
 
 // Check for existing session
 window.addEventListener('DOMContentLoaded', async () => {
@@ -15,6 +16,7 @@ window.addEventListener('DOMContentLoaded', async () => {
         const user = await getCurrentUser();
         if (user) {
             currentUser = user;
+            window.currentUser = user;
             showMainContent();
         } else {
             localStorage.removeItem('acto_access_token');
@@ -76,6 +78,7 @@ async function connectWallet() {
         window.accessToken = accessToken;
         localStorage.setItem('acto_access_token', accessToken);
         currentUser = { user_id: data.user_id, wallet_address: data.wallet_address };
+        window.currentUser = currentUser;
         
         showMainContent();
         showAlert('Successfully connected!', 'success');
@@ -98,6 +101,7 @@ async function disconnectWallet() {
     }
     phantomWallet = null;
     currentUser = null;
+    window.currentUser = null;
     accessToken = null;
     window.accessToken = null;
     localStorage.removeItem('acto_access_token');
@@ -283,6 +287,10 @@ function switchTab(tabName) {
     // Load content for specific tabs
     if (tabName === 'stats') {
         loadStatsKeys();
+    } else if (tabName === 'playground') {
+        if (typeof initPlayground === 'function') {
+            initPlayground();
+        }
     } else if (tabName === 'docs') {
         if (typeof initDocumentation === 'function') {
             initDocumentation();
