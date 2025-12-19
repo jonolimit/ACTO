@@ -5,6 +5,118 @@ let phantomWallet = null;
 let currentUser = null;
 let accessToken = null;
 let keysList = [];
+
+// Fallback API endpoints - defined here in case playground.js doesn't load
+// These are hardcoded and should always be available
+if (!window.API_ENDPOINTS) {
+    window.API_ENDPOINTS = {
+        'GET /v1/proofs': {
+            method: 'GET',
+            path: '/v1/proofs',
+            description: 'List all proofs',
+            requiresBody: false,
+            params: ['limit']
+        },
+        'GET /v1/proofs/{id}': {
+            method: 'GET',
+            path: '/v1/proofs',
+            description: 'Get a specific proof by ID',
+            requiresBody: false,
+            params: ['proof_id'],
+            isDynamic: true
+        },
+        'POST /v1/proofs': {
+            method: 'POST',
+            path: '/v1/proofs',
+            description: 'Submit a new proof',
+            requiresBody: true,
+            exampleBody: {
+                envelope: {
+                    payload: {
+                        version: "1",
+                        subject: {
+                            task_id: "example-task",
+                            robot_id: "example-robot",
+                            run_id: "run-001"
+                        },
+                        created_at: new Date().toISOString(),
+                        telemetry_normalized: {},
+                        telemetry_hash: "example-hash",
+                        payload_hash: "example-payload-hash",
+                        hash_alg: "blake3",
+                        signature_alg: "ed25519",
+                        meta: {}
+                    },
+                    signature_b64: "example-signature",
+                    signer_public_key_b64: "example-public-key"
+                }
+            }
+        },
+        'POST /v1/verify': {
+            method: 'POST',
+            path: '/v1/verify',
+            description: 'Verify a proof without storing it',
+            requiresBody: true,
+            exampleBody: {
+                envelope: {
+                    payload: {
+                        version: "1",
+                        subject: {
+                            task_id: "example-task"
+                        },
+                        created_at: new Date().toISOString(),
+                        telemetry_normalized: {},
+                        telemetry_hash: "example-hash",
+                        payload_hash: "example-payload-hash",
+                        hash_alg: "blake3",
+                        signature_alg: "ed25519",
+                        meta: {}
+                    },
+                    signature_b64: "example-signature",
+                    signer_public_key_b64: "example-public-key"
+                }
+            }
+        },
+        'POST /v1/score': {
+            method: 'POST',
+            path: '/v1/score',
+            description: 'Get reputation score for a proof',
+            requiresBody: true,
+            exampleBody: {
+                envelope: {
+                    payload: {
+                        version: "1",
+                        subject: {
+                            task_id: "example-task"
+                        },
+                        created_at: new Date().toISOString(),
+                        telemetry_normalized: {},
+                        telemetry_hash: "example-hash",
+                        payload_hash: "example-payload-hash",
+                        hash_alg: "blake3",
+                        signature_alg: "ed25519",
+                        meta: {}
+                    },
+                    signature_b64: "example-signature",
+                    signer_public_key_b64: "example-public-key"
+                }
+            }
+        },
+        'POST /v1/access/check': {
+            method: 'POST',
+            path: '/v1/access/check',
+            description: 'Check if a wallet has sufficient token balance',
+            requiresBody: true,
+            getExampleBody: () => ({
+                rpc_url: "https://api.mainnet-beta.solana.com",
+                owner: "WALLET_ADDRESS",
+                mint: "9wpLm21ab8ZMVJWH3pHeqgqNJqWos73G8qDRfaEwtray",
+                minimum: 50000.0
+            })
+        }
+    };
+    console.log('API_ENDPOINTS fallback defined in dashboard.js');
+}
 // Make variables globally accessible for other modules
 window.keysList = keysList;
 window.accessToken = null; // Will be updated when token is set
@@ -307,33 +419,25 @@ function switchTab(tabName) {
                 return;
             }
             
-            // Check if API_ENDPOINTS is available - try multiple times if needed
-            let endpoints = window.API_ENDPOINTS;
-            if (!endpoints) {
-                console.warn('API_ENDPOINTS not found in window scope, retrying...');
-                // Retry after a short delay in case script is still loading
-                setTimeout(() => {
-                    endpoints = window.API_ENDPOINTS;
-                    if (!endpoints) {
-                        console.error('API_ENDPOINTS still not found - playground.js may not be loaded');
-                        endpointSelect.innerHTML = '<option value="">Error: Endpoints not loaded. Please refresh the page.</option>';
-                        return;
-                    }
-                    // Try to initialize now
-                    if (typeof window.initPlayground === 'function') {
-                        window.initPlayground();
-                    }
-                }, 300);
+            // API_ENDPOINTS should always be available now (either from playground.js or fallback in dashboard.js)
+            const endpoints = window.API_ENDPOINTS;
+            if (!endpoints || Object.keys(endpoints).length === 0) {
+                console.error('API_ENDPOINTS not found - this should not happen!');
+                endpointSelect.innerHTML = '<option value="">Error: Endpoints not available</option>';
                 return;
             }
             
-            // API_ENDPOINTS is available, proceed with initialization
+            console.log('API_ENDPOINTS found, populating dropdown with', Object.keys(endpoints).length, 'endpoints');
+            
+            // Try to use initPlayground if available, otherwise manually populate
             if (typeof window.initPlayground === 'function') {
+                console.log('Using initPlayground function');
                 window.initPlayground();
             } else if (typeof initPlayground === 'function') {
+                console.log('Using local initPlayground function');
                 initPlayground();
             } else {
-                console.error('initPlayground function not found, manually populating endpoints');
+                console.log('initPlayground not found, manually populating endpoints');
                 // Fallback: manually populate endpoints
                 endpointSelect.innerHTML = '';
                 Object.keys(endpoints).forEach(key => {
@@ -342,9 +446,12 @@ function switchTab(tabName) {
                     option.textContent = `${key} - ${endpoints[key].description}`;
                     endpointSelect.appendChild(option);
                 });
-                if (endpointSelect.options.length > 0 && typeof window.selectEndpoint === 'function') {
+                if (endpointSelect.options.length > 0) {
                     endpointSelect.value = endpointSelect.options[0].value;
-                    window.selectEndpoint(endpointSelect.options[0].value);
+                    // Try to call selectEndpoint if available
+                    if (typeof window.selectEndpoint === 'function') {
+                        window.selectEndpoint(endpointSelect.options[0].value);
+                    }
                 }
             }
         }, 200);
