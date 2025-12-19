@@ -37,7 +37,26 @@ def _cache_key_list(limit: int, offset: int = 0) -> str:
 
 
 class ProofRegistry:
-    """Database-backed registry for proofs with optional caching."""
+    """
+    Database-backed registry for proofs with optional caching.
+
+    Can be used as a context manager for automatic resource cleanup.
+
+    Example:
+        ```python
+        from acto.registry import ProofRegistry
+        from acto.proof import ProofEnvelope
+
+        # Regular usage
+        registry = ProofRegistry()
+        proof_id = registry.upsert(envelope)
+
+        # Context manager usage
+        with ProofRegistry() as registry:
+            proof_id = registry.upsert(envelope)
+            proof = registry.get(proof_id)
+        ```
+    """
 
     def __init__(self, settings: Settings | None = None):
         self.settings = settings or Settings()
@@ -46,7 +65,36 @@ class ProofRegistry:
         self.cache = get_cache_backend(self.settings)
         Base.metadata.create_all(self.engine)
 
+    def __enter__(self) -> "ProofRegistry":
+        """Enter context manager."""
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb) -> None:
+        """Exit context manager and cleanup resources."""
+        if self.engine:
+            self.engine.dispose()
+
     def upsert(self, envelope: ProofEnvelope, tenant_id: str | None = None) -> str:
+        """
+        Upsert a proof envelope into the registry.
+
+        Args:
+            envelope: Proof envelope to store or update
+            tenant_id: Optional tenant ID for multi-tenant scenarios
+
+        Returns:
+            str: Proof ID (derived from payload hash)
+
+        Example:
+            ```python
+            from acto.registry import ProofRegistry
+            from acto.proof import ProofEnvelope
+
+            registry = ProofRegistry()
+            proof_id = registry.upsert(envelope)
+            print(f"Stored proof: {proof_id}")
+            ```
+        """
         proof_id = _proof_id_from_hash(envelope.payload.payload_hash)
         cache_key = _cache_key_proof(proof_id)
         try:
@@ -90,6 +138,30 @@ class ProofRegistry:
             raise RegistryError(str(e)) from e
 
     def get(self, proof_id: str) -> ProofEnvelope:
+        """
+        Get a proof by ID from the registry.
+
+        Args:
+            proof_id: Proof ID to retrieve
+
+        Returns:
+            ProofEnvelope: Retrieved proof envelope
+
+        Raises:
+            RegistryError: If proof not found
+
+        Example:
+            ```python
+            from acto.registry import ProofRegistry
+
+            registry = ProofRegistry()
+            try:
+                proof = registry.get("abc123...")
+                print(f"Found proof: {proof.payload.subject.task_id}")
+            except RegistryError as e:
+                print(f"Proof not found: {e}")
+            ```
+        """
         # Try cache first
         cache_key = _cache_key_proof(proof_id)
         if self.cache:

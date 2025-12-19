@@ -13,5 +13,5 @@ def generate(out: str = typer.Option("data/keys/acto_keypair.json", help="Output
     """Generate a new Ed25519 keypair."""
     kp = KeyPair.generate()
     save_keypair(out, kp)
-    print(f"[green]Saved keypair:[/green] {out}")
+    print(f"[green]✓ Saved keypair:[/green] {out}")
     print(f"[cyan]Public key (b64):[/cyan] {kp.public_key_b64}")

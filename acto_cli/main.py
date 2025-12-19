@@ -5,6 +5,8 @@ import typer
 from acto.config import Settings
 from acto.logging import configure_logging
 from acto_cli.commands.access import access_app
+from acto_cli.commands.completion import completion_app
+from acto_cli.commands.interactive import interactive_app
 from acto_cli.commands.keys import keys_app
 from acto_cli.commands.pipeline import pipeline_app
 from acto_cli.commands.plugins import plugins_app
@@ -13,7 +15,7 @@ from acto_cli.commands.registry import registry_app
 from acto_cli.commands.score import score_app
 from acto_cli.commands.server import server_app
 
-app = typer.Typer(add_completion=False, help="ACTO CLI")
+app = typer.Typer(add_completion=True, help="ACTO CLI")
 
 app.add_typer(keys_app, name="keys")
 app.add_typer(proof_app, name="proof")
@@ -23,6 +25,8 @@ app.add_typer(registry_app, name="registry")
 app.add_typer(score_app, name="score")
 app.add_typer(plugins_app, name="plugins")
 app.add_typer(pipeline_app, name="pipeline")
+app.add_typer(interactive_app, name="interactive")
+app.add_typer(completion_app, name="completion")
 
 
 @app.callback()

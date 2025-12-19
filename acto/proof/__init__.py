@@ -1,3 +1,4 @@
+from .async_engine import create_proof_async, verify_proof_async
 from .batch import create_batch_proofs, create_batch_proof_with_links
 from .chaining import (
     ProofChain,
@@ -22,6 +23,8 @@ __all__ = [
     "ProofSubject",
     "create_proof",
     "verify_proof",
+    "create_proof_async",
+    "verify_proof_async",
     "compute_payload_hash",
     "ProofDiff",
     "compare_proofs",

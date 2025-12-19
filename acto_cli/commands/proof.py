@@ -4,6 +4,7 @@ from pathlib import Path
 
 import typer
 from rich import print
+from rich.progress import Progress, SpinnerColumn, TextColumn
 
 from acto.crypto import load_keypair
 from acto.errors import ProofError, TelemetryError
@@ -35,27 +36,45 @@ def create(
 ) -> None:
     """Create a signed proof envelope."""
     try:
-        kp = load_keypair(keypair)
-        parser = _select_parser(source)
-        bundle = parser.parse(
-            source,
-            task_id=task_id,
-            robot_id=robot_id,
-            run_id=run_id,
-        )
+        with Progress(
+            SpinnerColumn(),
+            TextColumn("[progress.description]{task.description}"),
+            transient=True,
+        ) as progress:
+            task1 = progress.add_task("Loading keypair...", total=None)
+            kp = load_keypair(keypair)
+            progress.update(task1, description="[green]Keypair loaded[/green]")
 
-        env = create_proof(bundle, kp.private_key_b64, kp.public_key_b64)
+            task2 = progress.add_task("Parsing telemetry...", total=None)
+            parser = _select_parser(source)
+            bundle = parser.parse(
+                source,
+                task_id=task_id,
+                robot_id=robot_id,
+                run_id=run_id,
+            )
+            progress.update(task2, description="[green]Telemetry parsed[/green]")
 
-        Path(out).parent.mkdir(parents=True, exist_ok=True)
-        Path(out).write_text(env.model_dump_json(indent=2), encoding="utf-8")
+            task3 = progress.add_task("Creating proof...", total=None)
+            env = create_proof(bundle, kp.private_key_b64, kp.public_key_b64)
+            progress.update(task3, description="[green]Proof created[/green]")
 
-        print(f"[green]Proof written:[/green] {out}")
+            task4 = progress.add_task("Writing proof to file...", total=None)
+            Path(out).parent.mkdir(parents=True, exist_ok=True)
+            Path(out).write_text(env.model_dump_json(indent=2), encoding="utf-8")
+            progress.update(task4, description="[green]Proof written[/green]")
+
+            if registry:
+                task5 = progress.add_task("Storing in registry...", total=None)
+                reg = ProofRegistry()
+                proof_id = reg.upsert(env)
+                progress.update(task5, description="[green]Stored in registry[/green]")
+
+        print(f"[green]✓ Proof written:[/green] {out}")
         print(f"[cyan]Payload hash:[/cyan] {env.payload.payload_hash}")
 
         if registry:
-            reg = ProofRegistry()
-            proof_id = reg.upsert(env)
-            print(f"[green]Stored in registry:[/green] {proof_id}")
+            print(f"[green]✓ Stored in registry:[/green] {proof_id}")
 
     except (TelemetryError, ProofError) as e:
         print(f"[red]{e}[/red]")
@@ -68,11 +87,22 @@ def verify(
 ) -> None:
     """Verify a proof envelope."""
     try:
-        env = ProofEnvelope.model_validate_json(
-            Path(proof).read_text(encoding="utf-8")
-        )
-        verify_proof(env)
-        print("[green]Valid proof.[/green]")
+        with Progress(
+            SpinnerColumn(),
+            TextColumn("[progress.description]{task.description}"),
+            transient=True,
+        ) as progress:
+            task1 = progress.add_task("Loading proof...", total=None)
+            env = ProofEnvelope.model_validate_json(
+                Path(proof).read_text(encoding="utf-8")
+            )
+            progress.update(task1, description="[green]Proof loaded[/green]")
+
+            task2 = progress.add_task("Verifying proof...", total=None)
+            verify_proof(env)
+            progress.update(task2, description="[green]Proof verified[/green]")
+
+        print("[green]✓ Valid proof.[/green]")
         print(f"[cyan]Payload hash:[/cyan] {env.payload.payload_hash}")
 
     except Exception as e:

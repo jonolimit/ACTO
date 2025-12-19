@@ -1,12 +1,28 @@
 from __future__ import annotations
 
+from pathlib import Path
+
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+
+def _get_config_files() -> list[str]:
+    """Get list of config files to load."""
+    files = [".env"]
+    home = Path.home()
+    config_file = home / ".acto" / "config.toml"
+    if config_file.exists():
+        files.append(str(config_file))
+    return files
 
 
 class Settings(BaseSettings):
     """Central configuration for ACTO."""
 
-    model_config = SettingsConfigDict(env_prefix="ACTO_", env_file=".env", extra="ignore")
+    model_config = SettingsConfigDict(
+        env_prefix="ACTO_",
+        env_file=_get_config_files(),
+        extra="ignore",
+    )
 
     # Storage
     db_url: str = "sqlite:///./data/acto.sqlite"

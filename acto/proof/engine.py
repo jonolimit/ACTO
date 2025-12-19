@@ -34,6 +34,46 @@ def create_proof(
     settings: Settings | None = None,
     meta: dict[str, Any] | None = None,
 ) -> ProofEnvelope:
+    """
+    Create a signed proof envelope from telemetry bundle.
+
+    Args:
+        bundle: Telemetry bundle containing task and telemetry data
+        signer_private_key_b64: Base64-encoded Ed25519 private key for signing
+        signer_public_key_b64: Base64-encoded Ed25519 public key
+        settings: Optional settings override (defaults to global Settings)
+        meta: Optional metadata dictionary to include in proof
+
+    Returns:
+        ProofEnvelope: Signed proof envelope
+
+    Raises:
+        ProofError: If proof creation fails
+
+    Example:
+        ```python
+        from acto.proof import create_proof
+        from acto.telemetry.models import TelemetryBundle
+        from acto.crypto import load_keypair
+
+        # Load keypair
+        kp = load_keypair("data/keys/acto_keypair.json")
+
+        # Create telemetry bundle
+        bundle = TelemetryBundle(
+            task_id="cleaning-run-001",
+            robot_id="robot-001",
+            telemetry=[...]
+        )
+
+        # Create proof
+        envelope = create_proof(
+            bundle,
+            kp.private_key_b64,
+            kp.public_key_b64
+        )
+        ```
+    """
     settings = settings or Settings()
     meta = meta or {}
 
@@ -76,6 +116,36 @@ def create_proof(
 
 
 def verify_proof(envelope: ProofEnvelope) -> bool:
+    """
+    Verify a proof envelope's integrity and signature.
+
+    Args:
+        envelope: Proof envelope to verify
+
+    Returns:
+        bool: True if proof is valid
+
+    Raises:
+        ProofError: If proof is invalid (hash mismatch or invalid signature)
+
+    Example:
+        ```python
+        from acto.proof import verify_proof, ProofEnvelope
+        from pathlib import Path
+
+        # Load proof from file
+        envelope = ProofEnvelope.model_validate_json(
+            Path("proof.json").read_text()
+        )
+
+        # Verify proof
+        try:
+            is_valid = verify_proof(envelope)
+            print(f"Proof is valid: {is_valid}")
+        except ProofError as e:
+            print(f"Proof verification failed: {e}")
+        ```
+    """
     payload = envelope.payload
     payload_base = {
         "version": payload.version,
