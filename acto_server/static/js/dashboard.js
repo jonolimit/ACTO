@@ -652,8 +652,11 @@ async function loadWalletStats() {
         return;
     }
     
-    if (!accessToken) {
-        showStatsMessage('Session expired - please reconnect your wallet', 'warning');
+    // Stats endpoint requires API key (not JWT), so get one from localStorage
+    const apiKey = await getFirstApiKey();
+    if (!apiKey) {
+        showStatsMessage('Create an API Key in the "Keys" tab to view your wallet statistics', 'warning');
+        setDefaultStats();
         return;
     }
     
@@ -661,17 +664,24 @@ async function loadWalletStats() {
     hideStatsMessage();
     
     try {
-        // Use JWT token (accessToken) for dashboard API calls, not API key
+        // Use API key for stats endpoint (it requires token balance check)
         const response = await fetch(`${API_BASE}/v1/stats/wallet/${currentUser.wallet_address}`, {
             headers: {
-                'Authorization': `Bearer ${accessToken}`,
+                'Authorization': `Bearer ${apiKey}`,
                 'X-Wallet-Address': currentUser.wallet_address
             }
         });
         
         if (response.status === 401) {
-            // Token expired - don't logout automatically, just show message
-            showStatsMessage('Session expired - please reconnect your wallet', 'warning');
+            showStatsMessage('API Key invalid or expired. Try creating a new one in the "Keys" tab.', 'warning');
+            setDefaultStats();
+            return;
+        }
+        
+        if (response.status === 403) {
+            // Token balance check failed - user doesn't have enough tokens
+            showStatsMessage('Insufficient token balance. You need at least 50,000 ACTO tokens.', 'warning');
+            setDefaultStats();
             return;
         }
         
@@ -684,7 +694,7 @@ async function loadWalletStats() {
     } catch (error) {
         console.error('Failed to load wallet stats:', error);
         // Show empty state instead of crashing
-        showStatsMessage('Could not load statistics - try refreshing the page', 'info');
+        showStatsMessage('Could not load statistics. Check your connection and try again.', 'info');
         setDefaultStats();
     }
 }
