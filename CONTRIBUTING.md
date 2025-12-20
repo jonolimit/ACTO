@@ -14,8 +14,8 @@ Thank you for your interest in contributing to ACTO! This document provides guid
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/your-org/acto.git
-cd acto
+git clone https://github.com/actobotics/ACTO.git
+cd ACTO
 ```
 
 2. Create a virtual environment:
