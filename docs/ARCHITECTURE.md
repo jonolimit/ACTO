@@ -8,7 +8,7 @@ Layers:
 
 Principles:
 
-- Smart-contract-free by default
+- Fast, gas-free off-chain verification
 - Deterministic hashing + Ed25519 signatures
 - Optional Solana integrations are isolated behind lazy imports
 - Security-first design with comprehensive authentication and authorization

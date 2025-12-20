@@ -2,7 +2,7 @@
 
 **Robotics-first proof-of-execution toolkit.**
 
-Generate deterministic, signed execution proofs from robot telemetry and logs. Verify proofs locally or via API. Smart-contract-free by default.
+Generate deterministic, signed execution proofs from robot telemetry and logs. Verify proofs locally or via API. Fast, gas-free verification.
 
 [![Version](https://img.shields.io/badge/version-0.6.0-blue.svg)](https://github.com/actobotics/ACTO)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
@@ -113,7 +113,7 @@ curl -X POST https://api.actobotics.net/v1/proofs \
 
 ## 🔐 Token Gating
 
-Check SPL token balance for access control (no smart contract required):
+Check SPL token balance for access control (off-chain, gas-free):
 
 ```bash
 acto access check \
