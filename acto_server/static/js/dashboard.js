@@ -407,9 +407,13 @@ function showAlert(message, type = 'info') {
 }
 
 // Make API request with authentication
+// Options: { silent: true } to suppress error alerts
 async function apiRequest(endpoint, options = {}) {
+    const silent = options.silent || false;
+    delete options.silent; // Don't pass to fetch
+    
     if (!accessToken) {
-        showAlert('Please connect your wallet first', 'error');
+        if (!silent) showAlert('Please connect your wallet first', 'error');
         return null;
     }
     
@@ -426,8 +430,8 @@ async function apiRequest(endpoint, options = {}) {
         });
         
         if (response.status === 401) {
-            // Don't auto-disconnect - let user see the error and decide
-            showAlert('Authentication error. Try refreshing the page or reconnecting your wallet.', 'warning');
+            // Don't auto-disconnect - silently fail or show warning
+            if (!silent) showAlert('Authentication error. Try refreshing the page or reconnecting your wallet.', 'warning');
             return null;
         }
         
@@ -438,7 +442,7 @@ async function apiRequest(endpoint, options = {}) {
         
         return await response.json();
     } catch (error) {
-        showAlert(`Error: ${error.message}`, 'error');
+        if (!silent) showAlert(`Error: ${error.message}`, 'error');
         return null;
     }
 }
@@ -486,7 +490,7 @@ async function loadKeys() {
     }
 }
 
-// Load keys for statistics view
+// Load keys for statistics view (silent - no alerts on error)
 async function loadStatsKeys() {
     if (!accessToken) return;
     
@@ -495,34 +499,47 @@ async function loadStatsKeys() {
     
     statsKeysList.innerHTML = '<div class="empty-state"><p>Loading keys...</p></div>';
     
-    const result = await apiRequest('/v1/keys');
-    if (!result) {
-        statsKeysList.innerHTML = '<div class="empty-state"><p>Failed to load keys.</p></div>';
-        return;
-    }
-    
-    keysList = result.keys || [];
-    window.keysList = keysList;
-    
-    if (keysList.length === 0) {
-        statsKeysList.innerHTML = '<div class="empty-state"><p>No API keys found. Create your first key in the API Keys tab!</p></div>';
-        return;
-    }
-    
-    statsKeysList.innerHTML = keysList.map(key => `
-        <div class="key-item">
-            <div class="key-info">
-                <h3>${escapeHtml(key.name)}</h3>
-                <p><strong>ID:</strong> ${escapeHtml(key.key_id)}</p>
-                <p><strong>Total Requests:</strong> ${key.request_count || 0}</p>
-                <p><strong>Endpoints Used:</strong> ${Object.keys(key.endpoint_usage || {}).length}</p>
-                ${key.last_used_at ? `<p><strong>Last Used:</strong> ${new Date(key.last_used_at).toLocaleString()}</p>` : '<p><strong>Last Used:</strong> Never</p>'}
+    try {
+        // Use fetch directly to avoid showing alerts on error
+        const response = await fetch(`${API_BASE}/v1/keys`, {
+            headers: {
+                'Authorization': `Bearer ${accessToken}`,
+                'X-Wallet-Address': currentUser?.wallet_address || ''
+            }
+        });
+        
+        if (!response.ok) {
+            statsKeysList.innerHTML = '<div class="empty-state"><p>Could not load keys.</p></div>';
+            return;
+        }
+        
+        const result = await response.json();
+        keysList = result.keys || [];
+        window.keysList = keysList;
+        
+        if (keysList.length === 0) {
+            statsKeysList.innerHTML = '<div class="empty-state"><p>No API keys found. Create your first key in the API Keys tab!</p></div>';
+            return;
+        }
+        
+        statsKeysList.innerHTML = keysList.map(key => `
+            <div class="key-item">
+                <div class="key-info">
+                    <h3>${escapeHtml(key.name)}</h3>
+                    <p><strong>ID:</strong> ${escapeHtml(key.key_id)}</p>
+                    <p><strong>Total Requests:</strong> ${key.request_count || 0}</p>
+                    <p><strong>Endpoints Used:</strong> ${Object.keys(key.endpoint_usage || {}).length}</p>
+                    ${key.last_used_at ? `<p><strong>Last Used:</strong> ${new Date(key.last_used_at).toLocaleString()}</p>` : '<p><strong>Last Used:</strong> Never</p>'}
+                </div>
+                <div class="key-actions">
+                    <button class="btn btn-primary" onclick="showKeyStats('${key.key_id}')">View Statistics</button>
+                </div>
             </div>
-            <div class="key-actions">
-                <button class="btn btn-primary" onclick="showKeyStats('${key.key_id}')">View Statistics</button>
-            </div>
-        </div>
-    `).join('');
+        `).join('');
+    } catch (error) {
+        console.error('Failed to load stats keys:', error);
+        statsKeysList.innerHTML = '<div class="empty-state"><p>Could not load keys.</p></div>';
+    }
 }
 
 // Tab switching
