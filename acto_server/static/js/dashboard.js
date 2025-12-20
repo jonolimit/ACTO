@@ -600,15 +600,18 @@ document.addEventListener('keydown', (e) => {
 // Load wallet statistics
 async function loadWalletStats() {
     if (!currentUser || !currentUser.wallet_address) {
-        console.log('No wallet connected, skipping wallet stats');
+        showStatsMessage('Connect your wallet to view statistics', 'info');
         return;
     }
     
     const apiKey = await getFirstApiKey();
     if (!apiKey) {
-        console.log('No API key found, skipping wallet stats');
+        showStatsMessage('Create an API Key in the "Keys" tab to view your wallet statistics', 'warning');
         return;
     }
+    
+    // Clear any previous messages
+    hideStatsMessage();
     
     try {
         const response = await fetch(`${API_BASE}/v1/stats/wallet/${currentUser.wallet_address}`, {
@@ -631,6 +634,37 @@ async function loadWalletStats() {
         document.getElementById('statVerifications').textContent = '0';
         document.getElementById('statSuccessRate').textContent = '0%';
         document.getElementById('statLastActivity').textContent = 'Never';
+    }
+}
+
+// Show message in stats tab
+function showStatsMessage(message, type = 'info') {
+    let msgBox = document.getElementById('statsMessageBox');
+    if (!msgBox) {
+        msgBox = document.createElement('div');
+        msgBox.id = 'statsMessageBox';
+        const statsTab = document.getElementById('tab-stats');
+        if (statsTab) {
+            statsTab.insertBefore(msgBox, statsTab.firstChild);
+        }
+    }
+    
+    const icons = {
+        info: '💡',
+        warning: '⚠️',
+        error: '❌'
+    };
+    
+    msgBox.className = `stats-message stats-message-${type}`;
+    msgBox.innerHTML = `<span class="stats-message-icon">${icons[type] || icons.info}</span> ${message}`;
+    msgBox.style.display = 'flex';
+}
+
+// Hide stats message
+function hideStatsMessage() {
+    const msgBox = document.getElementById('statsMessageBox');
+    if (msgBox) {
+        msgBox.style.display = 'none';
     }
 }
 
