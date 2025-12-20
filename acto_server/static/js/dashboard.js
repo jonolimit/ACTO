@@ -103,22 +103,67 @@ const SUPPORTED_WALLETS = [
 window.addEventListener('DOMContentLoaded', async () => {
     accessToken = localStorage.getItem('acto_access_token');
     window.accessToken = accessToken;
+    
     if (accessToken) {
+        // Try to restore session from stored token
         const user = await getCurrentUser();
         if (user) {
             currentUser = user;
             window.currentUser = user;
             showMainContent();
+            
+            // Try to auto-reconnect wallet for signing capabilities
+            autoReconnectWallet();
+            
+            // Show welcome back message
+            setTimeout(() => {
+                showAlert('Session restored - Welcome back!', 'success');
+            }, 500);
         } else {
+            // Token expired or invalid - clear it
             localStorage.removeItem('acto_access_token');
+            localStorage.removeItem('acto_wallet_type');
             accessToken = null;
             window.accessToken = null;
+            
+            // Show session expired message
+            setTimeout(() => {
+                showAlert('Session expired - Please reconnect your wallet', 'warning');
+            }, 500);
         }
     }
     
     // Populate wallet list in modal
     populateWalletList();
 });
+
+// Auto-reconnect to previously used wallet (for signing capabilities)
+async function autoReconnectWallet() {
+    const savedWalletType = localStorage.getItem('acto_wallet_type');
+    if (!savedWalletType) return;
+    
+    const wallet = SUPPORTED_WALLETS.find(w => w.id === savedWalletType);
+    if (!wallet || !wallet.isInstalled()) return;
+    
+    try {
+        const provider = wallet.getProvider();
+        if (provider && provider.isConnected) {
+            // Wallet already connected
+            connectedWallet = provider;
+            window.connectedWallet = connectedWallet;
+        } else if (provider && provider.connect) {
+            // Try silent connect (won't show popup if previously approved)
+            const resp = await provider.connect({ onlyIfTrusted: true });
+            if (resp && resp.publicKey) {
+                connectedWallet = provider;
+                window.connectedWallet = connectedWallet;
+            }
+        }
+    } catch (e) {
+        // Silent connect failed - user will need to manually reconnect if they want to sign
+        console.debug('Auto-reconnect skipped:', e.message);
+    }
+}
 
 // Populate the wallet selection modal with available wallets
 function populateWalletList() {
@@ -574,6 +619,9 @@ window.deleteKey = async function(keyId) {
     });
     
     if (result && result.success) {
+        // Remove from localStorage
+        localStorage.removeItem(`api_key_${keyId}`);
+        
         showAlert('API key deleted successfully', 'success');
         await loadKeys();
     }
