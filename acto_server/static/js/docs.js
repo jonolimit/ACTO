@@ -6,27 +6,19 @@ var API_BASE = window.API_BASE || window.location.origin;
 window.API_BASE = API_BASE;
 
 // Define initDocumentation function immediately and make it globally available
-// This ensures it's available even if called before the script fully loads
 window.initDocumentation = function initDocumentation() {
-    // Use a small delay to ensure DOM is ready and all functions are loaded
+    // Use a small delay to ensure DOM is ready
     setTimeout(() => {
-        // Check if required functions are available
         if (typeof window.showDocumentation !== 'function') {
-            console.warn('showDocumentation not yet available, retrying...');
             setTimeout(initDocumentation, 50);
             return;
         }
         
         const docContent = document.getElementById('docContent');
-        
         if (!docContent) {
-            console.error('docContent element not found, retrying...');
-            // Try again after a short delay
             setTimeout(initDocumentation, 100);
             return;
         }
-        
-        console.log('Initializing documentation, current content:', docContent.innerHTML ? 'has content' : 'empty');
         
         // Reset the flag to allow re-setting listeners when tab is opened
         if (typeof menuListenersSetup !== 'undefined') {
@@ -37,13 +29,11 @@ window.initDocumentation = function initDocumentation() {
         if (typeof setupDocumentationMenuListeners === 'function') {
             setupDocumentationMenuListeners();
         } else {
-            console.warn('setupDocumentationMenuListeners not yet available, will retry');
             setTimeout(initDocumentation, 50);
             return;
         }
         
-        // Always show overview section when initializing
-        // This ensures content is displayed even if the tab was just opened
+        // Show overview section when initializing
         window.showDocumentation('overview');
         
         // Load token gating configuration
@@ -77,8 +67,9 @@ async function loadTokenGatingConfig() {
 }
 
 // Update documentation content with loaded config values
+// Note: This function only updates existing DOM elements, does NOT re-render
 function updateDocumentationWithConfig() {
-    // Update DOM elements with IDs
+    // Update DOM elements with IDs (if they exist in the current view)
     const mintElements = document.querySelectorAll('#doc-token-mint, #doc-token-mint-2, #doc-token-mint-3');
     mintElements.forEach(el => {
         if (el) el.textContent = tokenGatingConfig.mint;
@@ -89,10 +80,7 @@ function updateDocumentationWithConfig() {
         if (el) el.textContent = tokenGatingConfig.minimum.toLocaleString();
     });
     
-    // Re-render current section if it's already displayed
-    if (currentDocSection && typeof window.showDocumentation === 'function') {
-        window.showDocumentation(currentDocSection);
-    }
+    // DO NOT re-render here - this was causing an infinite loop!
 }
 
 const documentation = {
@@ -393,17 +381,17 @@ let menuListenersSetup = false;
 
 // Define showDocumentation and make it globally available immediately
 window.showDocumentation = function showDocumentation(section = 'overview') {
-    console.log('showDocumentation called with section:', section);
     currentDocSection = section;
     
-    // Try to find docContent, with retry logic
+    // Try to find docContent
     let docContent = document.getElementById('docContent');
     if (!docContent) {
-        console.warn('docContent element not found, retrying...');
-        // Try to find it again after a short delay
+        // Element not found, retry once after short delay
         setTimeout(() => {
-            if (typeof window.showDocumentation === 'function') {
-                window.showDocumentation(section);
+            const retryContent = document.getElementById('docContent');
+            if (retryContent && documentation[section]) {
+                retryContent.innerHTML = documentation[section].content;
+                updateDocumentationWithConfig();
             }
         }, 100);
         return;
@@ -411,23 +399,12 @@ window.showDocumentation = function showDocumentation(section = 'overview') {
     
     const doc = documentation[section];
     if (!doc) {
-        console.error(`Documentation section '${section}' not found`);
         docContent.innerHTML = '<p>Documentation section not found.</p>';
         return;
     }
     
-    console.log('Setting content for section:', section, 'Content length:', doc.content.length);
-    
-    // Set the content - ensure it's actually set
+    // Set the content
     docContent.innerHTML = doc.content;
-    
-    // Verify content was set
-    if (!docContent.innerHTML || docContent.innerHTML.trim() === '') {
-        console.error('Failed to set content, retrying...');
-        setTimeout(() => {
-            docContent.innerHTML = doc.content;
-        }, 50);
-    }
     
     // Update active menu item
     document.querySelectorAll('.doc-menu-item').forEach(item => {
@@ -437,27 +414,22 @@ window.showDocumentation = function showDocumentation(section = 'overview') {
         }
     });
     
-    // Update config values after rendering
+    // Update config values after rendering (once, not recursively)
     setTimeout(() => {
         updateDocumentationWithConfig();
     }, 100);
-    
-    console.log('Documentation section displayed:', section, 'Content set:', docContent.innerHTML.length > 0);
 };
 
 // Set up event listeners for documentation navigation menu
 function setupDocumentationMenuListeners() {
     const menuItems = document.querySelectorAll('.doc-menu-item');
     if (menuItems.length === 0) {
-        console.warn('No documentation menu items found, will retry...');
         // Retry after a short delay
         setTimeout(setupDocumentationMenuListeners, 100);
         return;
     }
     
-    console.log(`Setting up event listeners for ${menuItems.length} menu items`);
-    
-    menuItems.forEach((item, index) => {
+    menuItems.forEach((item) => {
         // Remove existing listeners by cloning the element
         const newItem = item.cloneNode(true);
         item.parentNode.replaceChild(newItem, item);
@@ -467,23 +439,12 @@ function setupDocumentationMenuListeners() {
             e.preventDefault();
             e.stopPropagation();
             const section = this.dataset.section;
-            console.log('Menu item clicked, section:', section, 'index:', index);
-            if (section) {
-                console.log('Switching to documentation section:', section);
-                if (typeof window.showDocumentation === 'function') {
-                    window.showDocumentation(section);
-                } else {
-                    console.error('showDocumentation function not available');
-                }
-            } else {
-                console.error('No section found in dataset for menu item');
+            if (section && typeof window.showDocumentation === 'function') {
+                window.showDocumentation(section);
             }
         });
-        
-        console.log(`Event listener added to menu item ${index + 1}: ${newItem.dataset.section}`);
     });
     
     menuListenersSetup = true;
-    console.log('Documentation menu listeners setup complete');
 }
 
