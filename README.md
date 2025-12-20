@@ -248,11 +248,99 @@ ACTO provides a hosted API service at `https://api.actobotics.net` for submittin
 - `POST /v1/proofs` - Submit a proof
 - `GET /v1/proofs` - List proofs
 - `GET /v1/proofs/{proof_id}` - Get a proof
+- `POST /v1/proofs/search` - Search and filter proofs with pagination
 - `POST /v1/verify` - Verify a proof
+- `POST /v1/verify/batch` - Batch verify multiple proofs
 - `POST /v1/score` - Score a proof
+- `GET /v1/stats/wallet/{address}` - Get wallet statistics
 - `POST /v1/access/check` - Check Solana token access
 
 For complete API documentation, see [docs/API.md](docs/API.md).
+
+### Proof Search & Filter (v0.5.23)
+
+Search and filter proofs with flexible query parameters:
+
+```python
+import httpx
+
+response = httpx.post(
+    "https://api.actobotics.net/v1/proofs/search",
+    headers={
+        "Authorization": "Bearer your-api-key",
+        "X-Wallet-Address": "your-wallet-address"
+    },
+    json={
+        "task_id": "pick-and-place-001",      # Filter by task
+        "robot_id": "robot-alpha",             # Filter by robot
+        "created_after": "2024-01-01T00:00:00Z",  # Date range
+        "created_before": "2024-12-31T23:59:59Z",
+        "search_text": "warehouse",            # Full-text search
+        "limit": 50,
+        "offset": 0,
+        "sort_field": "created_at",
+        "sort_order": "desc"
+    }
+)
+
+result = response.json()
+# {
+#   "items": [...],
+#   "total": 150,
+#   "limit": 50,
+#   "offset": 0,
+#   "has_more": true
+# }
+```
+
+**Supported filters:**
+- `task_id` - Filter by task ID
+- `robot_id` - Filter by robot ID
+- `run_id` - Filter by run ID
+- `signer_public_key` - Filter by signer's public key
+- `created_after` / `created_before` - Date range filter (ISO 8601)
+- `search_text` - Full-text search across all metadata
+
+### Batch Verification (v0.5.23)
+
+Verify multiple proofs in a single API call for efficient bulk operations:
+
+```python
+import httpx
+
+response = httpx.post(
+    "https://api.actobotics.net/v1/verify/batch",
+    headers={
+        "Authorization": "Bearer your-api-key",
+        "X-Wallet-Address": "your-wallet-address"
+    },
+    json={
+        "envelopes": [
+            {"payload": {...}, "signature_b64": "...", "signer_public_key_b64": "..."},
+            {"payload": {...}, "signature_b64": "...", "signer_public_key_b64": "..."},
+            {"payload": {...}, "signature_b64": "...", "signer_public_key_b64": "..."}
+        ]
+    }
+)
+
+result = response.json()
+# {
+#   "results": [
+#     {"index": 0, "valid": true, "reason": "ok", "payload_hash": "abc123..."},
+#     {"index": 1, "valid": true, "reason": "ok", "payload_hash": "def456..."},
+#     {"index": 2, "valid": false, "reason": "Invalid signature", "payload_hash": null}
+#   ],
+#   "total": 3,
+#   "valid_count": 2,
+#   "invalid_count": 1
+# }
+```
+
+**Benefits:**
+- Single HTTP request for multiple verifications
+- Reduced network latency for bulk operations
+- Summary statistics (`valid_count`, `invalid_count`)
+- Individual results with index for correlation
 
 ### Python Example
 
