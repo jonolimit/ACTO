@@ -46,10 +46,35 @@
         <!-- Login Card -->
         <div class="card login-card" id="loginCard">
             <h2>Connect Your Wallet</h2>
-            <p>Connect your Phantom wallet to access the API key management dashboard and start managing your ACTO API keys.</p>
-            <button class="btn btn-primary" id="connectBtn" onclick="connectWallet()">
-                Connect Phantom Wallet
+            <p>Connect your Solana wallet to access the API key management dashboard and start managing your ACTO API keys.</p>
+            <button class="btn btn-primary btn-connect" id="connectBtn" onclick="openWalletModal()">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"></path>
+                    <path d="M3 5v14a2 2 0 0 0 2 2h16v-5"></path>
+                    <path d="M18 12a2 2 0 0 0 0 4h4v-4h-4z"></path>
+                </svg>
+                Connect Wallet
             </button>
+        </div>
+        
+        <!-- Wallet Selection Modal -->
+        <div class="wallet-modal" id="walletModal">
+            <div class="wallet-modal-overlay" onclick="closeWalletModal()"></div>
+            <div class="wallet-modal-content">
+                <div class="wallet-modal-header">
+                    <h3>Connect a Wallet</h3>
+                    <button class="modal-close" onclick="closeWalletModal()">&times;</button>
+                </div>
+                <div class="wallet-modal-body">
+                    <p class="wallet-modal-subtitle">Select a Solana wallet to connect</p>
+                    <div class="wallet-list" id="walletList">
+                        <!-- Wallet options will be populated by JavaScript -->
+                    </div>
+                    <div class="wallet-modal-footer">
+                        <p>Don't have a wallet? <a href="https://phantom.app/" target="_blank" rel="noopener">Get Phantom</a></p>
+                    </div>
+                </div>
+            </div>
         </div>
         
         <!-- Main Content (hidden until logged in) -->

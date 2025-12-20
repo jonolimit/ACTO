@@ -95,11 +95,8 @@ body::before {
 }
 
 .wallet-address {
-    font-family: 'SF Mono', 'Monaco', 'Cascadia Code', monospace;
-    color: var(--color-text-secondary);
-    font-size: 13px;
     margin-bottom: 12px;
-    letter-spacing: 0.5px;
+    text-align: right;
 }
 
 /* Cards */
@@ -411,6 +408,212 @@ body::before {
     color: #991b1b;
 }
 
+/* Connect Button with Icon */
+.btn-connect {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 28px;
+    font-size: 15px;
+}
+
+.btn-connect svg {
+    flex-shrink: 0;
+}
+
+/* Wallet Modal Overlay */
+.wallet-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+}
+
+.wallet-modal.show {
+    display: flex;
+}
+
+.wallet-modal-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+}
+
+.wallet-modal-content {
+    position: relative;
+    background: var(--color-bg-overlay);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--color-border-light);
+    border-radius: var(--radius-lg);
+    width: 90%;
+    max-width: 420px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    animation: modalSlideIn 0.3s ease-out;
+}
+
+@keyframes modalSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-20px) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.wallet-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 24px 28px 16px;
+    border-bottom: 1px solid var(--color-border-light);
+}
+
+.wallet-modal-header h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--color-text-primary);
+    margin: 0;
+}
+
+.wallet-modal-body {
+    padding: 20px 28px 28px;
+}
+
+.wallet-modal-subtitle {
+    font-size: 14px;
+    color: var(--color-text-secondary);
+    margin-bottom: 20px;
+}
+
+/* Wallet List */
+.wallet-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.wallet-option {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: 14px 18px;
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: 'Inter', sans-serif;
+}
+
+.wallet-option:hover {
+    border-color: var(--color-text-primary);
+    background: var(--color-bg-primary);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-sm);
+}
+
+.wallet-option.not-installed {
+    opacity: 0.7;
+}
+
+.wallet-option.not-installed:hover {
+    opacity: 1;
+    border-color: var(--color-accent);
+}
+
+.wallet-option-left {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.wallet-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+}
+
+.wallet-name {
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--color-text-primary);
+}
+
+.wallet-option-right {
+    display: flex;
+    align-items: center;
+}
+
+.wallet-status {
+    font-size: 12px;
+    font-weight: 500;
+    padding: 4px 10px;
+    border-radius: 12px;
+}
+
+.wallet-status.detected {
+    background: rgba(16, 185, 129, 0.1);
+    color: #065f46;
+}
+
+.wallet-status.install {
+    background: rgba(59, 130, 246, 0.1);
+    color: #1e40af;
+}
+
+.wallet-modal-footer {
+    margin-top: 20px;
+    padding-top: 16px;
+    border-top: 1px solid var(--color-border-light);
+    text-align: center;
+}
+
+.wallet-modal-footer p {
+    font-size: 13px;
+    color: var(--color-text-secondary);
+    margin: 0;
+}
+
+.wallet-modal-footer a {
+    color: var(--color-text-primary);
+    font-weight: 500;
+    text-decoration: none;
+}
+
+.wallet-modal-footer a:hover {
+    text-decoration: underline;
+}
+
+/* Wallet Type Display in Header */
+.wallet-type {
+    display: block;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--color-text-tertiary);
+    margin-bottom: 4px;
+}
+
+.wallet-addr {
+    font-family: 'SF Mono', 'Monaco', 'Cascadia Code', monospace;
+    color: var(--color-text-secondary);
+    font-size: 13px;
+    letter-spacing: 0.5px;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
     .container {
@@ -434,6 +637,17 @@ body::before {
 
     .login-card {
         padding: 60px 24px;
+    }
+    
+    .wallet-modal-content {
+        width: 95%;
+        margin: 20px;
+    }
+    
+    .wallet-modal-header,
+    .wallet-modal-body {
+        padding-left: 20px;
+        padding-right: 20px;
     }
 }
 

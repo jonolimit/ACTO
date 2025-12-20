@@ -1,17 +1,71 @@
+// ACTO Dashboard - Multi-Wallet Support for Solana
+// Supported wallets: Phantom, Solflare, Backpack, Glow, Coinbase Wallet
+
 // Define API_BASE first (this will be used by other modules)
 const API_BASE = window.location.origin;
 window.API_BASE = API_BASE;
-let phantomWallet = null;
+
+// Global state
+let connectedWallet = null;
 let currentUser = null;
 let accessToken = null;
 let keysList = [];
 
 // Make variables globally accessible for other modules
 window.keysList = keysList;
-window.accessToken = null; // Will be updated when token is set
-window.currentUser = null; // Will be updated when user is set
+window.accessToken = null;
+window.currentUser = null;
 
-// Check for existing session
+// Wallet configuration - Define all supported Solana wallets
+const SUPPORTED_WALLETS = [
+    {
+        id: 'phantom',
+        name: 'Phantom',
+        icon: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMjgiIGhlaWdodD0iMTI4IiB2aWV3Qm94PSIwIDAgMTI4IDEyOCI+PGNpcmNsZSBjeD0iNjQiIGN5PSI2NCIgcj0iNjQiIGZpbGw9IiNBQjlGRjIiLz48cGF0aCBkPSJNMTEwLjU4NCA2NC4yMzRoLTcuNjA1YTMzLjM5OCAzMy4zOTggMCAwMC0zMy4yODItMzEuMTZIMzUuNTAzYTMuMzQgMy4zNCAwIDAwLTMuMzQgMy4zNDF2MzcuNDI1YzAgMTguMDMgMTQuNjE2IDMyLjY0NiAzMi42NDYgMzIuNjQ2aDYuMDc1YzE2LjcyNyAwIDMwLjI5OC0xMy41NzEgMzAuMjk4LTMwLjI5OGEzLjM0IDMuMzQgMCAwMTMuMzQtMy4zNGg2LjA2MmEzLjM0IDMuMzQgMCAwMDMuMzQtMy40N3YtMS44MDNhMy4zNCAzLjM0IDAgMDAtMy4zNC0zLjM0em0tNjAuMjM3IDI0LjU3YTUuNzAyIDUuNzAyIDAgMTEwLTExLjQwNCA1LjcwMiA1LjcwMiAwIDAxMCAxMS40MDN6bTIzLjExMiAwYTUuNzAyIDUuNzAyIDAgMTEwLTExLjQwNCA1LjcwMiA1LjcwMiAwIDAxMCAxMS40MDN6IiBmaWxsPSIjRkZGRkZFIi8+PC9zdmc+',
+        color: '#AB9FF2',
+        getProvider: () => window.phantom?.solana || window.solana,
+        isInstalled: () => !!(window.phantom?.solana?.isPhantom || window.solana?.isPhantom),
+        downloadUrl: 'https://phantom.app/'
+    },
+    {
+        id: 'solflare',
+        name: 'Solflare',
+        icon: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMjgiIGhlaWdodD0iMTI4IiB2aWV3Qm94PSIwIDAgMTI4IDEyOCI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJhIiB4MT0iMCUiIHkxPSIwJSIgeDI9IjEwMCUiIHkyPSIxMDAlIj48c3RvcCBvZmZzZXQ9IjAlIiBzdG9wLWNvbG9yPSIjRkZDMTBCIi8+PHN0b3Agb2Zmc2V0PSIxMDAlIiBzdG9wLWNvbG9yPSIjRkE3NjFGIi8+PC9saW5lYXJHcmFkaWVudD48L2RlZnM+PGNpcmNsZSBjeD0iNjQiIGN5PSI2NCIgcj0iNjQiIGZpbGw9InVybCgjYSkiLz48cGF0aCBkPSJNOTcgNTAuNWwtMjMgMzguNWMtMS41IDIuNS00LjUgNC01IDRoLTEwYy0xLjUgMC0yLjUtMS0zLTIuNWwtMTAtMjNjLS41LTEgMC0yLjUgMS0zbDgtNGMxLS41IDIuNSAwIDMgMWw1IDExLjVjLjUgMSAxLjUgMSAyIDBsMTQtMjRjLjUtMSAxLjUtMS41IDIuNS0xaDljMiAwIDMgMiAyIDQuNXoiIGZpbGw9IiNGRkYiLz48L3N2Zz4=',
+        color: '#FC7227',
+        getProvider: () => window.solflare,
+        isInstalled: () => !!window.solflare?.isSolflare,
+        downloadUrl: 'https://solflare.com/'
+    },
+    {
+        id: 'backpack',
+        name: 'Backpack',
+        icon: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMjgiIGhlaWdodD0iMTI4IiB2aWV3Qm94PSIwIDAgMTI4IDEyOCI+PHJlY3Qgd2lkdGg9IjEyOCIgaGVpZ2h0PSIxMjgiIHJ4PSIyNiIgZmlsbD0iI0UzMzYzMCIvPjxwYXRoIGQ9Ik04OCA0NEg0MGMtNC40IDAtOCAzLjYtOCA4djMyYzAgNC40IDMuNiA4IDggOGg0OGM0LjQgMCA4LTMuNiA4LThWNTJjMC00LjQtMy42LTgtOC04em0tMjQgMzZjLTYuNiAwLTEyLTUuNC0xMi0xMnM1LjQtMTIgMTItMTIgMTIgNS40IDEyIDEyLTUuNCAxMi0xMiAxMnoiIGZpbGw9IiNGRkYiLz48cmVjdCB4PSI0NCIgeT0iMzIiIHdpZHRoPSI0MCIgaGVpZ2h0PSI4IiByeD0iNCIgZmlsbD0iI0ZGRiIvPjwvc3ZnPg==',
+        color: '#E33630',
+        getProvider: () => window.backpack,
+        isInstalled: () => !!window.backpack,
+        downloadUrl: 'https://www.backpack.app/'
+    },
+    {
+        id: 'glow',
+        name: 'Glow',
+        icon: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMjgiIGhlaWdodD0iMTI4IiB2aWV3Qm94PSIwIDAgMTI4IDEyOCI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJhIiB4MT0iMCUiIHkxPSIwJSIgeDI9IjEwMCUiIHkyPSIxMDAlIj48c3RvcCBvZmZzZXQ9IjAlIiBzdG9wLWNvbG9yPSIjQkY1QUY0Ii8+PHN0b3Agb2Zmc2V0PSIxMDAlIiBzdG9wLWNvbG9yPSIjOTk0NUZGIi8+PC9saW5lYXJHcmFkaWVudD48L2RlZnM+PGNpcmNsZSBjeD0iNjQiIGN5PSI2NCIgcj0iNjQiIGZpbGw9InVybCgjYSkiLz48Y2lyY2xlIGN4PSI2NCIgY3k9IjY0IiByPSIzMiIgZmlsbD0iI0ZGRiIvPjxjaXJjbGUgY3g9IjY0IiBjeT0iNjQiIHI9IjE2IiBmaWxsPSIjOTk0NUZGIi8+PC9zdmc+',
+        color: '#9945FF',
+        getProvider: () => window.glow?.solana,
+        isInstalled: () => !!window.glow?.solana,
+        downloadUrl: 'https://glow.app/'
+    },
+    {
+        id: 'coinbase',
+        name: 'Coinbase Wallet',
+        icon: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMjgiIGhlaWdodD0iMTI4IiB2aWV3Qm94PSIwIDAgMTI4IDEyOCI+PGNpcmNsZSBjeD0iNjQiIGN5PSI2NCIgcj0iNjQiIGZpbGw9IiMwMDUyRkYiLz48cGF0aCBkPSJNNjQgMjRjMjIuMSAwIDQwIDE3LjkgNDAgNDBzLTE3LjkgNDAtNDAgNDAtNDAtMTcuOS00MC00MCAxNy45LTQwIDQwLTQwem0wIDE2Yy0xMy4zIDAtMjQgMTAuNy0yNCAyNHMxMC43IDI0IDI0IDI0IDI0LTEwLjcgMjQtMjQtMTAuNy0yNC0yNC0yNHoiIGZpbGw9IiNGRkYiLz48cmVjdCB4PSI1MiIgeT0iNTIiIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgcng9IjQiIGZpbGw9IiNGRkYiLz48L3N2Zz4=',
+        color: '#0052FF',
+        getProvider: () => window.coinbaseSolana,
+        isInstalled: () => !!window.coinbaseSolana,
+        downloadUrl: 'https://www.coinbase.com/wallet'
+    }
+];
+
+// Check for existing session on page load
 window.addEventListener('DOMContentLoaded', async () => {
     accessToken = localStorage.getItem('acto_access_token');
     window.accessToken = accessToken;
@@ -27,19 +81,91 @@ window.addEventListener('DOMContentLoaded', async () => {
             window.accessToken = null;
         }
     }
+    
+    // Populate wallet list in modal
+    populateWalletList();
 });
 
-// Connect Phantom Wallet
-// Make it globally available for onclick handlers
-window.connectWallet = async function connectWallet() {
+// Populate the wallet selection modal with available wallets
+function populateWalletList() {
+    const walletListEl = document.getElementById('walletList');
+    if (!walletListEl) return;
+    
+    walletListEl.innerHTML = SUPPORTED_WALLETS.map(wallet => {
+        const isInstalled = wallet.isInstalled();
+        return `
+            <button class="wallet-option ${isInstalled ? '' : 'not-installed'}" 
+                    onclick="${isInstalled ? `connectWallet('${wallet.id}')` : `window.open('${wallet.downloadUrl}', '_blank')`}"
+                    data-wallet-id="${wallet.id}">
+                <div class="wallet-option-left">
+                    <img src="${wallet.icon}" alt="${wallet.name}" class="wallet-icon" />
+                    <span class="wallet-name">${wallet.name}</span>
+                </div>
+                <div class="wallet-option-right">
+                    ${isInstalled 
+                        ? '<span class="wallet-status detected">Detected</span>' 
+                        : '<span class="wallet-status install">Install</span>'}
+                </div>
+            </button>
+        `;
+    }).join('');
+}
+
+// Open wallet selection modal
+window.openWalletModal = function() {
+    const modal = document.getElementById('walletModal');
+    if (modal) {
+        modal.classList.add('show');
+        document.body.style.overflow = 'hidden';
+        // Refresh wallet detection when opening modal
+        populateWalletList();
+    }
+};
+
+// Close wallet selection modal
+window.closeWalletModal = function() {
+    const modal = document.getElementById('walletModal');
+    if (modal) {
+        modal.classList.remove('show');
+        document.body.style.overflow = '';
+    }
+};
+
+// Connect to a specific wallet
+window.connectWallet = async function(walletId) {
+    const wallet = SUPPORTED_WALLETS.find(w => w.id === walletId);
+    if (!wallet) {
+        showAlert('Wallet not found', 'error');
+        return;
+    }
+    
+    if (!wallet.isInstalled()) {
+        showAlert(`${wallet.name} is not installed. Please install it first.`, 'error');
+        window.open(wallet.downloadUrl, '_blank');
+        return;
+    }
+    
     try {
-        if (!window.solana || !window.solana.isPhantom) {
-            showAlert('Phantom wallet not found. Please install Phantom wallet extension.', 'error');
+        const provider = wallet.getProvider();
+        if (!provider) {
+            showAlert(`Could not connect to ${wallet.name}. Please try again.`, 'error');
             return;
         }
         
-        phantomWallet = window.solana;
-        const response = await phantomWallet.connect();
+        // Close modal and show loading state
+        closeWalletModal();
+        showConnectingState(wallet.name);
+        
+        // Connect to wallet
+        let response;
+        if (walletId === 'solflare') {
+            // Solflare has a different connect method
+            await provider.connect();
+            response = { publicKey: provider.publicKey };
+        } else {
+            response = await provider.connect();
+        }
+        
         const walletAddress = response.publicKey.toString();
         
         // Get challenge from server
@@ -50,17 +176,28 @@ window.connectWallet = async function connectWallet() {
         });
         
         if (!challengeRes.ok) {
-            throw new Error('Failed to get challenge');
+            throw new Error('Failed to get challenge from server');
         }
         
         const { challenge } = await challengeRes.json();
         
         // Sign message with wallet
         const message = new TextEncoder().encode(challenge);
-        const signature = await phantomWallet.signMessage(message, 'utf8');
+        let signature;
+        
+        if (walletId === 'solflare') {
+            const signedMessage = await provider.signMessage(message, 'utf8');
+            signature = signedMessage;
+        } else if (walletId === 'backpack') {
+            const signedMessage = await provider.signMessage(message);
+            signature = { signature: signedMessage };
+        } else {
+            signature = await provider.signMessage(message, 'utf8');
+        }
         
         // Convert signature to base64
-        const signatureBase64 = btoa(String.fromCharCode(...signature.signature));
+        const signatureBytes = signature.signature || signature;
+        const signatureBase64 = btoa(String.fromCharCode(...new Uint8Array(signatureBytes)));
         
         // Verify signature with server
         const verifyRes = await fetch(`${API_BASE}/v1/auth/wallet/verify`, {
@@ -81,50 +218,101 @@ window.connectWallet = async function connectWallet() {
         accessToken = data.access_token;
         window.accessToken = accessToken;
         localStorage.setItem('acto_access_token', accessToken);
-        currentUser = { user_id: data.user_id, wallet_address: data.wallet_address };
+        localStorage.setItem('acto_wallet_type', walletId);
+        
+        currentUser = { 
+            user_id: data.user_id, 
+            wallet_address: data.wallet_address,
+            wallet_type: walletId
+        };
         window.currentUser = currentUser;
         
+        connectedWallet = { provider, wallet };
+        
+        hideConnectingState();
         showMainContent();
-        showAlert('Successfully connected!', 'success');
+        showAlert(`Successfully connected with ${wallet.name}!`, 'success');
         await loadKeys();
         
     } catch (error) {
         console.error('Wallet connection error:', error);
-        showAlert(`Error: ${error.message}`, 'error');
+        hideConnectingState();
+        
+        if (error.message.includes('User rejected')) {
+            showAlert('Connection cancelled by user', 'info');
+        } else {
+            showAlert(`Error: ${error.message}`, 'error');
+        }
+    }
+};
+
+// Show connecting state on button
+function showConnectingState(walletName) {
+    const btn = document.getElementById('connectBtn');
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = `<span class="loading"></span> Connecting to ${walletName}...`;
+    }
+}
+
+// Hide connecting state
+function hideConnectingState() {
+    const btn = document.getElementById('connectBtn');
+    if (btn) {
+        btn.disabled = false;
+        btn.innerHTML = `
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"></path>
+                <path d="M3 5v14a2 2 0 0 0 2 2h16v-5"></path>
+                <path d="M18 12a2 2 0 0 0 0 4h4v-4h-4z"></path>
+            </svg>
+            Connect Wallet
+        `;
     }
 }
 
 // Disconnect wallet
-// Make it globally available for onclick handlers
-window.disconnectWallet = async function disconnectWallet() {
-    if (phantomWallet) {
+window.disconnectWallet = async function() {
+    if (connectedWallet?.provider) {
         try {
-            await phantomWallet.disconnect();
+            await connectedWallet.provider.disconnect();
         } catch (e) {
             console.error('Disconnect error:', e);
         }
     }
-    phantomWallet = null;
+    
+    connectedWallet = null;
     currentUser = null;
     window.currentUser = null;
     accessToken = null;
     window.accessToken = null;
     localStorage.removeItem('acto_access_token');
+    localStorage.removeItem('acto_wallet_type');
+    
     document.getElementById('loginCard').classList.remove('hidden');
     document.getElementById('mainContent').classList.add('hidden');
     document.getElementById('walletInfo').style.display = 'none';
+    
     showAlert('Disconnected successfully', 'info');
-}
+};
 
-// Show main content
+// Show main content after successful login
 function showMainContent() {
     document.getElementById('loginCard').classList.add('hidden');
     document.getElementById('mainContent').classList.remove('hidden');
+    
     if (currentUser) {
-        document.getElementById('walletAddress').textContent = 
-            `${currentUser.wallet_address.substring(0, 4)}...${currentUser.wallet_address.substring(currentUser.wallet_address.length - 4)}`;
+        const walletType = localStorage.getItem('acto_wallet_type') || 'wallet';
+        const wallet = SUPPORTED_WALLETS.find(w => w.id === walletType);
+        const walletName = wallet ? wallet.name : 'Wallet';
+        
+        document.getElementById('walletAddress').innerHTML = `
+            <span class="wallet-type">${walletName}</span>
+            <span class="wallet-addr">${currentUser.wallet_address.substring(0, 4)}...${currentUser.wallet_address.substring(currentUser.wallet_address.length - 4)}</span>
+        `;
         document.getElementById('walletInfo').style.display = 'block';
     }
+    
     // Load keys and initialize documentation
     loadKeys();
     if (typeof window.initDocumentation === 'function') {
@@ -132,7 +320,7 @@ function showMainContent() {
     }
 }
 
-// Get current user
+// Get current user from server
 async function getCurrentUser() {
     if (!accessToken) return null;
     try {
@@ -148,7 +336,7 @@ async function getCurrentUser() {
     return null;
 }
 
-// Show alert
+// Show alert notification
 function showAlert(message, type = 'info') {
     const alert = document.getElementById('alert');
     alert.className = `alert alert-${type} show`;
@@ -156,7 +344,7 @@ function showAlert(message, type = 'info') {
     setTimeout(() => alert.classList.remove('show'), 5000);
 }
 
-// Make API request
+// Make API request with authentication
 async function apiRequest(endpoint, options = {}) {
     if (!accessToken) {
         showAlert('Please connect your wallet first', 'error');
@@ -193,7 +381,7 @@ async function apiRequest(endpoint, options = {}) {
     }
 }
 
-// Load and display keys
+// Load and display API keys
 async function loadKeys() {
     if (!accessToken) return;
     
@@ -207,7 +395,7 @@ async function loadKeys() {
     }
     
     keysList = result.keys || [];
-    window.keysList = keysList; // Update global reference
+    window.keysList = keysList;
     
     if (keysList.length === 0) {
         keysListEl.innerHTML = '<div class="empty-state"><p>No API keys found. Create your first key above!</p></div>';
@@ -252,7 +440,7 @@ async function loadStatsKeys() {
     }
     
     keysList = result.keys || [];
-    window.keysList = keysList; // Update global reference
+    window.keysList = keysList;
     
     if (keysList.length === 0) {
         statsKeysList.innerHTML = '<div class="empty-state"><p>No API keys found. Create your first key in the API Keys tab!</p></div>';
@@ -276,8 +464,7 @@ async function loadStatsKeys() {
 }
 
 // Tab switching
-// Make it globally available for onclick handlers
-window.switchTab = function switchTab(tabName) {
+window.switchTab = function(tabName) {
     // Hide all tabs
     document.querySelectorAll('.tab-content').forEach(tab => {
         tab.classList.remove('active');
@@ -294,14 +481,11 @@ window.switchTab = function switchTab(tabName) {
     if (tabName === 'stats') {
         loadStatsKeys();
     } else if (tabName === 'docs') {
-        // Use setTimeout to ensure DOM is updated after tab switch
         setTimeout(() => {
-            // Check for window.initDocumentation (from docs.js)
             if (typeof window.initDocumentation === 'function') {
                 window.initDocumentation();
             } else {
                 console.warn('initDocumentation not yet available, retrying...');
-                // Retry after a short delay in case docs.js is still loading
                 setTimeout(() => {
                     if (typeof window.initDocumentation === 'function') {
                         window.initDocumentation();
@@ -312,9 +496,9 @@ window.switchTab = function switchTab(tabName) {
             }
         }, 10);
     }
-}
+};
 
-// Create new key
+// Create new API key
 document.addEventListener('DOMContentLoaded', () => {
     const createKeyForm = document.getElementById('createKeyForm');
     if (createKeyForm) {
@@ -353,15 +537,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 form.reset();
                 await loadKeys();
-                
             }
         });
     }
 });
 
-// Delete key
-// Make it globally available for onclick handlers
-window.deleteKey = async function deleteKey(keyId) {
+// Delete API key
+window.deleteKey = async function(keyId) {
     if (!confirm('Are you sure you want to delete this API key? This action cannot be undone.')) {
         return;
     }
@@ -374,12 +556,18 @@ window.deleteKey = async function deleteKey(keyId) {
         showAlert('API key deleted successfully', 'success');
         await loadKeys();
     }
-}
+};
 
-// Escape HTML
+// Escape HTML to prevent XSS
 function escapeHtml(text) {
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
 }
 
+// Close modal on Escape key
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+        closeWalletModal();
+    }
+});
