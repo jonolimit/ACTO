@@ -670,11 +670,13 @@ window.executeHealthCheck = async function() {
 };
 
 // Execute Access Check (Token Balance)
+// Token requirements are hardcoded - these are the mandatory requirements for ACTO API access
+const ACTO_TOKEN_MINT = '9wpLm21ab8ZMVJWH3pHeqgqNJqWos73G8qDRfaEwtray';
+const ACTO_MINIMUM_BALANCE = 50000;
+
 window.executeAccessCheck = async function() {
     const responseContainer = document.getElementById('accessResponse');
     const apiKey = document.getElementById('playgroundApiKey').value.trim();
-    const tokenMint = document.getElementById('tokenMint').value.trim();
-    const minimumBalance = parseFloat(document.getElementById('minimumBalance').value) || 50000;
     
     if (!currentUser || !currentUser.wallet_address) {
         responseContainer.innerHTML = formatResponse({ error: 'Please connect your wallet first' }, 400, 0);
@@ -702,8 +704,8 @@ window.executeAccessCheck = async function() {
             body: JSON.stringify({
                 rpc_url: 'https://api.mainnet-beta.solana.com',
                 owner: currentUser.wallet_address,
-                mint: tokenMint,
-                minimum: minimumBalance
+                mint: ACTO_TOKEN_MINT,
+                minimum: ACTO_MINIMUM_BALANCE
             })
         });
         

@@ -728,6 +728,25 @@ body::before {
     margin-left: auto;
 }
 
+.endpoint-info {
+    padding: 12px 16px;
+    background: rgba(59, 130, 246, 0.08);
+    border-left: 3px solid #3b82f6;
+    border-radius: var(--radius-sm);
+    margin-bottom: 16px;
+}
+
+.endpoint-info p {
+    margin: 0;
+    font-size: 13px;
+    color: var(--color-text-secondary);
+    line-height: 1.5;
+}
+
+.endpoint-info strong {
+    color: var(--color-text-primary);
+}
+
 .endpoint-body {
     padding: 16px 0;
     border-top: 1px solid var(--color-border-light);
