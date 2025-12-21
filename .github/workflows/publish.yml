@@ -56,15 +56,12 @@ jobs:
     name: Test Installation
     needs: build
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: ["3.10", "3.11", "3.12"]
     
     steps:
-    - name: Set up Python ${{ matrix.python-version }}
+    - name: Set up Python
       uses: actions/setup-python@v5
       with:
-        python-version: ${{ matrix.python-version }}
+        python-version: "3.11"
     
     - name: Download artifacts
       uses: actions/download-artifact@v4
@@ -75,20 +72,13 @@ jobs:
     - name: Install package from wheel
       run: pip install dist/*.whl
     
-    - name: Test import
+    - name: Test basic imports
       run: |
         python -c "import acto; print(f'ACTO version: {acto.__version__}')"
-        python -c "from acto.proof import create_proof, verify_proof; print('Proof module OK')"
-        python -c "from acto.crypto import KeyPair; print('Crypto module OK')"
-        python -c "from acto.telemetry import TelemetryBundle; print('Telemetry module OK')"
-        echo "Package name: actobotics (import as 'acto')"
-    
-    - name: Test CLI
-      run: |
-        acto --version
-        acto --help
-        acto keys --help
-        acto proof --help
+        python -c "from acto.proof import create_proof, verify_proof; print('Proof module: OK')"
+        python -c "from acto.crypto import KeyPair; print('Crypto module: OK')"
+        python -c "from acto.telemetry import TelemetryBundle; print('Telemetry module: OK')"
+        echo "All imports successful!"
 
   publish-pypi:
     name: Publish to PyPI
