@@ -20,8 +20,8 @@ export default defineConfig({
     ['link', { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' }],
   ],
   
-  // Light mode by default (like dashboard)
-  appearance: 'light',
+  // Disable dark mode completely - light only
+  appearance: false,
 
   // Theme configuration
   themeConfig: {

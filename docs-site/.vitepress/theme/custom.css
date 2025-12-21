@@ -23,11 +23,11 @@
   --vp-c-text-2: #6b7280;
   --vp-c-text-3: #9ca3af;
   
-  /* Brand colors - matching dashboard blue */
-  --vp-c-brand-1: #3b82f6;
-  --vp-c-brand-2: #2563eb;
-  --vp-c-brand-3: #60a5fa;
-  --vp-c-brand-soft: rgba(59, 130, 246, 0.12);
+  /* Brand colors - neutral gray/black (no blue) */
+  --vp-c-brand-1: #4b5563;
+  --vp-c-brand-2: #1a1a1a;
+  --vp-c-brand-3: #6b7280;
+  --vp-c-brand-soft: rgba(75, 85, 99, 0.12);
   
   /* Border colors */
   --vp-c-border: #e5e7eb;
@@ -52,27 +52,6 @@
   --vp-sidebar-bg-color: rgba(255, 255, 255, 0.95);
 }
 
-/* Dark mode - subtle adjustments */
-.dark {
-  --vp-c-bg: #111827;
-  --vp-c-bg-alt: #1f2937;
-  --vp-c-bg-elv: #1f2937;
-  --vp-c-bg-soft: #374151;
-  
-  --vp-c-text-1: #f9fafb;
-  --vp-c-text-2: #d1d5db;
-  --vp-c-text-3: #9ca3af;
-  
-  --vp-c-brand-1: #60a5fa;
-  --vp-c-brand-2: #3b82f6;
-  --vp-c-brand-3: #93c5fd;
-  --vp-c-brand-soft: rgba(96, 165, 250, 0.16);
-  
-  --vp-c-border: #374151;
-  --vp-c-divider: #1f2937;
-  
-  --vp-sidebar-bg-color: #111827;
-}
 
 /* -----------------------------------------------------------------------------
    Typography - Dashboard Fonts
@@ -128,6 +107,16 @@ body {
   background-color: var(--vp-c-bg);
 }
 
+/* Hero background image on home page (like Dashboard) */
+.VPHome {
+  background-image: url('/hero.png');
+  background-size: cover;
+  background-position: center right;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  min-height: 100vh;
+}
+
 /* Subtle gradient overlay like dashboard */
 .VPContent {
   position: relative;
@@ -142,10 +131,6 @@ body {
   border-bottom: 1px solid var(--vp-c-divider);
 }
 
-.dark .VPNavBar {
-  background: rgba(17, 24, 39, 0.95) !important;
-  border-bottom: 1px solid var(--vp-c-border);
-}
 
 /* Logo text with Playfair Display */
 .VPNavBarTitle .title {
@@ -182,8 +167,11 @@ body {
 }
 
 .VPSidebarItem.is-active > .item .text {
-  color: var(--vp-c-brand-1);
-  font-weight: 500;
+  color: var(--vp-c-text-1);
+  font-weight: 600;
+  background: var(--vp-c-bg-soft);
+  padding: 2px 8px;
+  border-radius: 4px;
 }
 
 /* Sidebar group titles */
@@ -207,9 +195,6 @@ body {
   box-shadow: var(--shadow-sm);
 }
 
-.dark .vp-doc .custom-block {
-  background: rgba(31, 41, 55, 0.95);
-}
 
 .vp-doc .custom-block.info {
   border-left: 4px solid var(--vp-c-brand-1);
@@ -245,10 +230,6 @@ body {
   box-shadow: var(--shadow-sm);
 }
 
-.dark .vp-doc div[class*='language-'] {
-  background: #1a1a2e;
-  border-color: var(--vp-c-border);
-}
 
 /* Code block language label */
 .vp-doc div[class*='language-'] > span.lang {
@@ -269,7 +250,7 @@ body {
   border-radius: var(--radius-sm);
   padding: 2px 6px;
   font-size: 0.9em;
-  color: var(--vp-c-brand-1);
+  color: var(--vp-c-text-1);
   border: 1px solid var(--vp-c-divider);
 }
 
@@ -285,9 +266,6 @@ body {
   box-shadow: var(--shadow-sm);
 }
 
-.dark .vp-doc table {
-  background: rgba(31, 41, 55, 0.95);
-}
 
 .vp-doc tr {
   border-top: 1px solid var(--vp-c-divider);
@@ -379,12 +357,9 @@ body {
   transition: all 0.2s ease;
 }
 
-.dark .VPFeature {
-  background: rgba(31, 41, 55, 0.95);
-}
 
 .VPFeature:hover {
-  border-color: var(--vp-c-text-primary);
+  border-color: var(--vp-c-text-1);
   transform: translateY(-2px);
   box-shadow: var(--shadow-md);
 }
@@ -407,18 +382,20 @@ body {
 }
 
 /* -----------------------------------------------------------------------------
-   Links - Dashboard Style
+   Links - Dashboard Style (no blue, use gray/black)
    ----------------------------------------------------------------------------- */
 .vp-doc a {
-  color: var(--vp-c-brand-1);
-  text-decoration: none;
+  color: var(--vp-c-text-1);
+  text-decoration: underline;
+  text-decoration-color: var(--vp-c-text-3);
+  text-underline-offset: 2px;
   font-weight: 500;
-  transition: color 0.2s ease;
+  transition: all 0.2s ease;
 }
 
 .vp-doc a:hover {
-  color: var(--vp-c-brand-2);
-  text-decoration: underline;
+  color: #000000;
+  text-decoration-color: #000000;
 }
 
 /* -----------------------------------------------------------------------------
@@ -432,9 +409,6 @@ body {
   box-shadow: var(--shadow-lg);
 }
 
-.dark .VPLocalSearchBox .shell {
-  background: rgba(31, 41, 55, 0.95);
-}
 
 /* -----------------------------------------------------------------------------
    Badge Styles (for API methods)
@@ -486,9 +460,6 @@ body {
   margin: 16px 0;
 }
 
-.dark .endpoint-card {
-  background: rgba(31, 41, 55, 0.95);
-}
 
 .endpoint-card .path {
   font-family: var(--vp-font-family-mono);

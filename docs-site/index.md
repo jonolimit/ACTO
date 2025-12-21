@@ -2,7 +2,6 @@
 layout: home
 
 hero:
-  name: ACTO
   text: Robotics-first proof-of-execution toolkit
   tagline: Generate deterministic, signed execution proofs from robot telemetry. Verify via API. Fast, gas-free verification.
   image:
@@ -122,8 +121,14 @@ print(f"Valid: {result.valid}")
 }
 
 .link-card:hover {
-  border-color: var(--vp-c-brand-1);
+  border-color: var(--vp-c-text-1);
+  background: var(--vp-c-text-1);
   transform: translateY(-2px);
+}
+
+.link-card:hover .title,
+.link-card:hover .desc {
+  color: #ffffff;
 }
 
 .link-card .icon {
