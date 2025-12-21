@@ -61,6 +61,25 @@ body::before {
     z-index: 2;
 }
 
+/* Site Logo - Fixed top left */
+.site-logo {
+    position: fixed;
+    top: 32px;
+    left: 32px;
+    z-index: 100;
+    display: block;
+    transition: opacity 0.2s ease;
+}
+
+.site-logo:hover {
+    opacity: 0.8;
+}
+
+.site-logo img {
+    height: 36px;
+    width: auto;
+}
+
 /* Header */
 .header {
     background: var(--color-bg-overlay);
@@ -1328,6 +1347,271 @@ body::before {
         flex-direction: column;
         align-items: flex-start;
         gap: 4px;
+    }
+}
+
+/* ============================================
+   Fleet Tab Styles
+   ============================================ */
+
+.fleet-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 24px;
+}
+
+.fleet-header h2 {
+    margin-bottom: 4px;
+}
+
+.fleet-header p {
+    color: var(--color-text-secondary);
+    font-size: 14px;
+}
+
+.fleet-stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+}
+
+.fleet-stat-card {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 20px;
+    background: var(--color-bg-primary);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--color-border-light);
+}
+
+.fleet-stat-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.fleet-stat-icon.online {
+    background: rgba(16, 185, 129, 0.1);
+    color: var(--color-success);
+}
+
+.fleet-stat-icon.total {
+    background: rgba(59, 130, 246, 0.1);
+    color: #3b82f6;
+}
+
+.fleet-stat-icon.proofs {
+    background: rgba(139, 92, 246, 0.1);
+    color: #8b5cf6;
+}
+
+.fleet-stat-icon.tasks {
+    background: rgba(245, 158, 11, 0.1);
+    color: var(--color-warning);
+}
+
+.fleet-stat-info {
+    flex: 1;
+}
+
+.fleet-stat-value {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--color-text-primary);
+    line-height: 1.2;
+}
+
+.fleet-stat-label {
+    font-size: 13px;
+    color: var(--color-text-secondary);
+    margin-top: 2px;
+}
+
+/* Fleet List */
+.fleet-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.fleet-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 20px;
+    color: var(--color-text-secondary);
+}
+
+.loading-spinner {
+    width: 32px;
+    height: 32px;
+    border: 3px solid var(--color-border);
+    border-top-color: var(--color-accent);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 12px;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.fleet-device {
+    display: flex;
+    align-items: center;
+    padding: 16px 20px;
+    background: var(--color-bg-primary);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--color-border-light);
+    transition: all 0.2s ease;
+}
+
+.fleet-device:hover {
+    border-color: var(--color-border);
+    box-shadow: var(--shadow-sm);
+}
+
+.fleet-device-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: var(--radius-md);
+    background: var(--color-bg-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 16px;
+    color: var(--color-text-secondary);
+}
+
+.fleet-device-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.fleet-device-name {
+    font-weight: 600;
+    color: var(--color-text-primary);
+    margin-bottom: 2px;
+}
+
+.fleet-device-id {
+    font-size: 12px;
+    color: var(--color-text-tertiary);
+    font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
+}
+
+.fleet-device-stats {
+    display: flex;
+    gap: 24px;
+    margin-right: 24px;
+}
+
+.fleet-device-stat {
+    text-align: center;
+}
+
+.fleet-device-stat-value {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--color-text-primary);
+}
+
+.fleet-device-stat-label {
+    font-size: 11px;
+    color: var(--color-text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.fleet-device-status {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.fleet-device-status.online {
+    background: rgba(16, 185, 129, 0.1);
+    color: var(--color-success);
+}
+
+.fleet-device-status.offline {
+    background: rgba(107, 114, 128, 0.1);
+    color: var(--color-text-tertiary);
+}
+
+.fleet-device-status .status-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+}
+
+.fleet-empty {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--color-text-secondary);
+}
+
+.fleet-empty svg {
+    width: 48px;
+    height: 48px;
+    margin-bottom: 16px;
+    opacity: 0.5;
+}
+
+.fleet-empty h3 {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--color-text-primary);
+    margin-bottom: 8px;
+}
+
+.fleet-empty p {
+    font-size: 14px;
+    max-width: 400px;
+    margin: 0 auto;
+}
+
+@media (max-width: 900px) {
+    .fleet-stats {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .fleet-device {
+        flex-wrap: wrap;
+    }
+    
+    .fleet-device-stats {
+        order: 3;
+        width: 100%;
+        margin: 12px 0 0 60px;
+        justify-content: flex-start;
+    }
+}
+
+@media (max-width: 600px) {
+    .fleet-stats {
+        grid-template-columns: 1fr;
+    }
+    
+    .fleet-header {
+        flex-direction: column;
+        gap: 16px;
+    }
+    
+    .fleet-device-stats {
+        margin-left: 0;
     }
 }
 

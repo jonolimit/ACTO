@@ -5,6 +5,35 @@ All notable changes to ACTO will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.0] - 2025-12-21
+
+### 🚀 Fleet Management & Helius RPC Integration
+
+#### Added
+
+- **Fleet Tab**: New dashboard section to monitor your robot fleet
+  - Overview statistics (active devices, total devices, proofs, tasks)
+  - Device list with individual stats
+  - Online/offline status indicators
+  - Last activity timestamps
+- **Helius RPC Support**: Better rate limits for Solana token balance checks
+  - Set `ACTO_HELIUS_API_KEY` for automatic Helius integration
+  - Falls back to public RPC if not configured
+- **Site Logo**: Added ACTO logo to dashboard header
+
+#### Changed
+
+- Token balance check now happens at wallet connection (not just API calls)
+- Insufficient balance shows dedicated screen with clear messaging
+- Improved RPC configuration flexibility
+
+#### Fixed
+
+- Fixed token mint address consistency across configuration files
+- Fixed Pydantic settings property issue for RPC URL
+
+---
+
 ## [0.6.0] - 2025-12-20
 
 ### 🎉 Major Release: Dashboard 2.0 & Multi-Wallet Support
