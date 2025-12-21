@@ -103,6 +103,16 @@ window.filterAndRenderKeys = function() {
     updatePagination(totalPages, totalKeys);
 };
 
+// Escape string for use in HTML attributes
+function escapeAttr(str) {
+    if (!str) return '';
+    return str.replace(/&/g, '&amp;')
+              .replace(/"/g, '&quot;')
+              .replace(/'/g, '&#39;')
+              .replace(/</g, '&lt;')
+              .replace(/>/g, '&gt;');
+}
+
 // Render the keys list
 function renderKeysList(keys, totalCount) {
     const keysListEl = document.getElementById('keysList');
@@ -119,19 +129,19 @@ function renderKeysList(keys, totalCount) {
     }
     
     keysListEl.innerHTML = keys.map(key => `
-        <div class="key-item ${key.is_active ? '' : 'key-disabled'} ${selectedKeys.has(key.key_id) ? 'selected' : ''}" data-key-id="${key.key_id}">
+        <div class="key-item ${key.is_active ? '' : 'key-disabled'} ${selectedKeys.has(key.key_id) ? 'selected' : ''}" data-key-id="${escapeAttr(key.key_id)}" data-key-name="${escapeAttr(key.name)}">
             <div class="key-select">
                 <input type="checkbox" 
                     class="key-checkbox" 
                     ${selectedKeys.has(key.key_id) ? 'checked' : ''} 
-                    onchange="toggleKeySelection('${key.key_id}', this.checked)">
+                    onchange="toggleKeySelection('${escapeAttr(key.key_id)}', this.checked)">
             </div>
             <div class="key-info">
                 <h3>${escapeHtml(key.name)}</h3>
                 <p class="key-id-row">
                     <strong>ID:</strong> 
                     <code class="key-id-value">${escapeHtml(key.key_id)}</code>
-                    <button class="btn-copy" onclick="event.stopPropagation(); copyToClipboard('${escapeHtml(key.key_id)}', this)" title="Copy Key ID">
+                    <button class="btn-copy" onclick="event.stopPropagation(); copyToClipboard('${escapeAttr(key.key_id)}', this)" title="Copy Key ID">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
                             <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
@@ -144,18 +154,18 @@ function renderKeysList(keys, totalCount) {
                 <p><strong>Status:</strong> <span class="status-badge status-${key.is_active ? 'active' : 'inactive'}">${key.is_active ? 'Active' : 'Inactive'}</span></p>
             </div>
             <div class="key-actions">
-                <button class="btn btn-icon" onclick="event.stopPropagation(); openRenameModal('${key.key_id}', ${JSON.stringify(key.name)})" title="Rename">
+                <button class="btn btn-icon btn-rename" title="Rename">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
                         <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
                     </svg>
                 </button>
-                <button class="btn btn-toggle ${key.is_active ? 'active' : ''}" onclick="event.stopPropagation(); toggleKey('${key.key_id}', ${key.is_active})" title="${key.is_active ? 'Disable Key' : 'Enable Key'}">
+                <button class="btn btn-toggle ${key.is_active ? 'active' : ''}" data-active="${key.is_active}" title="${key.is_active ? 'Disable Key' : 'Enable Key'}">
                     <span class="toggle-track">
                         <span class="toggle-thumb"></span>
                     </span>
                 </button>
-                <button class="btn btn-danger" onclick="event.stopPropagation(); openDeleteModal('${key.key_id}', ${JSON.stringify(key.name)})" title="Delete Key">
+                <button class="btn btn-danger btn-delete" title="Delete Key">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <polyline points="3 6 5 6 21 6"></polyline>
                         <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
@@ -165,6 +175,45 @@ function renderKeysList(keys, totalCount) {
         </div>
     `).join('');
 }
+
+// ============================================================
+// EVENT DELEGATION FOR KEY ACTIONS
+// ============================================================
+
+// Handle key action clicks via event delegation
+document.addEventListener('click', (e) => {
+    // Find the key-item parent
+    const keyItem = e.target.closest('.key-item');
+    if (!keyItem) return;
+    
+    const keyId = keyItem.dataset.keyId;
+    const keyName = keyItem.dataset.keyName;
+    
+    // Handle rename button click
+    const renameBtn = e.target.closest('.btn-rename');
+    if (renameBtn) {
+        e.stopPropagation();
+        openRenameModal(keyId, keyName);
+        return;
+    }
+    
+    // Handle toggle button click
+    const toggleBtn = e.target.closest('.btn-toggle');
+    if (toggleBtn) {
+        e.stopPropagation();
+        const isActive = toggleBtn.dataset.active === 'true';
+        toggleKey(keyId, isActive);
+        return;
+    }
+    
+    // Handle delete button click
+    const deleteBtn = e.target.closest('.btn-delete');
+    if (deleteBtn) {
+        e.stopPropagation();
+        openDeleteModal(keyId, keyName);
+        return;
+    }
+});
 
 // ============================================================
 // PAGINATION
