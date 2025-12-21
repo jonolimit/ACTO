@@ -3,7 +3,7 @@ from __future__ import annotations
 import secrets
 import uuid
 
-from fastapi import Depends, FastAPI, HTTPException, Request, Response
+from fastapi import Depends, FastAPI, HTTPException, Request, Response, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
@@ -34,6 +34,7 @@ from acto.security.api_key_store import ApiKeyStore
 from acto.security.user_store import UserStore
 from acto.security.wallet_auth import create_wallet_challenge, verify_wallet_challenge
 from acto.security.audit import FileAuditBackend, MemoryAuditBackend
+from acto.fleet import FleetStore
 
 from .schemas import (
     AccessCheckRequest,
@@ -92,6 +93,9 @@ def create_app() -> FastAPI:
     api_key_store = ApiKeyStore(settings)
     user_store = UserStore(settings)
     limiter = TokenBucketRateLimiter.create(rps=settings.rate_limit_rps, burst=settings.rate_limit_burst)
+    
+    # Fleet management store (database-backed)
+    fleet_store = FleetStore(settings)
 
     # JWT/OAuth2 - Always enabled for wallet authentication
     jwt_secret = settings.jwt_secret_key or "change-me-in-production-" + secrets.token_urlsafe(32)
@@ -807,106 +811,39 @@ def create_app() -> FastAPI:
             raise HTTPException(status_code=500, detail=str(e)) from e
 
     # ============================================================
-    # Fleet Endpoint (JWT authenticated - tied to wallet, not API key)
+    # Fleet Router (database-backed, JWT authenticated)
     # ============================================================
-    @app.get("/v1/fleet", dependencies=[Depends(require_jwt(jwt_manager))])
-    def get_fleet(request: Request) -> dict:
+    from .routers.fleet import create_fleet_router, fleet_ws_manager
+    
+    fleet_router = create_fleet_router(
+        registry=registry,
+        jwt_manager=jwt_manager,
+        fleet_store=fleet_store,
+    )
+    app.include_router(fleet_router)
+    
+    # ============================================================
+    # WebSocket Endpoint for Real-time Fleet Updates
+    # ============================================================
+    
+    @app.websocket("/ws/fleet")
+    async def fleet_websocket(websocket: WebSocket):
         """
-        Get fleet data for the authenticated user's wallet.
-        Uses JWT authentication (not API key) so fleet is tied to wallet.
+        WebSocket endpoint for real-time fleet updates.
+        Clients connect here to receive live device status updates.
         """
+        await fleet_ws_manager.connect(websocket)
         try:
-            current_user = get_current_user_optional(request)
-            if not current_user:
-                raise HTTPException(status_code=401, detail="Not authenticated")
-            
-            # Get wallet address from JWT claims
-            token_payload = getattr(request.state, "token_payload", {})
-            wallet_address = token_payload.get("wallet_address")
-            
-            if not wallet_address:
-                raise HTTPException(status_code=400, detail="Wallet address not found in token")
-            
-            # Get all proofs from registry
-            all_proofs = registry.list(limit=10000)
-            
-            # Build fleet data from proofs
-            devices: dict[str, dict] = {}
-            
-            for proof in all_proofs:
-                robot_id = proof.get("robot_id", "unknown")
-                if robot_id == "unknown":
-                    continue
-                
-                if robot_id not in devices:
-                    devices[robot_id] = {
-                        "id": robot_id,
-                        "name": robot_id.replace("-", " ").replace("_", " ").title(),
-                        "proof_count": 0,
-                        "task_ids": set(),
-                        "last_activity": None,
-                    }
-                
-                device = devices[robot_id]
-                device["proof_count"] += 1
-                
-                task_id = proof.get("task_id")
-                if task_id:
-                    device["task_ids"].add(task_id)
-                
-                created_at = proof.get("created_at")
-                if created_at:
-                    if not device["last_activity"] or created_at > device["last_activity"]:
-                        device["last_activity"] = created_at
-            
-            # Convert sets to counts and lists
-            device_list = []
-            total_proofs = 0
-            total_tasks = set()
-            
-            for device in devices.values():
-                total_proofs += device["proof_count"]
-                total_tasks.update(device["task_ids"])
-                device_list.append({
-                    "id": device["id"],
-                    "name": device["name"],
-                    "proof_count": device["proof_count"],
-                    "task_count": len(device["task_ids"]),
-                    "last_activity": device["last_activity"],
-                })
-            
-            # Sort by last activity (most recent first)
-            device_list.sort(key=lambda d: d["last_activity"] or "", reverse=True)
-            
-            # Count active devices (activity in last 24 hours)
-            from datetime import datetime, timedelta, timezone
-            now = datetime.now(timezone.utc)
-            one_day_ago = now - timedelta(hours=24)
-            
-            active_count = 0
-            for device in device_list:
-                if device["last_activity"]:
-                    try:
-                        last_dt = datetime.fromisoformat(device["last_activity"].replace("Z", "+00:00"))
-                        if last_dt > one_day_ago:
-                            active_count += 1
-                    except (ValueError, TypeError):
-                        pass
-            
-            return {
-                "devices": device_list,
-                "summary": {
-                    "total_devices": len(device_list),
-                    "active_devices": active_count,
-                    "total_proofs": total_proofs,
-                    "total_tasks": len(total_tasks),
-                }
-            }
-            
-        except HTTPException:
-            raise
-        except Exception as e:
-            raise HTTPException(status_code=500, detail=str(e)) from e
+            while True:
+                # Keep connection alive and handle incoming messages
+                data = await websocket.receive_text()
+                # Echo back for ping/pong
+                if data == "ping":
+                    await websocket.send_text("pong")
+        except WebSocketDisconnect:
+            fleet_ws_manager.disconnect(websocket)
+        except Exception:
+            fleet_ws_manager.disconnect(websocket)
 
     # Dashboard endpoint - serve static HTML
     @app.get("/dashboard")

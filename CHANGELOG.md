@@ -5,6 +5,87 @@ All notable changes to ACTO will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.8.0] - 2025-12-21
+
+### 🚀 Fleet Management System
+
+This release introduces a comprehensive fleet management system for monitoring and organizing your robot fleet.
+
+#### Added
+
+- **Fleet Dashboard**
+  - Device overview with proof counts, task history, and activity status
+  - Device status indicators (Active, Idle, Inactive based on activity)
+  - Real-time WebSocket connection for live updates
+  - List and grid view options
+  - Search and filter functionality
+
+- **Device Details Modal**
+  - Complete activity logs with timestamps
+  - Task history overview
+  - Health metrics visualization (when available)
+  - First and last activity timestamps
+
+- **Device Groups**
+  - Create groups with name and description (e.g., "Warehouse A", "Production Line")
+  - Assign/unassign devices to groups
+  - Filter device list by group
+  - Edit and delete groups
+
+- **Device Customization**
+  - Rename devices with custom names
+  - Custom name badge indicator in device list
+
+- **Health Monitoring**
+  - CPU, Memory, Battery, Disk usage tracking
+  - Network status and signal strength
+  - Temperature and uptime monitoring
+  - All metrics are optional (devices only report what they support)
+  - Historical health data storage (30 days default)
+  - Color-coded health bars (green/yellow/red)
+
+- **Database Persistence**
+  - New `fleet_devices` table for custom names and metadata
+  - New `fleet_groups` table for group management
+  - New `fleet_health` table for health history
+  - Automatic schema migration
+
+- **API Endpoints**
+  - `GET /v1/fleet` - Fleet overview with devices and groups
+  - `GET /v1/fleet/devices/{id}` - Device details with logs
+  - `PATCH /v1/fleet/devices/{id}/name` - Rename device
+  - `POST /v1/fleet/devices/{id}/health` - Report health metrics
+  - `GET /v1/fleet/devices/{id}/health` - Get latest health
+  - `GET /v1/fleet/groups` - List all groups
+  - `POST /v1/fleet/groups` - Create new group
+  - `PATCH /v1/fleet/groups/{id}` - Update group
+  - `DELETE /v1/fleet/groups/{id}` - Delete group
+  - `POST /v1/fleet/groups/{id}/assign` - Assign devices
+  - `POST /v1/fleet/groups/{id}/unassign` - Remove devices
+  - `WS /ws/fleet` - WebSocket for real-time updates
+
+- **New Files**
+  - `acto/fleet/__init__.py` - Fleet module export
+  - `acto/fleet/models.py` - Database models (DeviceRecord, DeviceGroupRecord, DeviceHealthRecord)
+  - `acto/fleet/store.py` - FleetStore with all database operations
+  - Updated `acto_server/routers/fleet.py` - Complete API router
+  - Updated `static/js/fleet.js` - Frontend module with all features
+  - Updated `static/css/fleet.css` - Fleet styles and modals
+
+- **Documentation**
+  - Fleet Management section in Dashboard docs
+  - Updated README.md with Fleet features
+  - Complete API documentation in docs/API.md
+
+#### Technical
+
+- All fleet data tied to user's wallet via JWT authentication
+- WebSocket manager for broadcasting real-time updates
+- Health metrics history with automatic cleanup (30 days)
+- Responsive design for mobile and desktop
+
+---
+
 ## [0.7.4] - 2025-12-21
 
 ### 📊 Advanced Statistics & Analytics Dashboard

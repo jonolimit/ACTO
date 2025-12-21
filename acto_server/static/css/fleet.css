@@ -1,6 +1,6 @@
 /* ============================================
    ACTO Dashboard - Fleet Styles
-   Device management and fleet overview
+   Device management, groups, and health monitoring
    ============================================ */
 
 /* Fleet Header */
@@ -9,6 +9,7 @@
     justify-content: space-between;
     align-items: flex-start;
     margin-bottom: 24px;
+    gap: 16px;
 }
 
 .fleet-header h2 {
@@ -18,6 +19,12 @@
 .fleet-header p {
     color: var(--color-text-secondary);
     font-size: 14px;
+}
+
+.fleet-header-actions {
+    display: flex;
+    gap: 12px;
+    flex-shrink: 0;
 }
 
 /* Fleet Stats */
@@ -67,6 +74,11 @@
     color: var(--color-warning);
 }
 
+.fleet-stat-icon.groups {
+    background: rgba(236, 72, 153, 0.1);
+    color: #ec4899;
+}
+
 .fleet-stat-info {
     flex: 1;
 }
@@ -82,6 +94,98 @@
     font-size: 13px;
     color: var(--color-text-secondary);
     margin-top: 2px;
+}
+
+/* Fleet Toolbar */
+.fleet-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.fleet-toolbar-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.fleet-toolbar-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.fleet-search {
+    position: relative;
+}
+
+.fleet-search svg {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--color-text-tertiary);
+    pointer-events: none;
+}
+
+.fleet-search input {
+    padding: 10px 12px 10px 38px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-bg-primary);
+    font-size: 14px;
+    width: 250px;
+    transition: border-color 0.2s;
+}
+
+.fleet-search input:focus {
+    outline: none;
+    border-color: var(--color-text-primary);
+}
+
+.fleet-filter-select {
+    padding: 10px 32px 10px 12px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-bg-primary);
+    font-size: 14px;
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+}
+
+.fleet-view-toggle {
+    display: flex;
+    gap: 4px;
+    padding: 4px;
+    background: var(--color-bg-primary);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--color-border);
+}
+
+.fleet-view-btn {
+    padding: 8px 12px;
+    border: none;
+    background: transparent;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    color: var(--color-text-tertiary);
+    transition: all 0.2s;
+}
+
+.fleet-view-btn:hover {
+    color: var(--color-text-primary);
+}
+
+.fleet-view-btn.active {
+    background: var(--color-bg-secondary);
+    color: var(--color-text-primary);
+    box-shadow: var(--shadow-sm);
 }
 
 /* Fleet List */
@@ -119,11 +223,26 @@
     border-radius: var(--radius-md);
     border: 1px solid var(--color-border-light);
     transition: all 0.2s ease;
+    cursor: pointer;
 }
 
 .fleet-device:hover {
     border-color: var(--color-border);
     box-shadow: var(--shadow-sm);
+    transform: translateY(-1px);
+}
+
+.fleet-device.selected {
+    border-color: var(--color-primary);
+    background: rgba(59, 130, 246, 0.05);
+}
+
+.fleet-device-checkbox {
+    margin-right: 12px;
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+    accent-color: var(--color-primary);
 }
 
 .fleet-device-icon {
@@ -136,6 +255,7 @@
     justify-content: center;
     margin-right: 16px;
     color: var(--color-text-secondary);
+    flex-shrink: 0;
 }
 
 .fleet-device-info {
@@ -147,12 +267,38 @@
     font-weight: 600;
     color: var(--color-text-primary);
     margin-bottom: 2px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.fleet-device-name .custom-name-badge {
+    font-size: 10px;
+    padding: 2px 6px;
+    background: rgba(139, 92, 246, 0.1);
+    color: #8b5cf6;
+    border-radius: 4px;
+    font-weight: 500;
 }
 
 .fleet-device-id {
     font-size: 12px;
     color: var(--color-text-tertiary);
     font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
+}
+
+.fleet-device-group {
+    font-size: 11px;
+    color: var(--color-text-secondary);
+    margin-top: 4px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.fleet-device-group svg {
+    width: 12px;
+    height: 12px;
 }
 
 .fleet-device-stats {
@@ -178,6 +324,60 @@
     letter-spacing: 0.5px;
 }
 
+/* Device Health Indicators */
+.fleet-device-health {
+    display: flex;
+    gap: 12px;
+    margin-right: 16px;
+}
+
+.health-indicator {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+}
+
+.health-indicator-bar {
+    width: 32px;
+    height: 4px;
+    background: var(--color-border);
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.health-indicator-fill {
+    height: 100%;
+    border-radius: 2px;
+    transition: width 0.3s ease;
+}
+
+.health-indicator-fill.good {
+    background: var(--color-success);
+}
+
+.health-indicator-fill.warning {
+    background: var(--color-warning);
+}
+
+.health-indicator-fill.critical {
+    background: var(--color-error);
+}
+
+.health-indicator-label {
+    font-size: 9px;
+    color: var(--color-text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+.health-indicator-value {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--color-text-secondary);
+}
+
+/* Device Status */
 .fleet-device-status {
     display: flex;
     align-items: center;
@@ -186,11 +386,17 @@
     border-radius: 20px;
     font-size: 12px;
     font-weight: 500;
+    margin-right: 12px;
 }
 
 .fleet-device-status.online {
     background: rgba(16, 185, 129, 0.1);
     color: var(--color-success);
+}
+
+.fleet-device-status.warning {
+    background: rgba(245, 158, 11, 0.1);
+    color: var(--color-warning);
 }
 
 .fleet-device-status.offline {
@@ -203,6 +409,46 @@
     height: 6px;
     border-radius: 50%;
     background: currentColor;
+}
+
+.fleet-device-status.online .status-dot {
+    animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+/* Device Actions */
+.fleet-device-actions {
+    display: flex;
+    gap: 8px;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.fleet-device:hover .fleet-device-actions {
+    opacity: 1;
+}
+
+.fleet-action-btn {
+    width: 32px;
+    height: 32px;
+    border: none;
+    background: var(--color-bg-secondary);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-text-tertiary);
+    transition: all 0.2s;
+}
+
+.fleet-action-btn:hover {
+    background: var(--color-border);
+    color: var(--color-text-primary);
 }
 
 /* Fleet Empty State */
@@ -232,3 +478,700 @@
     margin: 0 auto;
 }
 
+/* ============================================
+   Device Groups Section
+   ============================================ */
+
+.fleet-groups-section {
+    margin-bottom: 24px;
+}
+
+.fleet-groups-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.fleet-groups-header h3 {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--color-text-primary);
+}
+
+.fleet-groups-list {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.fleet-group-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    background: var(--color-bg-primary);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--color-border-light);
+    cursor: pointer;
+    transition: all 0.2s;
+    min-width: 180px;
+}
+
+.fleet-group-card:hover {
+    border-color: var(--color-border);
+    box-shadow: var(--shadow-sm);
+}
+
+.fleet-group-card.active {
+    border-color: var(--color-primary);
+    background: rgba(59, 130, 246, 0.05);
+}
+
+.fleet-group-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: var(--radius-sm);
+    background: rgba(236, 72, 153, 0.1);
+    color: #ec4899;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.fleet-group-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.fleet-group-name {
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--color-text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.fleet-group-count {
+    font-size: 12px;
+    color: var(--color-text-tertiary);
+}
+
+.fleet-group-actions {
+    display: flex;
+    gap: 4px;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.fleet-group-card:hover .fleet-group-actions {
+    opacity: 1;
+}
+
+/* All Devices Badge */
+.fleet-group-all {
+    background: var(--color-bg-secondary);
+    border-style: dashed;
+}
+
+.fleet-group-all .fleet-group-icon {
+    background: rgba(107, 114, 128, 0.1);
+    color: var(--color-text-tertiary);
+}
+
+/* ============================================
+   Device Details Modal
+   ============================================ */
+
+.device-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+}
+
+.device-modal.show {
+    display: flex;
+}
+
+.device-modal-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+}
+
+.device-modal-content {
+    position: relative;
+    background: var(--color-bg-overlay);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--color-border-light);
+    border-radius: var(--radius-lg);
+    width: 90%;
+    max-width: 800px;
+    max-height: 90vh;
+    overflow: hidden;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    animation: modalSlideIn 0.3s ease-out;
+    display: flex;
+    flex-direction: column;
+}
+
+.device-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 24px 28px;
+    border-bottom: 1px solid var(--color-border-light);
+    flex-shrink: 0;
+}
+
+.device-modal-title {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.device-modal-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: var(--radius-md);
+    background: var(--color-bg-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-text-secondary);
+}
+
+.device-modal-title h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--color-text-primary);
+    margin: 0 0 4px 0;
+}
+
+.device-modal-id {
+    font-size: 12px;
+    color: var(--color-text-tertiary);
+    font-family: 'SF Mono', 'Monaco', monospace;
+}
+
+.device-modal-body {
+    padding: 24px 28px;
+    overflow-y: auto;
+    flex: 1;
+}
+
+/* Device Stats Grid */
+.device-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.device-stat-card {
+    padding: 16px;
+    background: var(--color-bg-primary);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--color-border-light);
+    text-align: center;
+}
+
+.device-stat-value {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--color-text-primary);
+    margin-bottom: 4px;
+}
+
+.device-stat-label {
+    font-size: 12px;
+    color: var(--color-text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Health Section */
+.device-health-section {
+    margin-bottom: 24px;
+}
+
+.device-section-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--color-text-primary);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.device-section-title svg {
+    width: 16px;
+    height: 16px;
+    color: var(--color-text-secondary);
+}
+
+.health-metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+}
+
+.health-metric-card {
+    padding: 16px;
+    background: var(--color-bg-primary);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--color-border-light);
+}
+
+.health-metric-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.health-metric-label {
+    font-size: 12px;
+    color: var(--color-text-secondary);
+}
+
+.health-metric-value {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--color-text-primary);
+}
+
+.health-metric-bar {
+    height: 6px;
+    background: var(--color-border);
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.health-metric-bar-fill {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 0.3s ease;
+}
+
+.health-metric-bar-fill.good {
+    background: var(--color-success);
+}
+
+.health-metric-bar-fill.warning {
+    background: var(--color-warning);
+}
+
+.health-metric-bar-fill.critical {
+    background: var(--color-error);
+}
+
+.health-not-available {
+    padding: 24px;
+    text-align: center;
+    background: var(--color-bg-primary);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--color-border-light);
+    color: var(--color-text-tertiary);
+}
+
+.health-not-available svg {
+    width: 32px;
+    height: 32px;
+    margin-bottom: 8px;
+    opacity: 0.5;
+}
+
+/* Activity Logs */
+.device-logs-section {
+    margin-bottom: 24px;
+}
+
+.device-logs-list {
+    max-height: 300px;
+    overflow-y: auto;
+    background: var(--color-bg-primary);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--color-border-light);
+}
+
+.device-log-entry {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--color-border-light);
+}
+
+.device-log-entry:last-child {
+    border-bottom: none;
+}
+
+.log-icon {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.log-icon.success {
+    background: rgba(16, 185, 129, 0.1);
+    color: var(--color-success);
+}
+
+.log-icon.warning {
+    background: rgba(245, 158, 11, 0.1);
+    color: var(--color-warning);
+}
+
+.log-icon.error {
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--color-error);
+}
+
+.log-icon.info {
+    background: rgba(59, 130, 246, 0.1);
+    color: #3b82f6;
+}
+
+.log-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.log-message {
+    font-size: 13px;
+    color: var(--color-text-primary);
+    margin-bottom: 4px;
+}
+
+.log-meta {
+    font-size: 11px;
+    color: var(--color-text-tertiary);
+    display: flex;
+    gap: 12px;
+}
+
+.log-meta code {
+    font-family: 'SF Mono', 'Monaco', monospace;
+    background: var(--color-bg-secondary);
+    padding: 1px 4px;
+    border-radius: 3px;
+}
+
+.log-timestamp {
+    font-size: 11px;
+    color: var(--color-text-tertiary);
+    white-space: nowrap;
+}
+
+/* Task History */
+.device-tasks-section {
+    margin-bottom: 24px;
+}
+
+.device-tasks-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.device-task-tag {
+    padding: 6px 12px;
+    background: var(--color-bg-primary);
+    border: 1px solid var(--color-border-light);
+    border-radius: var(--radius-md);
+    font-size: 12px;
+    color: var(--color-text-secondary);
+    font-family: 'SF Mono', 'Monaco', monospace;
+}
+
+/* Device Actions Bar */
+.device-modal-actions {
+    display: flex;
+    justify-content: space-between;
+    padding: 16px 28px 24px;
+    border-top: 1px solid var(--color-border-light);
+    flex-shrink: 0;
+}
+
+.device-modal-actions-left {
+    display: flex;
+    gap: 12px;
+}
+
+.device-modal-actions-right {
+    display: flex;
+    gap: 12px;
+}
+
+/* ============================================
+   Group Modal
+   ============================================ */
+
+.group-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+}
+
+.group-modal.show {
+    display: flex;
+}
+
+.group-modal-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+}
+
+.group-modal-content {
+    position: relative;
+    background: var(--color-bg-overlay);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--color-border-light);
+    border-radius: var(--radius-lg);
+    width: 90%;
+    max-width: 480px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    animation: modalSlideIn 0.3s ease-out;
+}
+
+.group-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 24px 28px 16px;
+    border-bottom: 1px solid var(--color-border-light);
+}
+
+.group-modal-header h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--color-text-primary);
+    margin: 0;
+}
+
+.group-modal-body {
+    padding: 24px 28px;
+}
+
+.group-modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    padding: 16px 28px 24px;
+    border-top: 1px solid var(--color-border-light);
+}
+
+/* ============================================
+   Rename Modal
+   ============================================ */
+
+.device-rename-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1001;
+    align-items: center;
+    justify-content: center;
+}
+
+.device-rename-modal.show {
+    display: flex;
+}
+
+/* ============================================
+   Real-time Update Indicators
+   ============================================ */
+
+.ws-status {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    background: var(--color-bg-primary);
+    border-radius: 20px;
+    font-size: 12px;
+    color: var(--color-text-secondary);
+}
+
+.ws-status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--color-text-tertiary);
+}
+
+.ws-status.connected .ws-status-dot {
+    background: var(--color-success);
+    animation: pulse 2s ease-in-out infinite;
+}
+
+.ws-status.disconnected .ws-status-dot {
+    background: var(--color-error);
+}
+
+.ws-status.connecting .ws-status-dot {
+    background: var(--color-warning);
+    animation: blink 1s ease-in-out infinite;
+}
+
+@keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+}
+
+/* Device Update Animation */
+.fleet-device.updating {
+    animation: deviceUpdate 0.5s ease;
+}
+
+@keyframes deviceUpdate {
+    0% { background-color: rgba(59, 130, 246, 0.1); }
+    100% { background-color: var(--color-bg-primary); }
+}
+
+/* ============================================
+   Grid View (alternative layout)
+   ============================================ */
+
+.fleet-list.grid-view {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
+}
+
+.fleet-list.grid-view .fleet-device {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 20px;
+}
+
+.fleet-list.grid-view .fleet-device-icon {
+    margin: 0 0 12px 0;
+    width: 48px;
+    height: 48px;
+}
+
+.fleet-list.grid-view .fleet-device-info {
+    margin-bottom: 16px;
+}
+
+.fleet-list.grid-view .fleet-device-stats {
+    margin: 0 0 16px 0;
+    justify-content: space-between;
+}
+
+.fleet-list.grid-view .fleet-device-status {
+    margin: 0;
+    justify-content: center;
+}
+
+.fleet-list.grid-view .fleet-device-actions {
+    margin-top: 12px;
+    justify-content: center;
+    opacity: 1;
+}
+
+/* ============================================
+   Responsive Adjustments
+   ============================================ */
+
+@media (max-width: 1024px) {
+    .fleet-stats {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .device-stats-grid,
+    .health-metrics-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .fleet-toolbar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .fleet-toolbar-left,
+    .fleet-toolbar-right {
+        justify-content: space-between;
+    }
+    
+    .fleet-search input {
+        width: 100%;
+    }
+    
+    .fleet-device {
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+    
+    .fleet-device-stats {
+        width: 100%;
+        margin: 0;
+        justify-content: space-around;
+    }
+    
+    .fleet-device-health {
+        display: none;
+    }
+    
+    .device-modal-content {
+        max-width: 100%;
+        max-height: 100%;
+        border-radius: 0;
+    }
+}
+
+@media (max-width: 640px) {
+    .fleet-stats {
+        grid-template-columns: 1fr;
+    }
+    
+    .device-stats-grid,
+    .health-metrics-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .fleet-groups-list {
+        flex-direction: column;
+    }
+    
+    .fleet-group-card {
+        width: 100%;
+    }
+}

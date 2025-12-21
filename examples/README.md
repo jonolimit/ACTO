@@ -9,6 +9,7 @@ Interactive examples for SDK usage:
 - **`notebooks/01_basic_proof_creation.ipynb`** - Basic proof creation and verification
 - **`notebooks/02_async_proof_operations.ipynb`** - Async/await support examples
 - **`notebooks/03_registry_operations.ipynb`** - Registry usage with context managers
+- **`notebooks/04_fleet_management.ipynb`** - Fleet Management API usage
 
 To run the notebooks:
 
@@ -60,6 +61,45 @@ acto score compute --proof examples/proofs/sample_proof_pipeline.json
 acto registry list
 ```
 
+## Fleet Management
+
+Manage your robot fleet via the API:
+
+```bash
+# Run the fleet example script
+python examples/scripts/fleet_example.py
+```
+
+The script demonstrates:
+- Getting fleet overview
+- Viewing device details
+- Renaming devices with custom names
+- Reporting health metrics (CPU, RAM, battery, etc.)
+- Creating and managing device groups
+- Assigning devices to groups
+
+### Report Health from Robot
+
+Robots can report their health metrics (all fields optional):
+
+```python
+import httpx
+
+httpx.post(
+    "https://api.actobotics.net/v1/fleet/devices/robot-001/health",
+    headers={"Authorization": f"Bearer {JWT_TOKEN}"},
+    json={
+        "cpu_percent": 45.2,
+        "memory_percent": 68.0,
+        "battery_percent": 85.0,
+        "battery_charging": True,
+        "temperature": 42.5,
+        "uptime_seconds": 86400,
+        "network_connected": True,
+    }
+)
+```
+
 ## SDK Examples
 
 See the Jupyter notebooks in `notebooks/` for comprehensive SDK usage examples including:
@@ -68,3 +108,4 @@ See the Jupyter notebooks in `notebooks/` for comprehensive SDK usage examples i
 - Async/await operations
 - Registry management with context managers
 - Batch operations
+- Fleet management integration

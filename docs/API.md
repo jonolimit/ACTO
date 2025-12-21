@@ -51,6 +51,13 @@ curl -X POST https://api.actobotics.net/v1/proofs \
 | POST | `/v1/keys` | Create API key | 🔐 JWT |
 | GET | `/v1/keys` | List API keys | 🔐 JWT |
 | DELETE | `/v1/keys/{id}` | Delete API key | 🔐 JWT |
+| GET | `/v1/fleet` | Fleet overview | 🔐 JWT |
+| GET | `/v1/fleet/devices/{id}` | Device details | 🔐 JWT |
+| PATCH | `/v1/fleet/devices/{id}/name` | Rename device | 🔐 JWT |
+| POST | `/v1/fleet/devices/{id}/health` | Report health | 🔐 JWT |
+| GET | `/v1/fleet/groups` | List groups | 🔐 JWT |
+| POST | `/v1/fleet/groups` | Create group | 🔐 JWT |
+| POST | `/v1/fleet/groups/{id}/assign` | Assign devices | 🔐 JWT |
 
 ---
 
@@ -335,6 +342,319 @@ Check if a wallet has sufficient token balance for API access.
   "allowed": true,
   "reason": "Sufficient balance",
   "balance": 125000.0
+}
+```
+
+---
+
+## Fleet Management
+
+Fleet Management endpoints allow you to monitor and organize your robot fleet. All endpoints require JWT authentication (wallet login).
+
+### Get Fleet Overview
+
+```http
+GET /v1/fleet
+```
+
+Returns all devices with groups and summary statistics.
+
+**Response:**
+```json
+{
+  "devices": [
+    {
+      "id": "robot-alpha-01",
+      "name": "Robot Alpha",
+      "custom_name": "Warehouse Bot 1",
+      "group_id": "grp_abc123",
+      "group_name": "Warehouse A",
+      "proof_count": 42,
+      "task_count": 15,
+      "last_activity": "2025-01-15T10:30:00Z",
+      "status": "online",
+      "health": {
+        "cpu_percent": 45.2,
+        "memory_percent": 68.0,
+        "battery_percent": 85.0
+      }
+    }
+  ],
+  "groups": [
+    {
+      "id": "grp_abc123",
+      "name": "Warehouse A",
+      "description": "Main warehouse robots",
+      "device_count": 5
+    }
+  ],
+  "summary": {
+    "total_devices": 10,
+    "active_devices": 7,
+    "warning_devices": 2,
+    "offline_devices": 1,
+    "total_proofs": 1250,
+    "total_tasks": 89,
+    "total_groups": 3
+  }
+}
+```
+
+### Get Device Details
+
+```http
+GET /v1/fleet/devices/{device_id}
+```
+
+Returns detailed device information including activity logs and task history.
+
+**Response:**
+```json
+{
+  "id": "robot-alpha-01",
+  "name": "Robot Alpha 01",
+  "custom_name": "Warehouse Bot 1",
+  "display_name": "Warehouse Bot 1",
+  "group_id": "grp_abc123",
+  "group_name": "Warehouse A",
+  "proof_count": 42,
+  "task_count": 15,
+  "last_activity": "2025-01-15T10:30:00Z",
+  "first_activity": "2024-06-01T08:00:00Z",
+  "status": "online",
+  "health": {...},
+  "recent_logs": [
+    {
+      "timestamp": "2025-01-15T10:30:00Z",
+      "level": "success",
+      "message": "Proof submitted for task 'pick-and-place'",
+      "proof_id": "abc123...",
+      "task_id": "pick-and-place"
+    }
+  ],
+  "task_history": ["pick-and-place", "quality-inspection", "transport"]
+}
+```
+
+### Rename Device
+
+```http
+PATCH /v1/fleet/devices/{device_id}/name
+```
+
+Set a custom name for a device.
+
+**Request:**
+```json
+{
+  "name": "Warehouse Bot Alpha"
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "device_id": "robot-alpha-01",
+  "name": "Warehouse Bot Alpha"
+}
+```
+
+### Report Device Health
+
+```http
+POST /v1/fleet/devices/{device_id}/health
+```
+
+Report health metrics from a device. **All fields are optional** - devices only send metrics they support.
+
+**Request:**
+```json
+{
+  "cpu_percent": 45.2,
+  "cpu_temperature": 52.0,
+  "memory_percent": 68.0,
+  "memory_used_mb": 2048,
+  "memory_total_mb": 4096,
+  "battery_percent": 85.0,
+  "battery_charging": true,
+  "disk_percent": 42.0,
+  "network_connected": true,
+  "network_type": "wifi",
+  "uptime_seconds": 86400,
+  "temperature": 42.5,
+  "custom_metrics": {
+    "motor_temp": 38.0,
+    "sensor_status": "ok"
+  }
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "device_id": "robot-alpha-01",
+  "health": {...}
+}
+```
+
+### Get Device Health
+
+```http
+GET /v1/fleet/devices/{device_id}/health
+```
+
+Get the latest health metrics for a device.
+
+**Response:**
+```json
+{
+  "device_id": "robot-alpha-01",
+  "health": {
+    "cpu_percent": 45.2,
+    "memory_percent": 68.0,
+    "battery_percent": 85.0,
+    "last_updated": "2025-01-15T10:30:00Z"
+  },
+  "available": true
+}
+```
+
+### List Device Groups
+
+```http
+GET /v1/fleet/groups
+```
+
+**Response:**
+```json
+{
+  "groups": [
+    {
+      "id": "grp_abc123",
+      "name": "Warehouse A",
+      "description": "Main warehouse robots",
+      "device_count": 5,
+      "created_at": "2025-01-01T00:00:00Z"
+    }
+  ],
+  "total": 3
+}
+```
+
+### Create Device Group
+
+```http
+POST /v1/fleet/groups
+```
+
+**Request:**
+```json
+{
+  "name": "Production Line 1",
+  "description": "Assembly line robots"
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "group": {
+    "id": "grp_xyz789",
+    "name": "Production Line 1",
+    "description": "Assembly line robots",
+    "device_ids": [],
+    "created_at": "2025-01-15T10:30:00Z"
+  }
+}
+```
+
+### Assign Devices to Group
+
+```http
+POST /v1/fleet/groups/{group_id}/assign
+```
+
+**Request:**
+```json
+{
+  "device_ids": ["robot-alpha-01", "robot-alpha-02"]
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "group_id": "grp_abc123",
+  "assigned": ["robot-alpha-01", "robot-alpha-02"]
+}
+```
+
+### Remove Devices from Group
+
+```http
+POST /v1/fleet/groups/{group_id}/unassign
+```
+
+**Request:**
+```json
+{
+  "device_ids": ["robot-alpha-01"]
+}
+```
+
+### Delete Group
+
+```http
+DELETE /v1/fleet/groups/{group_id}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "group_id": "grp_abc123",
+  "devices_unassigned": 5
+}
+```
+
+### WebSocket Real-time Updates
+
+Connect via WebSocket for live fleet updates:
+
+```
+WebSocket: wss://api.actobotics.net/ws/fleet
+```
+
+**Message Types:**
+
+```json
+// Device update
+{
+  "type": "device_update",
+  "device_id": "robot-alpha-01",
+  "data": {...},
+  "timestamp": "2025-01-15T10:30:00Z"
+}
+
+// Health update
+{
+  "type": "health_update",
+  "device_id": "robot-alpha-01",
+  "health": {...},
+  "timestamp": "2025-01-15T10:30:00Z"
+}
+
+// Group update
+{
+  "type": "group_update",
+  "group_id": "grp_abc123",
+  "action": "created",
+  "data": {...},
+  "timestamp": "2025-01-15T10:30:00Z"
 }
 ```
 

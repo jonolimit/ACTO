@@ -4,7 +4,7 @@
 
 Generate deterministic, signed execution proofs from robot telemetry and logs. Verify proofs locally or via API. Fast, gas-free verification.
 
-[![Version](https://img.shields.io/badge/version-0.7.2-blue.svg)](https://github.com/actobotics/ACTO)
+[![Version](https://img.shields.io/badge/version-0.8.0-blue.svg)](https://github.com/actobotics/ACTO)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
 ---
@@ -26,6 +26,7 @@ Generate deterministic, signed execution proofs from robot telemetry and logs. V
 - **Local Registry** - SQLite-based proof storage
 - **REST API** - FastAPI verification service
 - **Multi-Wallet Dashboard** - Phantom, Solflare, Backpack, Glow, Coinbase
+- **Fleet Management** - Monitor and organize your robot fleet
 - **Token Gating** - SPL token balance checks (off-chain)
 - **Async Support** - Full async/await API
 - **CLI Tools** - Interactive mode, shell completion
@@ -106,8 +107,39 @@ curl -X POST https://api.actobotics.net/v1/proofs \
 | `POST /v1/verify/batch` | Batch verify proofs |
 | `GET /v1/stats/wallet/{addr}` | Wallet statistics |
 | `POST /v1/access/check` | Check token balance |
+| `GET /v1/fleet` | Fleet overview |
+| `GET /v1/fleet/devices/{id}` | Device details |
+| `GET /v1/fleet/groups` | List device groups |
 
 📖 **Full API documentation:** [docs/API.md](docs/API.md)
+
+---
+
+## 🤖 Fleet Management
+
+Monitor and manage your robot fleet from the dashboard:
+
+- **Device Overview** - See all devices with status and activity
+- **Custom Names** - Rename devices for easy identification
+- **Device Groups** - Organize robots (e.g., "Warehouse A", "Production Line")
+- **Health Monitoring** - CPU, RAM, battery status (optional)
+- **Real-time Updates** - WebSocket for live status
+- **Activity Logs** - View complete proof history per device
+
+```python
+# Report device health (all fields optional)
+import httpx
+
+httpx.post(
+    "https://api.actobotics.net/v1/fleet/devices/robot-001/health",
+    headers={"Authorization": f"Bearer {JWT_TOKEN}"},
+    json={
+        "cpu_percent": 45.2,
+        "memory_percent": 68.0,
+        "battery_percent": 85.0
+    }
+)
+```
 
 ---
 

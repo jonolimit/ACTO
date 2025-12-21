@@ -336,6 +336,104 @@ response = requests.post(
             </ul>
         `
     },
+    fleetManagement: {
+        title: "Fleet Management",
+        content: `
+            <h3>Overview</h3>
+            <p>Fleet Management allows you to monitor, organize, and manage all your connected robots and devices from a single dashboard. All data is persisted to database and tied to your wallet.</p>
+            
+            <h3>Features</h3>
+            <ul>
+                <li><strong>Device Overview:</strong> See all devices with proof counts, task history, and activity status</li>
+                <li><strong>Device Details:</strong> Click on any device to view complete activity logs and health metrics</li>
+                <li><strong>Custom Names:</strong> Rename devices with friendly names for easier identification</li>
+                <li><strong>Device Groups:</strong> Organize robots into groups (e.g., "Warehouse A", "Production Line")</li>
+                <li><strong>Health Monitoring:</strong> View CPU, RAM, battery, and other metrics (when available)</li>
+                <li><strong>Real-time Updates:</strong> WebSocket connection for live status updates</li>
+            </ul>
+            
+            <h3>Device Status</h3>
+            <p>Devices are categorized by their last activity:</p>
+            <ul>
+                <li><strong style="color: #10b981;">● Active:</strong> Activity within the last hour</li>
+                <li><strong style="color: #f59e0b;">● Idle:</strong> Activity within the last 24 hours</li>
+                <li><strong style="color: #6b7280;">● Inactive:</strong> No activity for more than 24 hours</li>
+            </ul>
+            
+            <h3>Health Metrics</h3>
+            <p>Devices can optionally report health metrics. All fields are optional - devices only send what they support:</p>
+            <ul>
+                <li><strong>CPU:</strong> Processor usage percentage</li>
+                <li><strong>Memory:</strong> RAM usage percentage</li>
+                <li><strong>Battery:</strong> Battery level and charging status (for mobile robots)</li>
+                <li><strong>Disk:</strong> Storage usage</li>
+                <li><strong>Network:</strong> Connection status and signal strength</li>
+                <li><strong>Temperature:</strong> Device or ambient temperature</li>
+                <li><strong>Uptime:</strong> Time since last restart</li>
+            </ul>
+            <p>If a device doesn't report health data, the dashboard shows "Health metrics not available".</p>
+            
+            <h3>Device Groups</h3>
+            <p>Groups help organize your fleet:</p>
+            <ul>
+                <li>Create groups with custom names and descriptions</li>
+                <li>Assign devices to groups</li>
+                <li>Filter the device list by group</li>
+                <li>Move devices between groups</li>
+            </ul>
+            <p>Example groups: "Warehouse A", "Production Line 1", "QA Team", "Development"</p>
+            
+            <h3>Fleet API Endpoints</h3>
+            <p>All fleet endpoints require JWT authentication (wallet login):</p>
+            
+            <h4>Fleet Overview</h4>
+            <pre><code>GET /v1/fleet</code></pre>
+            <p>Returns all devices with groups and summary statistics.</p>
+            
+            <h4>Device Details</h4>
+            <pre><code>GET /v1/fleet/devices/{device_id}</code></pre>
+            <p>Returns detailed info including activity logs and task history.</p>
+            
+            <h4>Rename Device</h4>
+            <pre><code>PATCH /v1/fleet/devices/{device_id}/name
+{
+  "name": "My Robot Alpha"
+}</code></pre>
+            
+            <h4>Report Health Metrics</h4>
+            <pre><code>POST /v1/fleet/devices/{device_id}/health
+{
+  "cpu_percent": 45.2,
+  "memory_percent": 68.0,
+  "battery_percent": 85.0,
+  "battery_charging": true
+}</code></pre>
+            <p>All fields are optional. Send only what your device supports.</p>
+            
+            <h4>Create Group</h4>
+            <pre><code>POST /v1/fleet/groups
+{
+  "name": "Warehouse A",
+  "description": "Main warehouse robots"
+}</code></pre>
+            
+            <h4>Assign Devices to Group</h4>
+            <pre><code>POST /v1/fleet/groups/{group_id}/assign
+{
+  "device_ids": ["robot-001", "robot-002"]
+}</code></pre>
+            
+            <h3>Real-time Updates</h3>
+            <p>Connect via WebSocket for live updates:</p>
+            <pre><code>WebSocket: wss://api.actobotics.net/ws/fleet</code></pre>
+            <p>Message types received:</p>
+            <ul>
+                <li><code>device_update</code> - Device status changed</li>
+                <li><code>health_update</code> - New health metrics</li>
+                <li><code>group_update</code> - Group created/modified/deleted</li>
+            </ul>
+        `
+    },
     bestPractices: {
         title: "Best Practices",
         content: `
