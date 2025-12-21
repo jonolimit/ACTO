@@ -156,6 +156,8 @@ window.confirmDelete = async function() {
     const { keyId, keyIds } = deleteContext;
     const isBulk = keyIds && keyIds.length > 0;
     
+    console.log('Delete context:', { keyId, keyIds, isBulk });
+    
     let successCount = 0;
     let failCount = 0;
     
@@ -165,6 +167,7 @@ window.confirmDelete = async function() {
                 method: 'DELETE',
                 silent: true
             });
+            console.log('Bulk delete result for', id, ':', result);
             if (result && result.success) {
                 localStorage.removeItem(`api_key_${id}`);
                 successCount++;
@@ -173,15 +176,21 @@ window.confirmDelete = async function() {
             }
         }
     } else if (keyId) {
+        console.log('Deleting single key:', keyId);
         const result = await apiRequest(`/v1/keys/${keyId}`, {
             method: 'DELETE',
         });
-        if (result && result.success) {
+        console.log('Delete result:', result);
+        // Check for success - API returns { success: true, key_id: "..." }
+        if (result && (result.success === true || result.key_id)) {
             localStorage.removeItem(`api_key_${keyId}`);
             successCount = 1;
         } else {
             failCount = 1;
         }
+    } else {
+        console.error('No keyId provided for deletion');
+        failCount = 1;
     }
     
     closeDeleteModal();
