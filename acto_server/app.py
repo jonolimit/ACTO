@@ -380,6 +380,38 @@ def create_app() -> FastAPI:
         if not verify_wallet_challenge(req.wallet_address, req.challenge, req.signature):
             raise HTTPException(status_code=401, detail="Invalid signature")
         
+        # Check token balance BEFORE creating session (if token gating is enabled)
+        if settings.token_gating_enabled:
+            try:
+                gate = SolanaTokenGate(rpc_url=settings.token_gating_rpc_url)
+                decision = gate.decide(
+                    owner=req.wallet_address,
+                    mint=settings.token_gating_mint,
+                    minimum=settings.token_gating_minimum,
+                )
+                if not decision.allowed:
+                    raise HTTPException(
+                        status_code=403,
+                        detail={
+                            "error": "insufficient_balance",
+                            "message": f"Insufficient ACTO token balance. You need at least {settings.token_gating_minimum:,.0f} ACTO tokens to access the dashboard.",
+                            "required": settings.token_gating_minimum,
+                            "balance": decision.balance or 0.0,
+                            "mint": settings.token_gating_mint,
+                        }
+                    )
+            except HTTPException:
+                raise
+            except Exception as e:
+                raise HTTPException(
+                    status_code=403,
+                    detail={
+                        "error": "balance_check_failed",
+                        "message": f"Could not verify token balance: {str(e)}",
+                        "required": settings.token_gating_minimum,
+                    }
+                ) from e
+        
         # Get or create user
         user = user_store.get_or_create_user(req.wallet_address)
         

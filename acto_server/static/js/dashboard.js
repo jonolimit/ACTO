@@ -272,6 +272,23 @@ window.connectWallet = async function(walletId) {
             })
         });
         
+        // Handle insufficient token balance (403)
+        if (verifyRes.status === 403) {
+            const errorData = await verifyRes.json().catch(() => ({}));
+            const detail = errorData.detail || {};
+            
+            // Show insufficient balance screen
+            hideConnectingState();
+            closeWalletModal();
+            showInsufficientBalanceScreen(
+                walletAddress,
+                detail.balance || 0,
+                detail.required || 50000,
+                wallet.name
+            );
+            return;
+        }
+        
         if (!verifyRes.ok) {
             throw new Error('Signature verification failed');
         }
@@ -356,6 +373,96 @@ window.disconnectWallet = async function() {
     document.getElementById('walletInfo').style.display = 'none';
     
     showAlert('Disconnected successfully', 'info');
+};
+
+// Show insufficient balance screen when wallet doesn't have enough tokens
+function showInsufficientBalanceScreen(walletAddress, currentBalance, requiredBalance, walletName) {
+    // Hide login card
+    document.getElementById('loginCard').classList.add('hidden');
+    document.getElementById('mainContent').classList.add('hidden');
+    
+    // Create or show insufficient balance screen
+    let balanceScreen = document.getElementById('insufficientBalanceScreen');
+    if (!balanceScreen) {
+        balanceScreen = document.createElement('div');
+        balanceScreen.id = 'insufficientBalanceScreen';
+        balanceScreen.className = 'insufficient-balance-screen';
+        document.querySelector('.dashboard-container').appendChild(balanceScreen);
+    }
+    
+    const shortAddress = `${walletAddress.substring(0, 6)}...${walletAddress.substring(walletAddress.length - 4)}`;
+    const formattedBalance = currentBalance.toLocaleString('en-US', { maximumFractionDigits: 0 });
+    const formattedRequired = requiredBalance.toLocaleString('en-US', { maximumFractionDigits: 0 });
+    const deficit = Math.max(0, requiredBalance - currentBalance);
+    const formattedDeficit = deficit.toLocaleString('en-US', { maximumFractionDigits: 0 });
+    
+    balanceScreen.innerHTML = `
+        <div class="balance-error-card">
+            <div class="balance-error-icon">
+                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="8" x2="12" y2="12"></line>
+                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                </svg>
+            </div>
+            <h2>Insufficient Token Balance</h2>
+            <p class="balance-error-subtitle">You need ACTO tokens to access the dashboard</p>
+            
+            <div class="balance-details">
+                <div class="balance-row">
+                    <span class="balance-label">Connected Wallet</span>
+                    <span class="balance-value wallet">${walletName} (${shortAddress})</span>
+                </div>
+                <div class="balance-row">
+                    <span class="balance-label">Your Balance</span>
+                    <span class="balance-value current">${formattedBalance} ACTO</span>
+                </div>
+                <div class="balance-row">
+                    <span class="balance-label">Required Balance</span>
+                    <span class="balance-value required">${formattedRequired} ACTO</span>
+                </div>
+                <div class="balance-row deficit">
+                    <span class="balance-label">You Need</span>
+                    <span class="balance-value">${formattedDeficit} more ACTO</span>
+                </div>
+            </div>
+            
+            <div class="balance-actions">
+                <a href="https://raydium.io/swap/?inputMint=sol&outputMint=6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN" 
+                   target="_blank" 
+                   class="btn btn-primary">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                    </svg>
+                    Buy ACTO Tokens
+                </a>
+                <button onclick="hideInsufficientBalanceScreen()" class="btn btn-secondary">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M1 4v6h6"></path>
+                        <path d="M23 20v-6h-6"></path>
+                        <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"></path>
+                    </svg>
+                    Try Another Wallet
+                </button>
+            </div>
+            
+            <p class="balance-info">
+                ACTO token is required to access the API and dashboard features.
+                <a href="https://actobotics.net" target="_blank">Learn more →</a>
+            </p>
+        </div>
+    `;
+    
+    balanceScreen.classList.remove('hidden');
+}
+
+// Hide insufficient balance screen and go back to login
+window.hideInsufficientBalanceScreen = function() {
+    const balanceScreen = document.getElementById('insufficientBalanceScreen');
+    if (balanceScreen) {
+        balanceScreen.classList.add('hidden');
+    }
+    document.getElementById('loginCard').classList.remove('hidden');
 };
 
 // Show main content after successful login
@@ -698,6 +805,19 @@ async function loadWalletStats() {
         if (response.status === 403) {
             // Token balance check failed - user doesn't have enough tokens
             showStatsMessage('Insufficient token balance. You need at least 50,000 ACTO tokens.', 'warning');
+            setDefaultStats();
+            return;
+        }
+        
+        if (response.status === 500) {
+            // Internal server error - likely token balance check failure
+            const errorData = await response.json().catch(() => ({}));
+            const detail = errorData.detail || '';
+            if (detail.includes('token balance') || detail.includes('Token balance')) {
+                showStatsMessage('Token balance verification failed. Make sure you have at least 50,000 ACTO tokens in your wallet.', 'warning');
+            } else {
+                showStatsMessage('Server error while loading statistics. Please try again later.', 'error');
+            }
             setDefaultStats();
             return;
         }

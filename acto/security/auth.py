@@ -211,8 +211,10 @@ def require_api_key_and_token_balance(
                 import logging
                 logger = logging.getLogger(__name__)
                 logger.error(f"Token balance verification error: {error_details}\n{traceback.format_exc()}")
+                # Return 403 instead of 500 for token balance issues - this is a client-side issue
                 raise HTTPException(
-                    status_code=500, detail=f"Failed to verify token balance: {error_details}"
+                    status_code=403, detail=f"Token balance verification failed: {error_details}. "
+                    f"Make sure you have at least {settings.token_gating_minimum} ACTO tokens."
                 ) from e
 
     return _dep
