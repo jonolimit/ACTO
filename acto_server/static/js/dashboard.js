@@ -387,7 +387,9 @@ function showInsufficientBalanceScreen(walletAddress, currentBalance, requiredBa
         balanceScreen = document.createElement('div');
         balanceScreen.id = 'insufficientBalanceScreen';
         balanceScreen.className = 'insufficient-balance-screen';
-        document.querySelector('.dashboard-container').appendChild(balanceScreen);
+        // Append to container or body as fallback
+        const container = document.querySelector('.container') || document.body;
+        container.appendChild(balanceScreen);
     }
     
     const shortAddress = `${walletAddress.substring(0, 6)}...${walletAddress.substring(walletAddress.length - 4)}`;
