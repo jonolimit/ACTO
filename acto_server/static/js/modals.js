@@ -204,7 +204,15 @@ window.confirmDelete = async function() {
     }
     
     // Clear selection and reload
+    console.log('Clearing selection and reloading keys...');
     if (typeof clearSelection === 'function') clearSelection();
-    await loadKeys();
+    
+    try {
+        console.log('Calling loadKeys()...');
+        await loadKeys();
+        console.log('loadKeys() completed successfully');
+    } catch (err) {
+        console.error('Error in loadKeys():', err);
+    }
 };
 
