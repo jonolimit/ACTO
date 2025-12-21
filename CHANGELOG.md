@@ -5,6 +5,52 @@ All notable changes to ACTO will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.9.1] - 2025-12-21
+
+### 🔒 API-Only Verification
+
+This release removes local proof verification. All proofs must now be verified through the ACTO API to ensure integrity, compliance, and fleet tracking.
+
+#### Breaking Changes
+
+- **`verify_proof()` removed** - Local verification is no longer available
+- **`verify_proof_async()` removed** - Use `AsyncACTOClient.verify()` instead
+- **`ProofChain.verify_chain()`** - Now requires an `ACTOClient` parameter
+
+#### Migration Guide
+
+**Before (0.9.0):**
+```python
+from acto.proof import verify_proof
+is_valid = verify_proof(envelope)  # ❌ No longer works
+```
+
+**After (0.9.1):**
+```python
+from acto.client import ACTOClient
+client = ACTOClient(api_key="...", wallet_address="...")
+result = client.verify(envelope)  # ✅ Use API verification
+print(result.valid)
+```
+
+#### Changed
+
+- `verify_proof()` now raises `ProofError` with migration instructions
+- `verify_proof_async()` now raises `ProofError` with migration instructions
+- `ProofChain.verify_chain(client)` now requires ACTOClient parameter
+- Updated all documentation to reflect API-only verification
+- Updated README.md, docs/API.md, examples/, and Jupyter notebooks
+- Updated dashboard documentation
+
+#### Why This Change?
+
+- **Integrity**: Centralized verification ensures all proofs go through the official API
+- **Compliance**: Enables audit trails and compliance reporting
+- **Fleet Tracking**: Enables automatic device discovery and fleet management
+- **Token Gating**: Ensures only authorized users can verify proofs
+
+---
+
 ## [0.9.0] - 2025-12-21
 
 ### 📦 PyPI SDK & API Client

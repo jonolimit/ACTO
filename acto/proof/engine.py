@@ -117,53 +117,37 @@ def create_proof(
 
 def verify_proof(envelope: ProofEnvelope) -> bool:
     """
-    Verify a proof envelope's integrity and signature.
+    Verify a proof envelope via the ACTO API.
+
+    .. deprecated::
+        Local verification has been removed. All proof verification must
+        be done through the ACTO API to ensure integrity and compliance.
 
     Args:
         envelope: Proof envelope to verify
 
-    Returns:
-        bool: True if proof is valid
-
     Raises:
-        ProofError: If proof is invalid (hash mismatch or invalid signature)
+        ProofError: Always raises - use ACTOClient.verify() instead
 
     Example:
         ```python
-        from acto.proof import verify_proof, ProofEnvelope
-        from pathlib import Path
+        from acto.client import ACTOClient
 
-        # Load proof from file
-        envelope = ProofEnvelope.model_validate_json(
-            Path("proof.json").read_text()
+        client = ACTOClient(
+            api_key="your-api-key",
+            wallet_address="your-wallet-address"
         )
 
-        # Verify proof
-        try:
-            is_valid = verify_proof(envelope)
-            print(f"Proof is valid: {is_valid}")
-        except ProofError as e:
-            print(f"Proof verification failed: {e}")
+        # Verify proof via API
+        result = client.verify(envelope)
+        print(f"Proof valid: {result.valid}")
         ```
     """
-    payload = envelope.payload
-    payload_base = {
-        "version": payload.version,
-        "subject": payload.subject.model_dump(),
-        "created_at": payload.created_at,
-        "telemetry_normalized": payload.telemetry_normalized,
-        "telemetry_hash": payload.telemetry_hash,
-        "hash_alg": payload.hash_alg,
-        "signature_alg": payload.signature_alg,
-        "meta": payload.meta,
-    }
-    recomputed = compute_payload_hash(payload_base, payload.hash_alg)
-    if recomputed != payload.payload_hash:
-        raise ProofError("Payload hash mismatch. Proof is tampered or inconsistent.")
-
-    ok = verify_bytes(
-        envelope.signer_public_key_b64, payload.payload_hash.encode("utf-8"), envelope.signature_b64
+    raise ProofError(
+        "Local verification has been removed. "
+        "Please use the ACTO API for verification:\n\n"
+        "  from acto.client import ACTOClient\n"
+        "  client = ACTOClient(api_key='...', wallet_address='...')\n"
+        "  result = client.verify(envelope)\n\n"
+        "Get your API key at: https://api.actobotics.net/dashboard"
     )
-    if not ok:
-        raise ProofError("Invalid signature.")
-    return True

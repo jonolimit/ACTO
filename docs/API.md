@@ -2,6 +2,8 @@
 
 The ACTO API provides a hosted service for submitting and verifying robot execution proofs.
 
+
+
 **Base URL:** `https://api.actobotics.net`
 
 **Dashboard:** [api.actobotics.net/dashboard](https://api.actobotics.net/dashboard)
@@ -221,7 +223,7 @@ Search and filter proofs with pagination.
 POST /v1/verify
 ```
 
-Verify a proof's cryptographic signature and integrity.
+Verify a proof's cryptographic signature and integrity. This is the **only way** to verify proofs.
 
 **Request:**
 ```json

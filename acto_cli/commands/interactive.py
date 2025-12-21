@@ -14,7 +14,7 @@ from acto.access import SolanaTokenGate
 from acto.config import Settings
 from acto.crypto import KeyPair, load_keypair, save_keypair
 from acto.errors import AccessError, ProofError, TelemetryError
-from acto.proof import ProofEnvelope, create_proof, verify_proof
+from acto.proof import ProofEnvelope, create_proof
 from acto.registry import ProofRegistry
 from acto.telemetry import CsvTelemetryParser, JsonlTelemetryParser
 
@@ -98,16 +98,21 @@ def _handle_create_proof() -> None:
 
 
 def _handle_verify_proof() -> None:
-    """Handle proof verification."""
-    console.print("\n[bold cyan]Verify Proof[/bold cyan]")
-    proof = Prompt.ask("Proof file path")
-    try:
-        env = ProofEnvelope.model_validate_json(Path(proof).read_text(encoding="utf-8"))
-        verify_proof(env)
-        console.print("[green]✓ Valid proof.[/green]")
-        console.print(f"[cyan]Payload hash:[/cyan] {env.payload.payload_hash}")
-    except Exception as e:
-        console.print(f"[red]✗ Invalid proof:[/red] {e}")
+    """Handle proof verification - now requires API."""
+    console.print("\n[bold yellow]⚠ Local Verification Removed[/bold yellow]")
+    console.print()
+    console.print("All proof verification must now be done through the ACTO API.")
+    console.print()
+    console.print("[cyan]Option 1: Use the Python SDK[/cyan]")
+    console.print("  from acto.client import ACTOClient")
+    console.print("  client = ACTOClient(api_key='...', wallet_address='...')")
+    console.print("  result = client.verify(envelope)")
+    console.print()
+    console.print("[cyan]Option 2: Use the Dashboard[/cyan]")
+    console.print("  Visit: https://api.actobotics.net/dashboard")
+    console.print("  Use the API Playground to verify proofs")
+    console.print()
+    console.print("[cyan]Get your API key at:[/cyan] https://api.actobotics.net/dashboard")
 
 
 def _handle_list_proofs() -> None:

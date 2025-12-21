@@ -88,7 +88,7 @@ const documentation = {
         title: "Overview",
         content: `
             <h3>What is ACTO?</h3>
-            <p>ACTO (Robotics Proof-of-Execution Toolkit) is a system for generating deterministic, signed execution proofs from robot telemetry and logs. These proofs are verifiable locally or via API.</p>
+            <p>ACTO (Robotics Proof-of-Execution Toolkit) is a system for generating deterministic, signed execution proofs from robot telemetry and logs. All proofs must be verified through this API.</p>
             
             <h3>What are API Keys?</h3>
             <p>API keys are secure tokens that authenticate your requests to the ACTO Verification API. Each key is unique to your account and allows you to:</p>
@@ -112,7 +112,7 @@ const documentation = {
                 <li><strong>Deterministic Proofs:</strong> Canonicalized telemetry ensures consistent proof generation</li>
                 <li><strong>Signed Verification:</strong> Ed25519 signatures guarantee proof authenticity</li>
                 <li><strong>Portable Format:</strong> JSON envelope format for easy integration</li>
-                <li><strong>Local Verification:</strong> Verify proofs without a trusted server</li>
+                <li><strong>API Verification:</strong> All proofs must be verified through this API</li>
             </ul>
         `
     },

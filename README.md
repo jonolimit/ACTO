@@ -2,7 +2,7 @@
 
 **Robotics-first proof-of-execution toolkit.**
 
-Generate deterministic, signed execution proofs from robot telemetry and logs. Verify proofs locally or via API. Fast, gas-free verification.
+Generate deterministic, signed execution proofs from robot telemetry and logs. Verify proofs via the ACTO API. Fast, gas-free verification.
 
 [![PyPI version](https://img.shields.io/pypi/v/actobotics.svg)](https://pypi.org/project/actobotics/)
 [![Python versions](https://img.shields.io/pypi/pyversions/actobotics.svg)](https://pypi.org/project/actobotics/)
@@ -24,9 +24,9 @@ Generate deterministic, signed execution proofs from robot telemetry and logs. V
 
 ## ✨ Features
 
-- **Python SDK** - Create and verify execution proofs
-- **Local Registry** - SQLite-based proof storage
-- **REST API** - FastAPI verification service
+- **Python SDK** - Create execution proofs locally
+- **API Verification** - Verify proofs via the hosted ACTO API
+- **REST API** - FastAPI verification service at api.actobotics.net
 - **Multi-Wallet Dashboard** - Phantom, Solflare, Backpack, Glow, Coinbase
 - **Fleet Management** - Monitor and organize your robot fleet
 - **Token Gating** - SPL token balance checks (off-chain)
@@ -65,19 +65,16 @@ acto keys generate
 acto proof create \
   --task-id "task-001" \
   --source examples/telemetry/sample_telemetry.jsonl
-
-# Verify locally
-acto proof verify --proof my_proof.json
 ```
 
 ---
 
 ## 📦 SDK Usage
 
-### Local Proof Creation
+### Create Proofs Locally
 
 ```python
-from acto.proof import create_proof, verify_proof
+from acto.proof import create_proof
 from acto.telemetry.models import TelemetryBundle, TelemetryEvent
 from acto.crypto import KeyPair
 
@@ -91,12 +88,13 @@ bundle = TelemetryBundle(
     events=[TelemetryEvent(ts="2025-01-01T00:00:00Z", topic="sensor", data={"value": 42})]
 )
 
-# Create and verify proof locally
+# Create proof locally
 envelope = create_proof(bundle, keypair.private_key_b64, keypair.public_key_b64)
-is_valid = verify_proof(envelope)
 ```
 
-### Submit to Hosted API
+### Verify & Submit via API
+
+All proof verification must be done through the ACTO API. This ensures integrity, compliance, and enables fleet tracking.
 
 ```python
 from acto.client import ACTOClient
@@ -107,7 +105,11 @@ client = ACTOClient(
     wallet_address="ABC123..."        # Your Solana wallet
 )
 
-# Submit proof
+# Verify proof via API (required)
+result = client.verify(envelope)
+print(f"Proof valid: {result.valid}")
+
+# Submit proof to registry
 proof_id = client.submit_proof(envelope)
 print(f"Submitted: {proof_id}")
 

@@ -21,16 +21,54 @@ class ProofChain:
         """Return all proofs in the chain."""
         return [self.root_proof] + self.dependencies
 
-    def verify_chain(self) -> bool:
-        """Verify the entire chain."""
-        from acto.proof.engine import verify_proof
+    def verify_chain(self, client: Any) -> dict[str, Any]:
+        """
+        Verify the entire chain via the ACTO API.
 
-        # Verify root proof
-        if not verify_proof(self.root_proof):
-            return False
+        Args:
+            client: ACTOClient instance for API verification
+
+        Returns:
+            dict with verification results for each proof in the chain
+
+        Example:
+            ```python
+            from acto.client import ACTOClient
+
+            client = ACTOClient(api_key="...", wallet_address="...")
+            chain = ProofChain(root_proof)
+            results = chain.verify_chain(client)
+            print(f"All valid: {results['all_valid']}")
+            ```
+        """
+        results = {
+            "root_valid": False,
+            "dependencies_valid": [],
+            "all_valid": False,
+        }
+
+        # Verify root proof via API
+        try:
+            root_result = client.verify(self.root_proof)
+            results["root_valid"] = root_result.valid
+        except Exception as e:
+            results["root_error"] = str(e)
+            return results
 
         # Verify all dependencies
-        return all(verify_proof(dep) for dep in self.dependencies)
+        all_valid = results["root_valid"]
+        for dep in self.dependencies:
+            try:
+                dep_result = client.verify(dep)
+                results["dependencies_valid"].append(dep_result.valid)
+                if not dep_result.valid:
+                    all_valid = False
+            except Exception as e:
+                results["dependencies_valid"].append(False)
+                all_valid = False
+
+        results["all_valid"] = all_valid
+        return results
 
     def to_dict(self) -> dict[str, Any]:
         """Convert to a dict."""

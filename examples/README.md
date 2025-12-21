@@ -43,8 +43,9 @@ jupyter notebook notebooks/
 ```bash
 acto keys generate --out data/keys/acto_keypair.json
 acto proof create --task-id cleaning-run-001 --source examples/telemetry/sample_telemetry.jsonl --out examples/proofs/sample_proof.json
-acto proof verify --proof examples/proofs/sample_proof.json
 ```
+
+> **Note:** Proof verification is only available via the ACTO API. Use the SDK client or dashboard to verify proofs.
 
 ### Interactive Mode
 
@@ -116,7 +117,8 @@ httpx.post(
 
 See the Jupyter notebooks in `notebooks/` for comprehensive SDK usage examples including:
 
-- Basic proof creation and verification
+- Basic proof creation
+- API-based verification via ACTOClient
 - Async/await operations
 - Registry management with context managers
 - Batch operations

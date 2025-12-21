@@ -8,11 +8,11 @@ from rich.progress import Progress, SpinnerColumn, TextColumn
 
 from acto.crypto import load_keypair
 from acto.errors import ProofError, TelemetryError
-from acto.proof import ProofEnvelope, create_proof, verify_proof
+from acto.proof import ProofEnvelope, create_proof
 from acto.registry import ProofRegistry
 from acto.telemetry import CsvTelemetryParser, JsonlTelemetryParser
 
-proof_app = typer.Typer(help="Create and verify ACTO proofs.")
+proof_app = typer.Typer(help="Create ACTO proofs. Verification is only available via the API.")
 
 
 def _select_parser(source: str):
@@ -85,26 +85,23 @@ def create(
 def verify(
     proof: str = typer.Option(..., help="Proof JSON file"),
 ) -> None:
-    """Verify a proof envelope."""
-    try:
-        with Progress(
-            SpinnerColumn(),
-            TextColumn("[progress.description]{task.description}"),
-            transient=True,
-        ) as progress:
-            task1 = progress.add_task("Loading proof...", total=None)
-            env = ProofEnvelope.model_validate_json(
-                Path(proof).read_text(encoding="utf-8")
-            )
-            progress.update(task1, description="[green]Proof loaded[/green]")
-
-            task2 = progress.add_task("Verifying proof...", total=None)
-            verify_proof(env)
-            progress.update(task2, description="[green]Proof verified[/green]")
-
-        print("[green]✓ Valid proof.[/green]")
-        print(f"[cyan]Payload hash:[/cyan] {env.payload.payload_hash}")
-
-    except Exception as e:
-        print(f"[red]Invalid proof:[/red] {e}")
-        raise typer.Exit(code=1) from e
+    """
+    Verify a proof envelope.
+    
+    NOTE: Local verification has been removed. Use the ACTO API instead.
+    """
+    print("[yellow]⚠ Local verification has been removed.[/yellow]")
+    print()
+    print("All proof verification must now be done through the ACTO API.")
+    print()
+    print("[cyan]Option 1: Use the Python SDK[/cyan]")
+    print("  from acto.client import ACTOClient")
+    print("  client = ACTOClient(api_key='...', wallet_address='...')")
+    print("  result = client.verify(envelope)")
+    print()
+    print("[cyan]Option 2: Use the Dashboard[/cyan]")
+    print("  Visit: https://api.actobotics.net/dashboard")
+    print("  Use the API Playground to verify proofs")
+    print()
+    print("[cyan]Get your API key at:[/cyan] https://api.actobotics.net/dashboard")
+    raise typer.Exit(code=1)
