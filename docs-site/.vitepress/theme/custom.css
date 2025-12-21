@@ -326,7 +326,7 @@ body {
   font-family: 'Playfair Display', serif !important;
   font-size: 48px;
   font-weight: 600;
-  color: var(--vp-c-text-1);
+  color: #1a1a1a;
   letter-spacing: -1px;
 }
 
@@ -334,15 +334,28 @@ body {
   font-family: 'Playfair Display', serif !important;
   font-size: 28px;
   font-weight: 500;
-  color: var(--vp-c-text-2);
+  color: #1a1a1a;
 }
 
 .VPHero .tagline {
   font-family: 'Inter', sans-serif;
   font-size: 16px;
   line-height: 1.6;
-  color: var(--vp-c-text-3);
+  color: #374151;
   max-width: 560px;
+}
+
+/* Hero logo size - 50% smaller */
+.VPHero .image-container .image-bg,
+.VPHero .image-container img,
+.VPHero .VPImage {
+  max-width: 50% !important;
+  height: auto !important;
+}
+
+.VPHero .image-container {
+  transform: scale(0.5);
+  transform-origin: center center;
 }
 
 /* -----------------------------------------------------------------------------
@@ -514,6 +527,28 @@ body {
   .vp-doc h2 {
     font-size: 20px;
   }
+}
+
+/* -----------------------------------------------------------------------------
+   Print
+   ----------------------------------------------------------------------------- */
+/* -----------------------------------------------------------------------------
+   Footer - Slim & Compact
+   ----------------------------------------------------------------------------- */
+.VPFooter {
+  padding: 16px 24px !important;
+  border-top: 1px solid var(--vp-c-divider);
+}
+
+.VPFooter .message,
+.VPFooter .copyright {
+  font-size: 12px !important;
+  line-height: 1.4 !important;
+  margin: 0 !important;
+}
+
+.VPFooter .container {
+  padding: 0 !important;
 }
 
 /* -----------------------------------------------------------------------------
