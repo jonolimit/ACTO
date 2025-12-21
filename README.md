@@ -4,7 +4,8 @@
 
 Generate deterministic, signed execution proofs from robot telemetry and logs. Verify proofs locally or via API. Fast, gas-free verification.
 
-[![Version](https://img.shields.io/badge/version-0.8.0-blue.svg)](https://github.com/actobotics/ACTO)
+[![PyPI version](https://img.shields.io/pypi/v/actobotics.svg)](https://pypi.org/project/actobotics/)
+[![Python versions](https://img.shields.io/pypi/pyversions/actobotics.svg)](https://pypi.org/project/actobotics/)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
 ---
@@ -17,6 +18,7 @@ Generate deterministic, signed execution proofs from robot telemetry and logs. V
 | 📊 **Dashboard** | [api.actobotics.net/dashboard](https://api.actobotics.net/dashboard) |
 | 🐦 **X (Twitter)** | [@actoboticsnet](https://x.com/actoboticsnet) |
 | 📖 **API Docs** | [docs/API.md](docs/API.md) |
+| 📦 **PyPI** | [pypi.org/project/actobotics](https://pypi.org/project/actobotics/) |
 
 ---
 
@@ -35,10 +37,27 @@ Generate deterministic, signed execution proofs from robot telemetry and logs. V
 
 ## 🚀 Quick Start
 
-```bash
-# Install
-pip install -e ".[all]"
+### Install the SDK
 
+```bash
+pip install actobotics
+```
+
+That's it! The SDK connects to the hosted API at `api.actobotics.net`.
+
+### Optional Dependencies
+
+```bash
+# With Solana integration
+pip install actobotics[solana]
+
+# With all optional features (Solana, Redis, ROS, etc.)
+pip install actobotics[full]
+```
+
+### Basic Usage
+
+```bash
 # Generate keypair
 acto keys generate
 
@@ -48,10 +67,7 @@ acto proof create \
   --source examples/telemetry/sample_telemetry.jsonl
 
 # Verify locally
-acto proof verify --proof examples/proofs/sample_proof.json
-
-# Start API server (optional)
-acto server run
+acto proof verify --proof my_proof.json
 ```
 
 ---
@@ -170,12 +186,36 @@ acto access check \
 
 ---
 
-## 🧪 Testing
+## 🛠️ Self-Hosted Setup (Contributors)
+
+<details>
+<summary>Click to expand self-hosted installation instructions</summary>
+
+If you want to run your own ACTO server or contribute to development:
+
+### Clone & Install
 
 ```bash
-# Install dev dependencies
-pip install -e ".[dev]"
+git clone https://github.com/actobotics/ACTO.git
+cd ACTO
 
+# Install with all dependencies including server
+pip install -e ".[dev]"
+```
+
+### Run the Server
+
+```bash
+# Start API server
+acto server run
+
+# Or with uvicorn directly
+uvicorn acto_server.app:app --reload --port 8080
+```
+
+### Run Tests
+
+```bash
 # Run tests
 pytest
 
@@ -186,9 +226,7 @@ pytest --cov=acto --cov-report=html
 locust -f tests/load/locustfile.py
 ```
 
----
-
-## 🐳 Docker
+### Docker
 
 ```bash
 # Run with docker-compose
@@ -198,6 +236,25 @@ docker-compose up -d
 docker build -t acto .
 docker run -p 8080:8080 acto
 ```
+
+### Project Structure
+
+```
+ACTO/
+├── acto/              # SDK (published to PyPI)
+│   ├── proof/         # Proof creation & verification
+│   ├── crypto/        # Keys, signing, hashing
+│   ├── telemetry/     # Telemetry parsing & normalization
+│   ├── registry/      # Local proof storage
+│   └── ...
+├── acto_cli/          # CLI tools (published to PyPI)
+├── acto_server/       # FastAPI server (NOT published)
+├── api/               # Vercel serverless functions
+├── tests/             # Test suite
+└── docs/              # Documentation
+```
+
+</details>
 
 ---
 
@@ -210,5 +267,6 @@ MIT. See [LICENSE](LICENSE).
 <p align="center">
   <a href="https://actobotics.net">Website</a> •
   <a href="https://api.actobotics.net/dashboard">Dashboard</a> •
-  <a href="https://x.com/actoboticsnet">X (Twitter)</a>
+  <a href="https://x.com/actoboticsnet">X (Twitter)</a> •
+  <a href="https://pypi.org/project/actobotics/">PyPI</a>
 </p>

@@ -1,0 +1,111 @@
+# Publish ACTO SDK to PyPI
+#
+# This workflow automatically publishes the SDK to PyPI when:
+# 1. A new release is created on GitHub
+# 2. A version tag (v*) is pushed
+
+name: Publish to PyPI
+
+on:
+  release:
+    types: [published]
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    name: Build Package
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.11"
+        cache: 'pip'
+    
+    - name: Install build dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install build twine
+    
+    - name: Build package
+      run: python -m build
+    
+    - name: Check package
+      run: twine check dist/*
+    
+    - name: List package contents
+      run: |
+        echo "=== Source Distribution ==="
+        tar -tzf dist/*.tar.gz | head -50
+        echo ""
+        echo "=== Wheel Contents ==="
+        unzip -l dist/*.whl | head -50
+    
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: dist
+        path: dist/
+
+  test-install:
+    name: Test Installation
+    needs: build
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.10", "3.11", "3.12"]
+    
+    steps:
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
+    
+    - name: Download artifacts
+      uses: actions/download-artifact@v4
+      with:
+        name: dist
+        path: dist/
+    
+    - name: Install package from wheel
+      run: pip install dist/*.whl
+    
+    - name: Test import
+      run: |
+        python -c "import acto; print(f'ACTO version: {acto.__version__}')"
+        python -c "from acto.proof import create_proof, verify_proof; print('Proof module OK')"
+        python -c "from acto.crypto import KeyPair; print('Crypto module OK')"
+        python -c "from acto.telemetry import TelemetryBundle; print('Telemetry module OK')"
+        echo "Package name: actobotics (import as 'acto')"
+    
+    - name: Test CLI
+      run: |
+        acto --version
+        acto --help
+
+  publish-pypi:
+    name: Publish to PyPI
+    needs: [build, test-install]
+    runs-on: ubuntu-latest
+    
+    environment:
+      name: pypi
+      url: https://pypi.org/project/actobotics/
+    
+    permissions:
+      id-token: write
+    
+    steps:
+    - name: Download artifacts
+      uses: actions/download-artifact@v4
+      with:
+        name: dist
+        path: dist/
+    
+    - name: Publish to PyPI
+      uses: pypa/gh-action-pypi-publish@release/v1
