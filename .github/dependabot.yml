@@ -1,32 +1,18 @@
+# Dependabot configuration
+# Disabled for GitHub Actions to reduce noise
+
 version: 2
 updates:
-  # Python dependencies
-  - package-ecosystem: "pip"
-    directory: "/"
-    schedule:
-      interval: "weekly"
-    open-pull-requests-limit: 10
-    labels:
-      - "dependencies"
-      - "python"
-    commit-message:
-      prefix: "deps"
-      include: "scope"
-    ignore:
-      # Ignore major version updates for critical dependencies
-      - dependency-name: "pydantic"
-        update-types: ["version-update:semver-major"]
-      - dependency-name: "fastapi"
-        update-types: ["version-update:semver-major"]
-      - dependency-name: "sqlalchemy"
-        update-types: ["version-update:semver-major"]
-
-  # GitHub Actions
+  # Disable GitHub Actions updates
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
-      interval: "weekly"
-    labels:
-      - "dependencies"
-      - "github-actions"
+      interval: "monthly"  # Only check monthly instead of daily
+    open-pull-requests-limit: 0  # Don't create PRs automatically
 
+  # Keep Python dependency updates (optional - also disabled)
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+    open-pull-requests-limit: 0
