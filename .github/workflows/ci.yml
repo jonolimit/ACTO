@@ -238,7 +238,8 @@ jobs:
   load-test:
     name: Load Testing
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    # Disabled: Requires database and environment secrets not available in CI
+    if: false  # github.event_name == 'push' && github.ref == 'refs/heads/main'
     
     steps:
     - uses: actions/checkout@v4
