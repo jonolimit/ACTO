@@ -537,7 +537,7 @@ body {
    ----------------------------------------------------------------------------- */
 .VPFooter {
   padding: 12px 24px !important;
-  margin-top: 60px !important;
+  margin-top: 0 !important;
   border-top: 1px solid var(--vp-c-divider);
   background: rgba(255, 255, 255, 0.8) !important;
   backdrop-filter: blur(10px);
@@ -553,6 +553,43 @@ body {
 
 .VPFooter .container {
   padding: 0 !important;
+}
+
+/* Remove excessive padding/margins on home page */
+.VPHome {
+  padding-bottom: 0 !important;
+  margin-bottom: 0 !important;
+  min-height: auto !important;
+}
+
+.VPContent.is-home {
+  padding-bottom: 0 !important;
+  min-height: auto !important;
+}
+
+.VPContent.is-home .VPHome {
+  min-height: auto !important;
+}
+
+/* Home page markdown content container */
+.VPHome .vp-doc {
+  padding-bottom: 40px !important;
+  margin-bottom: 0 !important;
+}
+
+/* The container that wraps home content */
+.VPContent.is-home > .VPHome > div:last-child {
+  padding-bottom: 0 !important;
+}
+
+/* Target the home content wrapper directly */
+.VPHomeContent {
+  padding-bottom: 0 !important;
+}
+
+main.VPHome {
+  min-height: auto !important;
+  padding-bottom: 0 !important;
 }
 
 /* -----------------------------------------------------------------------------
