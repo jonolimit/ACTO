@@ -156,8 +156,6 @@ window.confirmDelete = async function() {
     const { keyId, keyIds } = deleteContext;
     const isBulk = keyIds && keyIds.length > 0;
     
-    console.log('Delete context:', { keyId, keyIds, isBulk });
-    
     let successCount = 0;
     let failCount = 0;
     
@@ -167,8 +165,7 @@ window.confirmDelete = async function() {
                 method: 'DELETE',
                 silent: true
             });
-            console.log('Bulk delete result for', id, ':', result);
-            if (result && result.success) {
+            if (result && (result.success === true || result.key_id)) {
                 localStorage.removeItem(`api_key_${id}`);
                 successCount++;
             } else {
@@ -176,11 +173,9 @@ window.confirmDelete = async function() {
             }
         }
     } else if (keyId) {
-        console.log('Deleting single key:', keyId);
         const result = await apiRequest(`/v1/keys/${keyId}`, {
             method: 'DELETE',
         });
-        console.log('Delete result:', result);
         // Check for success - API returns { success: true, key_id: "..." }
         if (result && (result.success === true || result.key_id)) {
             localStorage.removeItem(`api_key_${keyId}`);
@@ -189,7 +184,6 @@ window.confirmDelete = async function() {
             failCount = 1;
         }
     } else {
-        console.error('No keyId provided for deletion');
         failCount = 1;
     }
     
@@ -204,15 +198,7 @@ window.confirmDelete = async function() {
     }
     
     // Clear selection and reload
-    console.log('Clearing selection and reloading keys...');
     if (typeof clearSelection === 'function') clearSelection();
-    
-    try {
-        console.log('Calling loadKeys()...');
-        await loadKeys();
-        console.log('loadKeys() completed successfully');
-    } catch (err) {
-        console.error('Error in loadKeys():', err);
-    }
+    await loadKeys();
 };
 
