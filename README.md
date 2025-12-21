@@ -74,6 +74,8 @@ acto proof verify --proof my_proof.json
 
 ## 📦 SDK Usage
 
+### Local Proof Creation
+
 ```python
 from acto.proof import create_proof, verify_proof
 from acto.telemetry.models import TelemetryBundle, TelemetryEvent
@@ -89,9 +91,41 @@ bundle = TelemetryBundle(
     events=[TelemetryEvent(ts="2025-01-01T00:00:00Z", topic="sensor", data={"value": 42})]
 )
 
-# Create and verify proof
+# Create and verify proof locally
 envelope = create_proof(bundle, keypair.private_key_b64, keypair.public_key_b64)
 is_valid = verify_proof(envelope)
+```
+
+### Submit to Hosted API
+
+```python
+from acto.client import ACTOClient
+
+# Connect to hosted API
+client = ACTOClient(
+    api_key="acto_xxx...",           # From dashboard
+    wallet_address="ABC123..."        # Your Solana wallet
+)
+
+# Submit proof
+proof_id = client.submit_proof(envelope)
+print(f"Submitted: {proof_id}")
+
+# Search proofs
+results = client.search_proofs(robot_id="robot-001", limit=10)
+for proof in results.items:
+    print(f"  - {proof.task_id}")
+
+# Fleet management
+fleet = client.fleet.get_overview()
+print(f"Total devices: {fleet.summary.total_devices}")
+
+# Report robot health
+client.fleet.report_health(
+    "robot-001",
+    cpu_percent=45.2,
+    battery_percent=85.0
+)
 ```
 
 ---
@@ -102,7 +136,15 @@ Use the hosted API at `https://api.actobotics.net`:
 
 1. **Get an API Key** at [api.actobotics.net/dashboard](https://api.actobotics.net/dashboard)
 2. **Connect your Solana wallet** (requires 50,000 ACTO tokens)
-3. **Make API calls**:
+3. **Use the SDK client** (recommended) or make direct API calls:
+
+```python
+# Recommended: Use the SDK client
+from acto.client import ACTOClient
+client = ACTOClient(api_key="...", wallet_address="...")
+```
+
+Or with curl:
 
 ```bash
 curl -X POST https://api.actobotics.net/v1/proofs \
