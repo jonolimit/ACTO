@@ -338,7 +338,9 @@ class AsyncACTOClient:
     async def get_proof(self, proof_id: str) -> ProofEnvelope:
         """Get a proof by ID."""
         data = await self._request("GET", f"/v1/proofs/{proof_id}")
-        return ProofEnvelope.model_validate(data)
+        # API returns {"proof_id": ..., "envelope": ...}
+        envelope_data = data.get("envelope", data)
+        return ProofEnvelope.model_validate(envelope_data)
 
     async def list_proofs(self, limit: int = 50) -> ProofListResponse:
         """List recent proofs."""

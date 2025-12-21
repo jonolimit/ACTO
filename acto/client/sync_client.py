@@ -458,7 +458,9 @@ class ACTOClient:
             ProofEnvelope: The proof envelope
         """
         data = self._request("GET", f"/v1/proofs/{proof_id}")
-        return ProofEnvelope.model_validate(data)
+        # API returns {"proof_id": ..., "envelope": ...}
+        envelope_data = data.get("envelope", data)
+        return ProofEnvelope.model_validate(envelope_data)
 
     def list_proofs(self, limit: int = 50) -> ProofListResponse:
         """

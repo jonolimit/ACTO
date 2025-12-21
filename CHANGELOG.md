@@ -5,6 +5,17 @@ All notable changes to ACTO will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.9.5] - 2025-12-21
+
+### 🐛 SDK Client Fix
+
+#### Fixed
+
+- `client.get_proof()` now correctly parses API response format
+- API returns `{"proof_id": ..., "envelope": ...}` - client now extracts envelope
+
+---
+
 ## [0.9.4] - 2025-12-21
 
 ### 🐛 CI/CD Fix
