@@ -20,13 +20,10 @@ from acto.security import (
     AuditAction,
     AuditLogger,
     JWTManager,
-    OAuth2TokenResponse,
     Permission,
     RBACManager,
     TokenBucketRateLimiter,
-    create_jwt_dependency_optional,
     get_current_user_optional,
-    require_api_key,
     require_api_key_and_token_balance,
     require_jwt,
 )
@@ -333,32 +330,6 @@ def create_app() -> FastAPI:
         except ProofError as e:
             metrics.inc("acto.score.fail")
             raise HTTPException(status_code=400, detail=str(e)) from e
-
-    # OAuth2/JWT endpoints
-    if jwt_manager:
-
-        @app.post("/v1/auth/token")
-        def create_token(username: str, password: str, roles: list[str] | None = None) -> dict:
-            """Create access token (simplified - in production, verify credentials properly)."""
-            # In production, verify username/password against user database
-            access_token = jwt_manager.create_access_token(subject=username, roles=roles or ["user"])
-            refresh_token = jwt_manager.create_refresh_token(subject=username)
-            token_response = OAuth2TokenResponse(
-                access_token=access_token,
-                refresh_token=refresh_token,
-                expires_in=settings.jwt_access_token_expire_minutes * 60,
-            )
-            return token_response.to_dict()
-
-        @app.post("/v1/auth/refresh")
-        def refresh_token(refresh_token: str) -> dict:
-            """Refresh access token."""
-            new_access_token = jwt_manager.refresh_access_token(refresh_token)
-            token_response = OAuth2TokenResponse(
-                access_token=new_access_token,
-                expires_in=settings.jwt_access_token_expire_minutes * 60,
-            )
-            return token_response.to_dict()
 
     @app.post("/v1/access/check", response_model=AccessCheckResponse, dependencies=[auth_dependency()])
     def access_check(req: AccessCheckRequest) -> AccessCheckResponse:

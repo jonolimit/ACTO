@@ -5,6 +5,32 @@ All notable changes to ACTO will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.9.6] - 2025-12-22
+
+### 🔒 Security Cleanup
+
+This release removes unused legacy authentication endpoints that were never integrated into the production authentication flow.
+
+#### Removed
+
+- **`POST /v1/auth/token`** - Unused username/password endpoint (security risk)
+- **`POST /v1/auth/refresh`** - Unused refresh token endpoint
+
+These endpoints were placeholder code from early development and were never used by the SDK, CLI, dashboard, or any client. The actual authentication uses Solana wallet-based authentication via `/v1/auth/wallet/connect` and `/v1/auth/wallet/verify`.
+
+#### Changed
+
+- Updated `docs/SECURITY.md` to document the actual wallet-based authentication flow
+- Added Token Gating documentation
+- Cleaned up unused imports (`OAuth2TokenResponse`, `create_jwt_dependency_optional`, `require_api_key`)
+
+#### Security
+
+- Removed potential security vulnerability from unverified token creation endpoint
+- All authentication now properly uses wallet signature verification + token gating
+
+---
+
 ## [0.9.5] - 2025-12-21
 
 ### 🐛 SDK Client Fix

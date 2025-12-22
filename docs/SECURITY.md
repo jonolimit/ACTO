@@ -8,28 +8,42 @@ ACTO v0.3.1 includes comprehensive security enhancements designed for production
 
 ## Authentication & Authorization
 
-### OAuth2/JWT Support
+### Wallet-Based Authentication
 
-ACTO supports JWT-based authentication with access and refresh tokens.
+ACTO uses Solana wallet-based authentication with JWT tokens. Users authenticate by signing a challenge message with their wallet.
+
+**Authentication Flow:**
+1. Connect wallet: `POST /v1/auth/wallet/connect` with wallet address
+2. Sign the returned challenge message with your wallet
+3. Verify signature: `POST /v1/auth/wallet/verify` with wallet address, signature, and challenge
+4. Receive JWT access token on success
+5. Use token: Include `Authorization: Bearer <token>` header in requests
+
+**Token Gating:**
+Access can be restricted to wallets holding a minimum amount of ACTO tokens.
 
 **Configuration:**
 ```toml
-jwt_enabled = true
 jwt_secret_key = "your-secret-key-here"
 jwt_algorithm = "HS256"
 jwt_access_token_expire_minutes = 30
-jwt_refresh_token_expire_days = 7
+
+# Token gating (optional)
+token_gating_enabled = true
+token_gating_mint = "9wpLm21ab8ZMVJWH3pHeqgqNJqWos73G8qDRfaEwtray"
+token_gating_minimum = 50000.0
 ```
 
-**Usage:**
-- Request access token: `POST /v1/auth/token` with username/password
-- Refresh token: `POST /v1/auth/refresh` with refresh token
-- Use token: Include `Authorization: Bearer <token>` header in requests
+**Endpoints:**
+- `POST /v1/auth/wallet/connect` - Get challenge message
+- `POST /v1/auth/wallet/verify` - Verify signature and get JWT token
+- `GET /v1/auth/me` - Get current user info (requires JWT)
 
 **Implementation:**
-- Located in `acto/security/jwt.py`
-- Uses PyJWT library
-- Supports custom claims (roles, scopes)
+- Located in `acto/security/jwt.py` and `acto/security/wallet_auth.py`
+- Uses PyJWT library for tokens
+- Uses Ed25519 signature verification for Solana wallets
+- Supports custom claims (roles, wallet_address)
 
 ### Role-Based Access Control (RBAC)
 
