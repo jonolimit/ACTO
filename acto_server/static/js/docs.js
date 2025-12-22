@@ -326,15 +326,13 @@ response = httpx.post(
   "activity_timeline": [...]
 }</code></pre>
             
-            <h3>Check Access</h3>
+            <h3>Check Access (Optional)</h3>
             <p><strong>POST</strong> <code>/v1/access/check</code></p>
-            <p>Check if a Solana wallet address has sufficient token holdings for access.</p>
-            <p><em>Note: <code>rpc_url</code> is optional. If omitted, the backend uses its configured RPC (Helius).</em></p>
+            <p>Check your token balance before making API requests. This is a <strong>convenience endpoint</strong> - actual access control is enforced server-side with fixed parameters.</p>
             <pre><code>{
-  "owner": "WALLET_ADDRESS",
-  "mint": "TOKEN_MINT_ADDRESS",
-  "minimum": 50000
+  "owner": "YOUR_WALLET_ADDRESS"
 }</code></pre>
+            <p><em>Note: The server uses its configured token mint, minimum balance, and RPC. These cannot be overridden.</em></p>
         `
     },
     useCases: {

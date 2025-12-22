@@ -1,6 +1,12 @@
 # Access Control
 
-Check token balance for API access.
+Check your token balance before making API requests.
+
+::: warning Convenience Endpoint
+This endpoint is for **checking your balance** only. It does not grant API access.
+
+Actual access control on protected endpoints is **enforced server-side** with fixed parameters (token mint, minimum balance, RPC) that cannot be manipulated.
+:::
 
 ## Endpoint
 
@@ -23,9 +29,7 @@ Content-Type: application/json
 
 ```json
 {
-  "owner": "WALLET_ADDRESS",
-  "mint": "TOKEN_MINT_ADDRESS",
-  "minimum": 50000
+  "owner": "YOUR_WALLET_ADDRESS"
 }
 ```
 
@@ -34,12 +38,9 @@ Content-Type: application/json
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
 | `owner` | string | Yes | Wallet address to check |
-| `mint` | string | Yes | Token mint address |
-| `minimum` | number | Yes | Minimum required balance |
-| `rpc_url` | string | No | Custom RPC URL (optional) |
 
-::: tip RPC URL
-The `rpc_url` field is optional. If omitted, the server uses its configured Helius RPC endpoint for better rate limits.
+::: tip Server-Side Verification
+The token mint, minimum balance, and RPC are configured server-side and used automatically. You don't need to specify them.
 :::
 
 ## Response

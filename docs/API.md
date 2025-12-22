@@ -320,22 +320,24 @@ Get comprehensive statistics for a wallet.
 
 ## Access Control
 
-### Check Token Balance
+### How Token Gating Works
+
+All protected API endpoints automatically verify your wallet's token balance **server-side**. The token mint, minimum balance, and RPC are configured on the server and **cannot be manipulated by clients**.
+
+You only need to include your wallet address in the `X-Wallet-Address` header.
+
+### Check Token Balance (Optional)
 
 ```http
 POST /v1/access/check
 ```
 
-Check if a wallet has sufficient token balance for API access.
-
-> **Note:** The `rpc_url` field is optional. If omitted, the backend uses its configured RPC (Helius).
+This is a **convenience endpoint** to check your balance before making requests. It does not grant access - that's always verified server-side.
 
 **Request:**
 ```json
 {
-  "owner": "WALLET_ADDRESS",
-  "mint": "TOKEN_MINT_ADDRESS",
-  "minimum": 50000
+  "owner": "YOUR_WALLET_ADDRESS"
 }
 ```
 
@@ -347,6 +349,8 @@ Check if a wallet has sufficient token balance for API access.
   "balance": 125000.0
 }
 ```
+
+> **Security Note:** The actual access control on protected endpoints uses server-configured values (token mint, minimum balance, RPC) that cannot be overridden.
 
 ---
 
