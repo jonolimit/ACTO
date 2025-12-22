@@ -553,6 +553,8 @@ class FleetStore:
         """
         Get complete fleet data combining proof data with stored device/group data.
         This merges device info from proofs with custom names and groups from DB.
+        
+        Note: For optimized access, use get_fleet_data_optimized() instead.
         """
         # Build device map from proofs
         devices_map: dict[str, dict] = {}
@@ -645,6 +647,117 @@ class FleetStore:
                 "task_count": len(device_data["task_ids"]),
                 "last_activity": device_data["last_activity"],
                 "first_activity": device_data["first_activity"],
+                "status": status,
+                "health": health,
+            })
+        
+        # Sort by last activity
+        device_list.sort(key=lambda d: d["last_activity"] or "", reverse=True)
+        
+        return {
+            "devices": device_list,
+            "groups": groups_list,
+            "summary": {
+                "total_devices": len(device_list),
+                "active_devices": active_count,
+                "warning_devices": warning_count,
+                "offline_devices": len(device_list) - active_count - warning_count,
+                "total_proofs": total_proofs,
+                "total_tasks": len(all_tasks),
+                "total_groups": len(groups_list),
+            }
+        }
+
+    def get_fleet_data_optimized(
+        self,
+        user_id: str | None,
+        aggregated_data: dict[str, Any],
+        registry: Any,
+    ) -> dict[str, Any]:
+        """
+        Get complete fleet data using pre-aggregated SQL data.
+        This is much more efficient than get_fleet_data() for large datasets.
+        
+        Args:
+            user_id: User ID for filtering stored device data
+            aggregated_data: Dict containing:
+                - robot_ids: List of unique robot IDs
+                - proofs_by_robot: Dict mapping robot_id to proof count
+            registry: ProofRegistry instance for additional queries
+        """
+        robot_ids = aggregated_data.get("robot_ids", [])
+        proofs_by_robot = aggregated_data.get("proofs_by_robot", {})
+        
+        # Get stored device data and groups
+        stored_devices = {d["device_id"]: d for d in self.list_devices(user_id)}
+        groups_list = self.list_groups(user_id)
+        groups_map = {g["group_id"]: g for g in groups_list}
+        
+        # Calculate total proofs and tasks using SQL aggregations
+        total_proofs = sum(proofs_by_robot.values())
+        task_counts = registry.count_by_task()
+        all_tasks = list(task_counts.keys())
+        
+        # Build final device list
+        device_list = []
+        now = datetime.now(timezone.utc)
+        one_hour_ago = now - timedelta(hours=1)
+        one_day_ago = now - timedelta(hours=24)
+        
+        active_count = 0
+        warning_count = 0
+        
+        for device_id in robot_ids:
+            if device_id == "unknown":
+                continue
+            
+            # Get device stats from registry (uses SQL aggregation)
+            device_stats = registry.get_device_stats(device_id)
+            
+            stored = stored_devices.get(device_id, {})
+            
+            # Get default name
+            default_name = device_id.replace("-", " ").replace("_", " ").title()
+            custom_name = stored.get("custom_name")
+            
+            # Get group info
+            group_id = stored.get("group_id")
+            group_name = None
+            if group_id and group_id in groups_map:
+                group_name = groups_map[group_id].get("name")
+            
+            # Get health data
+            health = self.get_latest_health(device_id)
+            
+            # Calculate status based on last activity
+            status = "offline"
+            last_activity = device_stats.get("last_activity")
+            first_activity = device_stats.get("first_activity")
+            
+            if last_activity:
+                try:
+                    last_dt = datetime.fromisoformat(last_activity.replace("Z", "+00:00"))
+                    if last_dt > one_hour_ago:
+                        status = "online"
+                        active_count += 1
+                    elif last_dt > one_day_ago:
+                        status = "warning"
+                        warning_count += 1
+                except (ValueError, TypeError):
+                    pass
+            
+            device_list.append({
+                "id": device_id,
+                "name": custom_name or default_name,
+                "custom_name": custom_name,
+                "description": stored.get("description"),
+                "device_type": stored.get("device_type"),
+                "group_id": group_id,
+                "group_name": group_name,
+                "proof_count": device_stats.get("proof_count", 0),
+                "task_count": device_stats.get("task_count", 0),
+                "last_activity": last_activity,
+                "first_activity": first_activity,
                 "status": status,
                 "health": health,
             })

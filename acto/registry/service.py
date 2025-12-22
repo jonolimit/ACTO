@@ -4,7 +4,7 @@ import hashlib
 from pathlib import Path
 
 import orjson
-from sqlalchemy import select
+from sqlalchemy import func, select
 
 from acto.cache import get_cache_backend
 from acto.config.settings import Settings
@@ -303,3 +303,253 @@ class ProofRegistry:
 
         # Reload the database
         Base.metadata.create_all(self.engine)
+
+    # =========================================================================
+    # Optimized Aggregation Methods (SQL-level, no full data loading)
+    # =========================================================================
+
+    def count(self, search_filter: SearchFilter | None = None) -> int:
+        """
+        Count proofs matching the filter using SQL COUNT.
+        
+        Much more efficient than len(list()) for large datasets.
+        
+        Args:
+            search_filter: Optional filter to apply
+            
+        Returns:
+            int: Number of matching proofs
+        """
+        with self.SessionLocal() as session:
+            stmt = select(func.count()).select_from(ProofRecord)
+            if search_filter:
+                stmt = stmt.where(search_filter.to_sqlalchemy_filter())
+            result = session.execute(stmt).scalar()
+            return result or 0
+
+    def count_by_robot(self, search_filter: SearchFilter | None = None) -> dict[str, int]:
+        """
+        Count proofs grouped by robot_id using SQL GROUP BY.
+        
+        Args:
+            search_filter: Optional filter to apply
+            
+        Returns:
+            dict: Mapping of robot_id to proof count
+        """
+        with self.SessionLocal() as session:
+            stmt = select(
+                ProofRecord.robot_id,
+                func.count().label("count")
+            ).group_by(ProofRecord.robot_id)
+            
+            if search_filter:
+                stmt = stmt.where(search_filter.to_sqlalchemy_filter())
+            
+            rows = session.execute(stmt).all()
+            return {
+                (row.robot_id or "unknown"): row.count
+                for row in rows
+            }
+
+    def count_by_task(self, search_filter: SearchFilter | None = None) -> dict[str, int]:
+        """
+        Count proofs grouped by task_id using SQL GROUP BY.
+        
+        Args:
+            search_filter: Optional filter to apply
+            
+        Returns:
+            dict: Mapping of task_id to proof count
+        """
+        with self.SessionLocal() as session:
+            stmt = select(
+                ProofRecord.task_id,
+                func.count().label("count")
+            ).group_by(ProofRecord.task_id)
+            
+            if search_filter:
+                stmt = stmt.where(search_filter.to_sqlalchemy_filter())
+            
+            rows = session.execute(stmt).all()
+            return {
+                (row.task_id or "unknown"): row.count
+                for row in rows
+            }
+
+    def count_by_date(
+        self,
+        days: int = 30,
+        search_filter: SearchFilter | None = None,
+    ) -> list[dict[str, str | int]]:
+        """
+        Count proofs grouped by date for the last N days.
+        
+        Args:
+            days: Number of days to include (default: 30)
+            search_filter: Optional filter to apply
+            
+        Returns:
+            list: List of {"date": "YYYY-MM-DD", "count": N} dicts
+        """
+        from datetime import datetime, timedelta, timezone
+        
+        # Calculate date range
+        now = datetime.now(timezone.utc)
+        start_date = (now - timedelta(days=days)).strftime("%Y-%m-%d")
+        
+        with self.SessionLocal() as session:
+            # SQLite uses substr for date extraction
+            # PostgreSQL would use DATE() or date_trunc()
+            stmt = select(
+                func.substr(ProofRecord.created_at, 1, 10).label("date"),
+                func.count().label("count")
+            ).where(
+                ProofRecord.created_at >= start_date
+            ).group_by(
+                func.substr(ProofRecord.created_at, 1, 10)
+            ).order_by(
+                func.substr(ProofRecord.created_at, 1, 10)
+            )
+            
+            if search_filter:
+                stmt = stmt.where(search_filter.to_sqlalchemy_filter())
+            
+            rows = session.execute(stmt).all()
+            result_dict = {row.date: row.count for row in rows}
+            
+            # Fill in missing dates with 0
+            timeline = []
+            for i in range(days):
+                date = (now - timedelta(days=days - 1 - i)).strftime("%Y-%m-%d")
+                timeline.append({
+                    "date": date,
+                    "proof_count": result_dict.get(date, 0),
+                })
+            
+            return timeline
+
+    def get_activity_range(
+        self,
+        search_filter: SearchFilter | None = None,
+    ) -> tuple[str | None, str | None]:
+        """
+        Get first and last activity timestamps using SQL MIN/MAX.
+        
+        Args:
+            search_filter: Optional filter to apply
+            
+        Returns:
+            tuple: (first_activity, last_activity) ISO timestamps or (None, None)
+        """
+        with self.SessionLocal() as session:
+            stmt = select(
+                func.min(ProofRecord.created_at).label("first"),
+                func.max(ProofRecord.created_at).label("last")
+            )
+            
+            if search_filter:
+                stmt = stmt.where(search_filter.to_sqlalchemy_filter())
+            
+            row = session.execute(stmt).one()
+            return (row.first, row.last)
+
+    def exists_by_robot(self, robot_id: str) -> bool:
+        """
+        Check if any proofs exist for a robot_id.
+        
+        More efficient than loading all proofs just to check existence.
+        
+        Args:
+            robot_id: Robot ID to check
+            
+        Returns:
+            bool: True if proofs exist for this robot
+        """
+        with self.SessionLocal() as session:
+            stmt = select(func.count()).select_from(ProofRecord).where(
+                ProofRecord.robot_id == robot_id
+            ).limit(1)
+            result = session.execute(stmt).scalar()
+            return (result or 0) > 0
+
+    def get_unique_robot_ids(self, search_filter: SearchFilter | None = None) -> list[str]:
+        """
+        Get list of unique robot IDs.
+        
+        Args:
+            search_filter: Optional filter to apply
+            
+        Returns:
+            list: Unique robot IDs
+        """
+        with self.SessionLocal() as session:
+            stmt = select(ProofRecord.robot_id).distinct()
+            
+            if search_filter:
+                stmt = stmt.where(search_filter.to_sqlalchemy_filter())
+            
+            rows = session.execute(stmt).scalars().all()
+            return [r for r in rows if r is not None]
+
+    def get_unique_task_ids(
+        self,
+        robot_id: str | None = None,
+        search_filter: SearchFilter | None = None,
+    ) -> list[str]:
+        """
+        Get list of unique task IDs, optionally filtered by robot.
+        
+        Args:
+            robot_id: Optional robot ID to filter by
+            search_filter: Optional additional filter
+            
+        Returns:
+            list: Unique task IDs
+        """
+        with self.SessionLocal() as session:
+            stmt = select(ProofRecord.task_id).distinct()
+            
+            if robot_id:
+                stmt = stmt.where(ProofRecord.robot_id == robot_id)
+            
+            if search_filter:
+                stmt = stmt.where(search_filter.to_sqlalchemy_filter())
+            
+            rows = session.execute(stmt).scalars().all()
+            return [r for r in rows if r is not None]
+
+    def get_device_stats(self, robot_id: str) -> dict:
+        """
+        Get aggregated statistics for a specific device/robot.
+        
+        Args:
+            robot_id: Robot ID to get stats for
+            
+        Returns:
+            dict: Device statistics including counts and activity range
+        """
+        with self.SessionLocal() as session:
+            # Single query for count, first/last activity, and unique tasks
+            stmt = select(
+                func.count().label("proof_count"),
+                func.min(ProofRecord.created_at).label("first_activity"),
+                func.max(ProofRecord.created_at).label("last_activity"),
+                func.count(func.distinct(ProofRecord.task_id)).label("task_count"),
+            ).where(ProofRecord.robot_id == robot_id)
+            
+            row = session.execute(stmt).one()
+            
+            # Get unique task IDs (separate query for the actual values)
+            task_stmt = select(ProofRecord.task_id).distinct().where(
+                ProofRecord.robot_id == robot_id
+            )
+            task_ids = [r for r in session.execute(task_stmt).scalars().all() if r]
+            
+            return {
+                "proof_count": row.proof_count or 0,
+                "task_count": row.task_count or 0,
+                "first_activity": row.first_activity,
+                "last_activity": row.last_activity,
+                "task_ids": task_ids,
+            }

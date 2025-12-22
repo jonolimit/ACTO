@@ -142,6 +142,8 @@ def create_fleet_router(
         """
         Get fleet data for the authenticated user's wallet.
         Combines proof data with stored device/group information.
+        
+        Note: Uses optimized SQL aggregations for better performance.
         """
         try:
             current_user = get_current_user_optional(request)
@@ -150,11 +152,19 @@ def create_fleet_router(
             
             user_id = current_user.get("user_id")
             
-            # Get all proofs from registry
-            all_proofs = registry.list(limit=10000)
+            # Get aggregated stats instead of all proofs
+            robot_ids = registry.get_unique_robot_ids()
+            proofs_by_robot = registry.count_by_robot()
             
-            # Get fleet data (merges proof data with stored device/group data)
-            fleet_data = fleet_store.get_fleet_data(user_id, all_proofs)
+            # Build minimal proof data for fleet_store
+            # Only include aggregated data, not full proof records
+            aggregated_data = {
+                "robot_ids": robot_ids,
+                "proofs_by_robot": proofs_by_robot,
+            }
+            
+            # Get fleet data (uses aggregated data instead of full proofs)
+            fleet_data = fleet_store.get_fleet_data_optimized(user_id, aggregated_data, registry)
             
             return fleet_data
             
@@ -172,35 +182,25 @@ def create_fleet_router(
         """
         Get detailed information for a specific device.
         Includes activity logs, health metrics, and task history.
+        
+        Note: Uses optimized SQL aggregations for better performance.
         """
         try:
             user_id = get_user_id_from_request(request)
             if not user_id:
                 raise HTTPException(status_code=401, detail="Not authenticated")
             
-            # Get all proofs for this device
-            all_proofs = registry.list(limit=10000)
-            device_proofs = [p for p in all_proofs if p.get("robot_id") == device_id]
-            
-            if not device_proofs:
+            # Check if device exists using optimized query
+            if not registry.exists_by_robot(device_id):
                 raise HTTPException(status_code=404, detail="Device not found")
             
-            # Build device info from proofs
-            task_ids = set()
-            last_activity = None
-            first_activity = None
+            # Get aggregated device stats using SQL
+            device_stats = registry.get_device_stats(device_id)
             
-            for proof in device_proofs:
-                task_id = proof.get("task_id")
-                if task_id:
-                    task_ids.add(task_id)
-                
-                created_at = proof.get("created_at")
-                if created_at:
-                    if not last_activity or created_at > last_activity:
-                        last_activity = created_at
-                    if not first_activity or created_at < first_activity:
-                        first_activity = created_at
+            proof_count = device_stats["proof_count"]
+            task_ids = device_stats["task_ids"]
+            first_activity = device_stats["first_activity"]
+            last_activity = device_stats["last_activity"]
             
             # Get stored device data
             stored = fleet_store.get_device(device_id, user_id) or {}
@@ -218,8 +218,12 @@ def create_fleet_router(
             # Get health data
             health = fleet_store.get_latest_health(device_id)
             
-            # Build logs
-            logs = build_device_logs(all_proofs, device_id, limit=100)
+            # Build recent logs (only load last 100 proofs for this device)
+            from acto.registry.search import SearchFilter
+            search_filter = SearchFilter()
+            search_filter.robot_id = device_id
+            recent_proofs = registry.list(limit=100, search_filter=search_filter)
+            logs = build_device_logs(recent_proofs, device_id, limit=100)
             
             # Calculate status
             status = "offline"
@@ -243,14 +247,14 @@ def create_fleet_router(
                 "device_type": stored.get("device_type"),
                 "group_id": group_id,
                 "group_name": group_name,
-                "proof_count": len(device_proofs),
+                "proof_count": proof_count,
                 "task_count": len(task_ids),
                 "last_activity": last_activity,
                 "first_activity": first_activity,
                 "status": status,
                 "health": health,
                 "recent_logs": logs,
-                "task_history": list(task_ids),
+                "task_history": task_ids,
             }
             
         except HTTPException:
@@ -270,11 +274,8 @@ def create_fleet_router(
             if not user_id:
                 raise HTTPException(status_code=401, detail="Not authenticated")
             
-            # Verify device exists in proofs
-            all_proofs = registry.list(limit=10000)
-            device_exists = any(p.get("robot_id") == device_id for p in all_proofs)
-            
-            if not device_exists:
+            # Verify device exists using optimized query
+            if not registry.exists_by_robot(device_id):
                 raise HTTPException(status_code=404, detail="Device not found")
             
             # Update device in store

@@ -701,27 +701,16 @@ def create_app() -> FastAPI:
         - Verification statistics
         - Activity timeline
         - Breakdown by robot and task
+        
+        Note: Uses optimized SQL aggregations instead of loading all proofs.
         """
         try:
-            # Get all proofs (in production, this would be optimized with proper queries)
-            all_proofs = registry.list(limit=10000)
-            
-            # Filter proofs associated with this wallet (via signer or submitted_by)
-            # For now, we'll use signer_public_key as a proxy for wallet association
-            wallet_proofs = []
-            proofs_by_robot: dict[str, int] = {}
-            proofs_by_task: dict[str, int] = {}
-            
-            for proof in all_proofs:
-                # In a real implementation, you'd track which wallet submitted which proof
-                # For now, we count all proofs for demo purposes
-                wallet_proofs.append(proof)
-                
-                robot_id = proof.get("robot_id", "unknown")
-                task_id = proof.get("task_id", "unknown")
-                
-                proofs_by_robot[robot_id] = proofs_by_robot.get(robot_id, 0) + 1
-                proofs_by_task[task_id] = proofs_by_task.get(task_id, 0) + 1
+            # Use optimized SQL aggregations instead of loading all proofs
+            total_proofs = registry.count()
+            proofs_by_robot = registry.count_by_robot()
+            proofs_by_task = registry.count_by_task()
+            activity_timeline = registry.count_by_date(days=30)
+            first_activity, last_activity = registry.get_activity_range()
             
             # Get user stats from API key store
             user = user_store.get_user_by_wallet(wallet_address)
@@ -744,36 +733,11 @@ def create_app() -> FastAPI:
             failed_verifications = total_verifications - successful_verifications
             success_rate = (successful_verifications / total_verifications * 100) if total_verifications > 0 else 0.0
             
-            # Build activity timeline (last 30 days)
-            from datetime import datetime, timedelta
-            activity_timeline = []
-            today = datetime.utcnow().date()
-            
-            for i in range(30):
-                date = today - timedelta(days=i)
-                date_str = date.isoformat()
-                # Count proofs for this date
-                count = sum(1 for p in wallet_proofs if p.get("created_at", "").startswith(date_str))
-                activity_timeline.append({
-                    "date": date_str,
-                    "proof_count": count,
-                })
-            
-            activity_timeline.reverse()  # Oldest first
-            
-            # Get first and last activity
-            first_activity = None
-            last_activity = None
-            if wallet_proofs:
-                sorted_proofs = sorted(wallet_proofs, key=lambda p: p.get("created_at", ""))
-                first_activity = sorted_proofs[0].get("created_at")
-                last_activity = sorted_proofs[-1].get("created_at")
-            
             metrics.inc("acto.stats.wallet")
             
             return WalletStatsResponse(
                 wallet_address=wallet_address,
-                total_proofs_submitted=len(wallet_proofs),
+                total_proofs_submitted=total_proofs,
                 total_verifications=total_verifications,
                 successful_verifications=successful_verifications,
                 failed_verifications=failed_verifications,
