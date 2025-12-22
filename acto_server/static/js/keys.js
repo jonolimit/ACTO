@@ -402,6 +402,10 @@ window.toggleKey = async function(keyId, currentState) {
 // STATS KEYS (for Statistics Tab)
 // ============================================================
 
+// Stats keys pagination state
+let statsKeysCurrentPage = 1;
+const STATS_KEYS_PER_PAGE = 10;
+
 async function loadStatsKeys() {
     if (!window.accessToken) return;
     
@@ -424,32 +428,104 @@ async function loadStatsKeys() {
         }
         
         const result = await response.json();
-        window.keysList = result.keys || [];
+        window.statsKeysList = result.keys || [];
         
-        if (window.keysList.length === 0) {
+        if (window.statsKeysList.length === 0) {
             statsKeysList.innerHTML = '<div class="empty-state"><p>No API keys found. Create your first key in the API Keys tab!</p></div>';
+            updateStatsKeysPagination(0, 0);
             return;
         }
         
-        statsKeysList.innerHTML = window.keysList.map(key => `
-            <div class="key-item">
-                <div class="key-info">
-                    <h3>${escapeHtml(key.name)}</h3>
-                    <p><strong>ID:</strong> ${escapeHtml(key.key_id)}</p>
-                    <p><strong>Total Requests:</strong> ${key.request_count || 0}</p>
-                    <p><strong>Endpoints Used:</strong> ${Object.keys(key.endpoint_usage || {}).length}</p>
-                    ${key.last_used_at ? `<p><strong>Last Used:</strong> ${new Date(key.last_used_at).toLocaleString()}</p>` : '<p><strong>Last Used:</strong> Never</p>'}
-                </div>
-                <div class="key-actions">
-                    <button class="btn btn-primary" onclick="showKeyStats('${key.key_id}')">View Statistics</button>
-                </div>
-            </div>
-        `).join('');
+        renderStatsKeysList();
     } catch (error) {
         console.error('Failed to load stats keys:', error);
         statsKeysList.innerHTML = '<div class="empty-state"><p>Could not load keys.</p></div>';
     }
 }
+
+function renderStatsKeysList() {
+    const statsKeysList = document.getElementById('statsKeysList');
+    if (!statsKeysList) return;
+    
+    const keys = window.statsKeysList || [];
+    const totalKeys = keys.length;
+    const totalPages = Math.ceil(totalKeys / STATS_KEYS_PER_PAGE);
+    
+    // Adjust page if needed
+    if (statsKeysCurrentPage > totalPages) {
+        statsKeysCurrentPage = Math.max(1, totalPages);
+    }
+    
+    // Get current page items
+    const startIndex = (statsKeysCurrentPage - 1) * STATS_KEYS_PER_PAGE;
+    const pageKeys = keys.slice(startIndex, startIndex + STATS_KEYS_PER_PAGE);
+    
+    statsKeysList.innerHTML = pageKeys.map(key => `
+        <div class="key-item">
+            <div class="key-info">
+                <h3>${escapeHtml(key.name)}</h3>
+                <p><strong>ID:</strong> ${escapeHtml(key.key_id)}</p>
+                <p><strong>Total Requests:</strong> ${key.request_count || 0}</p>
+                <p><strong>Endpoints Used:</strong> ${Object.keys(key.endpoint_usage || {}).length}</p>
+                ${key.last_used_at ? `<p><strong>Last Used:</strong> ${new Date(key.last_used_at).toLocaleString()}</p>` : '<p><strong>Last Used:</strong> Never</p>'}
+            </div>
+            <div class="key-actions">
+                <button class="btn btn-primary" onclick="showKeyStats('${key.key_id}')">View Statistics</button>
+            </div>
+        </div>
+    `).join('');
+    
+    updateStatsKeysPagination(totalPages, totalKeys);
+}
+
+function updateStatsKeysPagination(totalPages, totalCount) {
+    let paginationEl = document.getElementById('statsKeysPagination');
+    
+    // Create pagination element if it doesn't exist
+    if (!paginationEl) {
+        const statsKeysCard = document.getElementById('statsKeysList')?.closest('.card');
+        if (statsKeysCard) {
+            paginationEl = document.createElement('div');
+            paginationEl.id = 'statsKeysPagination';
+            paginationEl.className = 'pagination';
+            statsKeysCard.appendChild(paginationEl);
+        }
+    }
+    
+    if (!paginationEl) return;
+    
+    if (totalCount <= STATS_KEYS_PER_PAGE) {
+        paginationEl.classList.add('hidden');
+        return;
+    }
+    
+    paginationEl.classList.remove('hidden');
+    
+    const startItem = ((statsKeysCurrentPage - 1) * STATS_KEYS_PER_PAGE) + 1;
+    const endItem = Math.min(statsKeysCurrentPage * STATS_KEYS_PER_PAGE, totalCount);
+    
+    paginationEl.innerHTML = `
+        <button class="btn btn-pagination" onclick="changeStatsKeysPage(-1)" ${statsKeysCurrentPage <= 1 ? 'disabled' : ''}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="15 18 9 12 15 6"></polyline>
+            </svg>
+            Previous
+        </button>
+        <span class="pagination-info">${startItem}-${endItem} of ${totalCount}</span>
+        <button class="btn btn-pagination" onclick="changeStatsKeysPage(1)" ${statsKeysCurrentPage >= totalPages ? 'disabled' : ''}>
+            Next
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+        </button>
+    `;
+}
+
+window.changeStatsKeysPage = function(delta) {
+    statsKeysCurrentPage += delta;
+    renderStatsKeysList();
+};
+
 window.loadStatsKeys = loadStatsKeys;
 
 // Legacy delete function (now opens modal)

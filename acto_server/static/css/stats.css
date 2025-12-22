@@ -195,3 +195,91 @@
     margin-top: 4px;
 }
 
+/* Breakdown Pagination Controls */
+.breakdown-more-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    width: 100%;
+    padding: 10px;
+    margin-top: 12px;
+    font-size: 12px;
+    color: var(--color-primary);
+    background: transparent;
+    border: 1px dashed var(--color-border);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.breakdown-more-btn:hover {
+    background: var(--color-bg-secondary);
+    border-color: var(--color-primary);
+}
+
+.breakdown-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 12px;
+    margin-top: 12px;
+    border-top: 1px solid var(--color-border-light);
+}
+
+.breakdown-pagination {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-breakdown-page {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-breakdown-page:hover:not(:disabled) {
+    background: var(--color-bg-primary);
+    border-color: var(--color-primary);
+}
+
+.btn-breakdown-page:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.breakdown-page-info {
+    font-size: 11px;
+    color: var(--color-text-tertiary);
+    min-width: 70px;
+    text-align: center;
+}
+
+.btn-breakdown-toggle {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 8px;
+    font-size: 11px;
+    color: var(--color-text-secondary);
+    background: transparent;
+    border: 1px solid var(--color-border-light);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-breakdown-toggle:hover {
+    background: var(--color-bg-secondary);
+    color: var(--color-text-primary);
+}
+

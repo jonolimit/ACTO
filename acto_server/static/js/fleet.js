@@ -16,9 +16,15 @@ const FleetState = {
     selectedDevices: new Set(),
     activeGroupFilter: null,
     searchQuery: '',
+    statusFilter: 'all',
     viewMode: 'list', // 'list' or 'grid'
     currentDeviceModal: null,
+    // Pagination
+    currentPage: 1,
+    devicesPerPage: 10,
 };
+
+const FLEET_DEVICES_PER_PAGE = 10;
 
 // ============================================================
 // Load Fleet Data
@@ -178,6 +184,12 @@ function renderFleetList() {
         devices = devices.filter(d => d.group_id === FleetState.activeGroupFilter);
     }
     
+    // Apply status filter
+    const statusFilter = FleetState.statusFilter || document.getElementById('fleetStatusFilter')?.value || 'all';
+    if (statusFilter !== 'all') {
+        devices = devices.filter(d => d.status === statusFilter);
+    }
+    
     // Apply search filter
     if (FleetState.searchQuery) {
         const query = FleetState.searchQuery.toLowerCase();
@@ -188,7 +200,9 @@ function renderFleetList() {
         );
     }
     
-    if (devices.length === 0) {
+    const totalDevices = devices.length;
+    
+    if (totalDevices === 0) {
         if (FleetState.searchQuery) {
             showFleetEmpty(`No devices found matching "${FleetState.searchQuery}".`);
         } else if (FleetState.activeGroupFilter) {
@@ -196,13 +210,29 @@ function renderFleetList() {
         } else {
             showFleetEmpty('No devices found. Submit proofs from your robots to see them here.');
         }
+        updateFleetPagination(0, 0);
         return;
     }
+    
+    // Pagination calculations
+    const totalPages = Math.ceil(totalDevices / FLEET_DEVICES_PER_PAGE);
+    
+    // Adjust current page if needed
+    if (FleetState.currentPage > totalPages) {
+        FleetState.currentPage = Math.max(1, totalPages);
+    }
+    
+    // Get current page items
+    const startIndex = (FleetState.currentPage - 1) * FLEET_DEVICES_PER_PAGE;
+    const pageDevices = devices.slice(startIndex, startIndex + FLEET_DEVICES_PER_PAGE);
     
     const viewClass = FleetState.viewMode === 'grid' ? 'grid-view' : '';
     
     fleetList.className = `fleet-list ${viewClass}`;
-    fleetList.innerHTML = devices.map(device => renderDeviceCard(device)).join('');
+    fleetList.innerHTML = pageDevices.map(device => renderDeviceCard(device)).join('');
+    
+    // Update pagination UI
+    updateFleetPagination(totalPages, totalDevices);
 }
 
 function renderDeviceCard(device) {
@@ -1091,13 +1121,81 @@ async function submitAssignGroup() {
 
 function filterByGroup(groupId) {
     FleetState.activeGroupFilter = groupId;
+    FleetState.currentPage = 1; // Reset to first page
     renderGroupsList();
     renderFleetList();
 }
 
 function handleFleetSearch(query) {
     FleetState.searchQuery = query;
+    FleetState.currentPage = 1; // Reset to first page on search
     renderFleetList();
+}
+
+// Update status filter from dropdown
+function handleFleetStatusFilter() {
+    const statusFilter = document.getElementById('fleetStatusFilter')?.value || 'all';
+    FleetState.statusFilter = statusFilter;
+    FleetState.currentPage = 1; // Reset to first page
+    renderFleetList();
+}
+
+// ============================================================
+// Fleet Pagination
+// ============================================================
+
+function updateFleetPagination(totalPages, totalCount) {
+    let paginationEl = document.getElementById('fleetPagination');
+    
+    // Create pagination element if it doesn't exist
+    if (!paginationEl) {
+        const fleetListCard = document.getElementById('fleetList')?.closest('.card');
+        if (fleetListCard) {
+            paginationEl = document.createElement('div');
+            paginationEl.id = 'fleetPagination';
+            paginationEl.className = 'pagination fleet-pagination';
+            fleetListCard.appendChild(paginationEl);
+        }
+    }
+    
+    if (!paginationEl) return;
+    
+    if (totalCount <= FLEET_DEVICES_PER_PAGE) {
+        paginationEl.classList.add('hidden');
+        return;
+    }
+    
+    paginationEl.classList.remove('hidden');
+    
+    const startItem = ((FleetState.currentPage - 1) * FLEET_DEVICES_PER_PAGE) + 1;
+    const endItem = Math.min(FleetState.currentPage * FLEET_DEVICES_PER_PAGE, totalCount);
+    
+    paginationEl.innerHTML = `
+        <button class="btn btn-pagination" onclick="changeFleetPage(-1)" ${FleetState.currentPage <= 1 ? 'disabled' : ''}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="15 18 9 12 15 6"></polyline>
+            </svg>
+            Previous
+        </button>
+        <span class="pagination-info">${startItem}-${endItem} of ${totalCount}</span>
+        <button class="btn btn-pagination" onclick="changeFleetPage(1)" ${FleetState.currentPage >= totalPages ? 'disabled' : ''}>
+            Next
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+        </button>
+    `;
+}
+
+function changeFleetPage(delta) {
+    FleetState.currentPage += delta;
+    renderFleetList();
+    
+    // Scroll to top of fleet list
+    const fleetList = document.getElementById('fleetList');
+    if (fleetList) {
+        fleetList.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
 }
 
 function setFleetViewMode(mode) {
@@ -1208,6 +1306,7 @@ function showFleetEmpty(message) {
 // ============================================================
 
 window.refreshFleet = function() {
+    FleetState.currentPage = 1; // Reset pagination on refresh
     loadFleet();
 };
 
@@ -1227,6 +1326,8 @@ window.openAssignGroupModal = openAssignGroupModal;
 window.submitAssignGroup = submitAssignGroup;
 window.filterByGroup = filterByGroup;
 window.handleFleetSearch = handleFleetSearch;
+window.handleFleetStatusFilter = handleFleetStatusFilter;
 window.setFleetViewMode = setFleetViewMode;
 window.toggleDeviceSelection = toggleDeviceSelection;
 window.selectAllDevices = selectAllDevices;
+window.changeFleetPage = changeFleetPage;

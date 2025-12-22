@@ -284,8 +284,14 @@ function displayActivityChart(timeline) {
 }
 
 // ============================================================
-// BREAKDOWN DISPLAY
+// BREAKDOWN DISPLAY WITH PAGINATION
 // ============================================================
+
+const BREAKDOWN_ITEMS_PER_PAGE = 10;
+const breakdownState = {
+    proofsByRobot: { page: 1, expanded: false },
+    proofsByTask: { page: 1, expanded: false }
+};
 
 function displayBreakdown(containerId, data, type) {
     const container = document.getElementById(containerId);
@@ -296,12 +302,28 @@ function displayBreakdown(containerId, data, type) {
         return;
     }
     
+    // Store data globally for pagination
+    window[`${containerId}Data`] = data;
+    
     const sorted = Object.entries(data).sort((a, b) => b[1] - a[1]);
     const total = sorted.reduce((sum, [_, count]) => sum + count, 0);
+    const state = breakdownState[containerId] || { page: 1, expanded: false };
     
-    const topItems = sorted.slice(0, 5);
+    // Show only top 5 initially, or paginated if expanded
+    const showExpanded = state.expanded;
+    const itemsToShow = showExpanded ? BREAKDOWN_ITEMS_PER_PAGE : 5;
+    const currentPage = state.page || 1;
+    const totalPages = Math.ceil(sorted.length / BREAKDOWN_ITEMS_PER_PAGE);
     
-    const itemsHtml = topItems.map(([name, count]) => {
+    let displayItems;
+    if (showExpanded) {
+        const startIndex = (currentPage - 1) * BREAKDOWN_ITEMS_PER_PAGE;
+        displayItems = sorted.slice(startIndex, startIndex + BREAKDOWN_ITEMS_PER_PAGE);
+    } else {
+        displayItems = sorted.slice(0, 5);
+    }
+    
+    const itemsHtml = displayItems.map(([name, count]) => {
         const percentage = ((count / total) * 100).toFixed(1);
         return `
             <div class="breakdown-item">
@@ -318,10 +340,77 @@ function displayBreakdown(containerId, data, type) {
     
     container.innerHTML = itemsHtml;
     
+    // Show expand/collapse and pagination controls
     if (sorted.length > 5) {
-        container.innerHTML += `<div class="breakdown-more">+${sorted.length - 5} more ${type}s</div>`;
+        if (showExpanded) {
+            // Show pagination when expanded
+            const startItem = ((currentPage - 1) * BREAKDOWN_ITEMS_PER_PAGE) + 1;
+            const endItem = Math.min(currentPage * BREAKDOWN_ITEMS_PER_PAGE, sorted.length);
+            
+            container.innerHTML += `
+                <div class="breakdown-controls">
+                    <div class="breakdown-pagination">
+                        <button class="btn-breakdown-page" onclick="changeBreakdownPage('${containerId}', -1)" ${currentPage <= 1 ? 'disabled' : ''}>
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="15 18 9 12 15 6"></polyline>
+                            </svg>
+                        </button>
+                        <span class="breakdown-page-info">${startItem}-${endItem} of ${sorted.length}</span>
+                        <button class="btn-breakdown-page" onclick="changeBreakdownPage('${containerId}', 1)" ${currentPage >= totalPages ? 'disabled' : ''}>
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="9 18 15 12 9 6"></polyline>
+                            </svg>
+                        </button>
+                    </div>
+                    <button class="btn-breakdown-toggle" onclick="toggleBreakdownExpand('${containerId}', '${type}')">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="18 15 12 9 6 15"></polyline>
+                        </svg>
+                        Collapse
+                    </button>
+                </div>
+            `;
+        } else {
+            // Show "Show All" button
+            container.innerHTML += `
+                <button class="breakdown-more-btn" onclick="toggleBreakdownExpand('${containerId}', '${type}')">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="6 9 12 15 18 9"></polyline>
+                    </svg>
+                    Show all ${sorted.length} ${type}s
+                </button>
+            `;
+        }
     }
 }
+
+window.toggleBreakdownExpand = function(containerId, type) {
+    if (!breakdownState[containerId]) {
+        breakdownState[containerId] = { page: 1, expanded: false };
+    }
+    breakdownState[containerId].expanded = !breakdownState[containerId].expanded;
+    breakdownState[containerId].page = 1; // Reset to first page
+    
+    const data = window[`${containerId}Data`];
+    if (data) {
+        displayBreakdown(containerId, data, type);
+    }
+};
+
+window.changeBreakdownPage = function(containerId, delta) {
+    if (!breakdownState[containerId]) return;
+    
+    const data = window[`${containerId}Data`];
+    if (!data) return;
+    
+    const sorted = Object.entries(data).sort((a, b) => b[1] - a[1]);
+    const totalPages = Math.ceil(sorted.length / BREAKDOWN_ITEMS_PER_PAGE);
+    
+    breakdownState[containerId].page = Math.max(1, Math.min(totalPages, breakdownState[containerId].page + delta));
+    
+    const type = containerId === 'proofsByRobot' ? 'robot' : 'task';
+    displayBreakdown(containerId, data, type);
+};
 
 function truncateId(id) {
     if (id.length > 20) {
