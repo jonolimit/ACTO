@@ -5,23 +5,23 @@ export function Features() {
         <div className="grid md:grid-cols-3 gap-12 md:gap-16">
           <div>
             <p className="text-sm text-gray-400 mb-4">01</p>
-            <h3 className="text-lg font-medium mb-3">Proof Generation</h3>
+            <h3 className="text-lg font-medium mb-3">Capture the moment</h3>
             <p className="text-gray-500 leading-relaxed">
-              Signed proofs from telemetry and execution logs.
+              Every sensor reading. Every movement. Sealed with cryptographic signatures the moment it happens.
             </p>
           </div>
           <div>
             <p className="text-sm text-gray-400 mb-4">02</p>
-            <h3 className="text-lg font-medium mb-3">Verification</h3>
+            <h3 className="text-lg font-medium mb-3">Trust no one</h3>
             <p className="text-gray-500 leading-relaxed">
-              Independent verification without operator trust.
+              Verification that doesn't rely on the operator's word. Anyone can check. No one can fake it.
             </p>
           </div>
           <div>
             <p className="text-sm text-gray-400 mb-4">03</p>
-            <h3 className="text-lg font-medium mb-3">Web3 Native</h3>
+            <h3 className="text-lg font-medium mb-3">Built for Web3</h3>
             <p className="text-gray-500 leading-relaxed">
-              Wallet-based access and proof anchoring.
+              Your wallet is your identity. Token-gated access for committed users. Decentralized trust for autonomous machines.
             </p>
           </div>
         </div>

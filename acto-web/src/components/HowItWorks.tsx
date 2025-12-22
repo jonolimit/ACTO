@@ -23,7 +23,7 @@ const steps = [
 
 export function HowItWorks() {
   return (
-    <section className="border-t border-gray-100">
+    <section>
       <div className="max-w-6xl mx-auto px-4 md:px-6 py-16 md:py-32">
         <div className="grid md:grid-cols-2 gap-12 md:gap-24">
           <div>

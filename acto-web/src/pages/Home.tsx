@@ -1,7 +1,10 @@
 import {
   Hero,
   Features,
+  QuickInstall,
+  Products,
   HowItWorks,
+  FleetManagement,
   TechStack,
   UseCases,
   OpenSource,
@@ -12,7 +15,10 @@ export function Home() {
     <>
       <Hero />
       <Features />
+      <QuickInstall />
+      <Products />
       <HowItWorks />
+      <FleetManagement />
       <TechStack />
       <UseCases />
       <OpenSource />

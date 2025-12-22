@@ -1,31 +1,40 @@
-import { Shield, Zap, Users, Globe } from 'lucide-react';
+import { Shield, Zap, Eye, Lock, ArrowRight, CheckCircle2, AlertTriangle, TrendingUp, Bot, Factory, Truck, Plane } from 'lucide-react';
+import { config } from '../config';
 
-const values = [
+const timeline = [
   {
-    icon: Shield,
-    title: 'Trust through cryptography',
-    description: 'We leverage zero-knowledge proofs and blockchain technology to create unbreakable trust in autonomous systems without sacrificing privacy or performance.'
+    year: '2024',
+    title: 'The Idea',
+    description: 'While working with autonomous systems, we realized: there\'s no standardized way to prove what a robot actually did.',
   },
   {
-    icon: Zap,
-    title: 'Efficiency first',
-    description: 'Our SDK is designed for production environments, with minimal overhead and seamless integration into existing robotics stacks.'
+    year: '2024',
+    title: 'First Version',
+    description: 'Ed25519-based signatures, Python SDK, local proof generation. The foundation for verifiable autonomy.',
   },
   {
-    icon: Users,
-    title: 'Open source foundation',
-    description: 'Built on open-source principles, our technology is transparent, auditable, and community-driven to ensure the highest standards of security and reliability.'
+    year: '2025',
+    title: 'API Launch',
+    description: 'Hosted API, dashboard, fleet management. From a tool to a platform for the entire robotics industry.',
   },
   {
-    icon: Globe,
-    title: 'Global standards',
-    description: 'We work towards establishing industry standards for proof of execution, making verifiable autonomy accessible to robotics companies worldwide.'
-  }
+    year: 'Soon',
+    title: 'What\'s Next',
+    description: 'ROS 2 integration, enhanced fleet analytics, enterprise features. The infrastructure for the autonomous future.',
+  },
+];
+
+const useCases = [
+  { icon: Truck, label: 'Delivery Robots', description: 'Proof of route, delivery, and handling' },
+  { icon: Factory, label: 'Industrial Automation', description: 'Compliance records for production processes' },
+  { icon: Bot, label: 'Service Robots', description: 'Documentation of every customer interaction' },
+  { icon: Plane, label: 'Drones', description: 'Flight path verification and inspection reports' },
 ];
 
 export function About() {
   return (
     <div className="min-h-screen">
+      {/* Hero Section */}
       <section className="min-h-screen flex items-center relative">
         <div
           className="absolute inset-0 bg-cover bg-center bg-no-repeat"
@@ -33,36 +42,204 @@ export function About() {
         />
         <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/50 to-black/70" />
         <div className="max-w-6xl mx-auto px-4 md:px-6 py-20 md:py-32 relative z-10">
-          <p className="text-sm text-gray-200 mb-6 md:mb-8 tracking-wide">WHO WE ARE</p>
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-medium leading-[1.15] tracking-tight mb-6 md:mb-8 max-w-3xl text-white">
-            Building trust in<br />autonomous systems.
+          <p className="text-sm text-gray-300 mb-6 md:mb-8 tracking-wide uppercase">About ACTO</p>
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-medium leading-[1.1] tracking-tight mb-8 max-w-4xl text-white">
+            Machines do what they want.<br />
+            <span className="text-gray-400">We make them prove it.</span>
           </h1>
-          <p className="text-lg md:text-xl text-gray-200 mb-6 max-w-xl leading-relaxed">
-            ACTO is building the infrastructure for verifiable autonomous systems. We enable robots to prove that they completed their tasks exactly as specified, creating cryptographic guarantees that bridge the trust gap in automation.
-          </p>
-          <p className="text-lg md:text-xl text-gray-200 max-w-xl leading-relaxed">
-            Founded by robotics engineers and cryptography researchers, we're on a mission to make autonomous systems trustworthy, transparent, and accountable.
+          <p className="text-lg md:text-xl text-gray-300 max-w-2xl leading-relaxed">
+            ACTO is the infrastructure for verifiable autonomy. We enable autonomous systems to 
+            cryptographically prove what they did – independently, tamper-proof, in real-time.
           </p>
         </div>
       </section>
 
-      <section className="border-t border-gray-100">
-        <div className="max-w-6xl mx-auto px-4 md:px-6 py-16 md:py-24">
-          <h2 className="text-2xl md:text-3xl font-medium mb-12 md:mb-16 tracking-tight">Our values</h2>
-          <div className="grid md:grid-cols-2 gap-8 md:gap-12">
-            {values.map((value) => {
-              const Icon = value.icon;
-              return (
-                <div key={value.title} className="flex gap-4 md:gap-6">
-                  <div className="flex-shrink-0">
-                    <div className="inline-flex items-center justify-center w-12 h-12 rounded-lg bg-gray-900">
-                      <Icon className="w-6 h-6 text-white" />
-                    </div>
+      {/* The Problem */}
+      <section className="py-16 md:py-24">
+        <div className="max-w-6xl mx-auto px-4 md:px-6">
+          <div className="grid md:grid-cols-2 gap-12 md:gap-16 items-center">
+            <div>
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-50 text-red-600 text-sm font-medium mb-6">
+                <AlertTriangle size={14} />
+                The Problem
+              </div>
+              <h2 className="text-3xl md:text-4xl font-medium mb-6 tracking-tight">
+                Trust is good.<br />But what if you can't trust?
+              </h2>
+              <div className="space-y-4 text-gray-600 leading-relaxed">
+                <p>
+                  Autonomous systems are everywhere: delivery robots, production lines, drones, 
+                  self-driving vehicles. They make millions of decisions – without human oversight.
+                </p>
+                <p>
+                  <strong className="text-gray-900">The problem:</strong> How do we know they're doing 
+                  what they should? Logs can be manipulated. Sensor data can be missing. 
+                  The operator says "It worked" – but did it really?
+                </p>
+                <p>
+                  In regulated industries, insurance claims, liability cases – 
+                  "Trust me" is not an answer.
+                </p>
+              </div>
+            </div>
+            <div className="bg-gray-50 rounded-2xl p-8 md:p-10">
+              <h3 className="text-lg font-medium mb-6 text-gray-900">Traditional approaches fail:</h3>
+              <ul className="space-y-4">
+                <li className="flex gap-4">
+                  <div className="flex-shrink-0 w-6 h-6 rounded-full bg-red-100 flex items-center justify-center">
+                    <span className="text-red-500 text-sm">✕</span>
                   </div>
                   <div>
-                    <h3 className="text-lg md:text-xl font-medium mb-2 md:mb-3 text-gray-900">{value.title}</h3>
-                    <p className="text-gray-600 leading-relaxed">{value.description}</p>
+                    <p className="font-medium text-gray-900">Centralized logs</p>
+                    <p className="text-sm text-gray-500">Can be altered retroactively</p>
                   </div>
+                </li>
+                <li className="flex gap-4">
+                  <div className="flex-shrink-0 w-6 h-6 rounded-full bg-red-100 flex items-center justify-center">
+                    <span className="text-red-500 text-sm">✕</span>
+                  </div>
+                  <div>
+                    <p className="font-medium text-gray-900">Manual verification</p>
+                    <p className="text-sm text-gray-500">Doesn't scale with thousands of robots</p>
+                  </div>
+                </li>
+                <li className="flex gap-4">
+                  <div className="flex-shrink-0 w-6 h-6 rounded-full bg-red-100 flex items-center justify-center">
+                    <span className="text-red-500 text-sm">✕</span>
+                  </div>
+                  <div>
+                    <p className="font-medium text-gray-900">Camera surveillance</p>
+                    <p className="text-sm text-gray-500">Privacy issues, storage costs, gaps</p>
+                  </div>
+                </li>
+                <li className="flex gap-4">
+                  <div className="flex-shrink-0 w-6 h-6 rounded-full bg-red-100 flex items-center justify-center">
+                    <span className="text-red-500 text-sm">✕</span>
+                  </div>
+                  <div>
+                    <p className="font-medium text-gray-900">Trusting the operator</p>
+                    <p className="text-sm text-gray-500">No independent verification possible</p>
+                  </div>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* The Solution */}
+      <section className="py-16 md:py-24 bg-gray-900 text-white">
+        <div className="max-w-6xl mx-auto px-4 md:px-6">
+          <div className="text-center mb-12 md:mb-16">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 text-gray-300 text-sm font-medium mb-6">
+              <CheckCircle2 size={14} />
+              The Solution
+            </div>
+            <h2 className="text-3xl md:text-4xl font-medium mb-6 tracking-tight">
+              Cryptographic proofs.<br />Not words.
+            </h2>
+            <p className="text-gray-400 max-w-2xl mx-auto leading-relaxed">
+              ACTO generates a cryptographic proof for every action of an autonomous system. 
+              This proof is mathematically verifiable – by anyone, at any time.
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-6 md:gap-8">
+            <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-6 md:p-8">
+              <div className="w-12 h-12 bg-white/10 rounded-lg flex items-center justify-center mb-6">
+                <Lock size={24} className="text-white" />
+              </div>
+              <h3 className="text-xl font-medium mb-3">Ed25519 Signatures</h3>
+              <p className="text-gray-400 leading-relaxed">
+                Every proof is signed with the robot's private key. 
+                Forgery? Mathematically impossible.
+              </p>
+            </div>
+            <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-6 md:p-8">
+              <div className="w-12 h-12 bg-white/10 rounded-lg flex items-center justify-center mb-6">
+                <Eye size={24} className="text-white" />
+              </div>
+              <h3 className="text-xl font-medium mb-3">Independent Verification</h3>
+              <p className="text-gray-400 leading-relaxed">
+                Anyone can verify a proof – without trusting the operator or us. 
+                Trustless by design.
+              </p>
+            </div>
+            <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-6 md:p-8">
+              <div className="w-12 h-12 bg-white/10 rounded-lg flex items-center justify-center mb-6">
+                <Zap size={24} className="text-white" />
+              </div>
+              <h3 className="text-xl font-medium mb-3">Real-time Capable</h3>
+              <p className="text-gray-400 leading-relaxed">
+                Proof generation in milliseconds. Verification under 50ms. 
+                Built for the speed of autonomous systems.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* How it works */}
+      <section className="py-16 md:py-24">
+        <div className="max-w-6xl mx-auto px-4 md:px-6">
+          <h2 className="text-2xl md:text-3xl font-medium mb-12 tracking-tight">How it works</h2>
+          <div className="grid md:grid-cols-4 gap-8">
+            <div className="relative">
+              <div className="text-6xl font-light text-gray-200 mb-4">01</div>
+              <h3 className="text-lg font-medium mb-2 text-gray-900">Capture telemetry</h3>
+              <p className="text-gray-500 text-sm leading-relaxed">
+                The robot collects sensor data, movements, actions – everything that happens.
+              </p>
+            </div>
+            <div className="relative">
+              <div className="text-6xl font-light text-gray-200 mb-4">02</div>
+              <h3 className="text-lg font-medium mb-2 text-gray-900">Sign locally</h3>
+              <p className="text-gray-500 text-sm leading-relaxed">
+                The SDK creates a hash and signs it with the robot's private key.
+              </p>
+            </div>
+            <div className="relative">
+              <div className="text-6xl font-light text-gray-200 mb-4">03</div>
+              <h3 className="text-lg font-medium mb-2 text-gray-900">Verify via API</h3>
+              <p className="text-gray-500 text-sm leading-relaxed">
+                The proof is sent to the ACTO API and verified in under 50ms.
+              </p>
+            </div>
+            <div className="relative">
+              <div className="text-6xl font-light text-gray-200 mb-4">04</div>
+              <h3 className="text-lg font-medium mb-2 text-gray-900">Store & retrieve</h3>
+              <p className="text-gray-500 text-sm leading-relaxed">
+                Proofs are stored in the registry. Query by robot, task, or time range.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Use Cases */}
+      <section
+        className="py-16 md:py-24 relative bg-cover bg-center bg-no-repeat"
+        style={{ backgroundImage: 'url(/bg2.png)' }}
+      >
+        {/* Gradient overlay - fades to white at top and bottom */}
+        <div className="absolute inset-0 bg-gradient-to-b from-white via-white/30 to-white" />
+        <div className="max-w-6xl mx-auto px-4 md:px-6 relative z-10">
+          <div className="text-center mb-12">
+            <h2 className="text-2xl md:text-3xl font-medium mb-4 tracking-tight">Where ACTO could be used</h2>
+            <p className="text-gray-500 max-w-xl mx-auto">
+              Everywhere autonomous systems need to prove what they did.
+            </p>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+            {useCases.map((useCase) => {
+              const Icon = useCase.icon;
+              return (
+                <div key={useCase.label} className="bg-white border border-gray-200 rounded-xl p-6 text-center hover:shadow-lg hover:border-gray-300 transition-all">
+                  <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center mx-auto mb-4">
+                    <Icon size={24} className="text-gray-700" />
+                  </div>
+                  <h3 className="font-medium text-gray-900 mb-2">{useCase.label}</h3>
+                  <p className="text-sm text-gray-500">{useCase.description}</p>
                 </div>
               );
             })}
@@ -70,67 +247,162 @@ export function About() {
         </div>
       </section>
 
-      <section className="border-t border-gray-100 bg-gray-50">
-        <div className="max-w-6xl mx-auto px-4 md:px-6 py-16 md:py-24">
-          <div className="max-w-3xl">
-            <h2 className="text-2xl md:text-3xl font-medium mb-6 md:mb-8 tracking-tight">The problem we're solving</h2>
-            <div className="space-y-5 md:space-y-6 text-base md:text-lg text-gray-600 leading-relaxed">
-              <p>
-                As autonomous systems become more prevalent in critical applications, from delivery robots to industrial automation, a fundamental question arises: How can we trust that these systems are doing what they're supposed to do?
-              </p>
-              <p>
-                Traditional monitoring solutions rely on centralized logs that can be manipulated, incomplete sensor data, or manual verification that doesn't scale. This creates a trust deficit that limits the adoption of autonomous systems in regulated industries and high-stakes environments.
-              </p>
-              <p>
-                ACTO solves this with cryptographic proof of execution. Our SDK enables robots to generate verifiable proofs of their actions that anyone can verify independently, without needing to trust the robot operator or any centralized authority.
-              </p>
+      {/* Why Now */}
+      <section className="py-16 md:py-24">
+        <div className="max-w-6xl mx-auto px-4 md:px-6">
+          <div className="grid md:grid-cols-2 gap-12 md:gap-16 items-center">
+            <div>
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 text-blue-600 text-sm font-medium mb-6">
+                <TrendingUp size={14} />
+                Why Now
+              </div>
+              <h2 className="text-3xl md:text-4xl font-medium mb-6 tracking-tight">
+                The autonomous revolution has begun.
+              </h2>
+              <div className="space-y-4 text-gray-600 leading-relaxed">
+                <p>
+                  By 2030, millions of autonomous robots will be deployed – in warehouses, 
+                  on roads, in the air. The robotics market is growing over 20% annually.
+                </p>
+                <p>
+                  <strong className="text-gray-900">But without verifiability, there's no trust.</strong> And 
+                  without trust, no adoption in critical areas: healthcare, logistics, manufacturing.
+                </p>
+                <p>
+                  ACTO is the infrastructure layer that closes this gap. We don't build 
+                  robots – we build the trust they need.
+                </p>
+              </div>
+            </div>
+            <div className="space-y-4">
+              <div className="bg-gray-50 rounded-xl p-6 border border-gray-100">
+                <p className="text-4xl font-medium text-gray-900 mb-2">$180B+</p>
+                <p className="text-gray-500">Expected robotics market by 2030</p>
+              </div>
+              <div className="bg-gray-50 rounded-xl p-6 border border-gray-100">
+                <p className="text-4xl font-medium text-gray-900 mb-2">26%</p>
+                <p className="text-gray-500">Annual growth in autonomous systems</p>
+              </div>
+              <div className="bg-gray-50 rounded-xl p-6 border border-gray-100">
+                <p className="text-4xl font-medium text-gray-900 mb-2">&lt;50ms</p>
+                <p className="text-gray-500">ACTO verification time</p>
+              </div>
             </div>
           </div>
         </div>
       </section>
 
-      <section className="border-t border-gray-100">
-        <div className="max-w-6xl mx-auto px-4 md:px-6 py-16 md:py-24">
-          <div className="max-w-3xl">
-            <h2 className="text-2xl md:text-3xl font-medium mb-6 md:mb-8 tracking-tight">Our approach</h2>
-            <div className="space-y-5 md:space-y-6 text-base md:text-lg text-gray-600 leading-relaxed">
-              <p>
-                We combine three key technologies to create proof of execution:
-              </p>
-              <ul className="space-y-3 md:space-y-4 ml-4 md:ml-6">
-                <li className="flex gap-3">
-                  <span className="text-gray-900 font-medium flex-shrink-0">1.</span>
-                  <span><strong className="text-gray-900">Zero-knowledge proofs</strong> that allow robots to prove they followed specified behaviors without revealing sensitive operational data.</span>
-                </li>
-                <li className="flex gap-3">
-                  <span className="text-gray-900 font-medium flex-shrink-0">2.</span>
-                  <span><strong className="text-gray-900">Blockchain anchoring</strong> that timestamps and secures proofs, making them tamper-proof and independently verifiable.</span>
-                </li>
-                <li className="flex gap-3">
-                  <span className="text-gray-900 font-medium flex-shrink-0">3.</span>
-                  <span><strong className="text-gray-900">ROS 2 integration</strong> that makes it easy to add proof of execution to existing robotics systems with minimal code changes.</span>
-                </li>
-              </ul>
-              <p>
-                This architecture ensures that proof generation is efficient enough for real-time operation while maintaining the highest standards of cryptographic security.
-              </p>
-            </div>
+      {/* Timeline */}
+      <section className="py-16 md:py-24 bg-gray-50">
+        <div className="max-w-6xl mx-auto px-4 md:px-6">
+          <h2 className="text-2xl md:text-3xl font-medium mb-12 tracking-tight">Our Journey</h2>
+          <div className="grid md:grid-cols-4 gap-6">
+            {timeline.map((item, index) => (
+              <div key={index} className="relative">
+                <div className="text-sm text-gray-400 mb-2 font-medium">{item.year}</div>
+                <h3 className="text-lg font-medium mb-2 text-gray-900">{item.title}</h3>
+                <p className="text-gray-500 text-sm leading-relaxed">{item.description}</p>
+              </div>
+            ))}
           </div>
         </div>
       </section>
 
-      <section className="border-t border-gray-100 bg-gray-900 text-white">
-        <div className="max-w-6xl mx-auto px-4 md:px-6 py-16 md:py-24 text-center">
-          <h2 className="text-2xl md:text-3xl font-medium mb-4 md:mb-6 tracking-tight">Join us</h2>
-          <p className="text-lg md:text-xl text-gray-300 mb-6 md:mb-8 max-w-2xl mx-auto">
-            We're always looking for talented engineers, researchers, and partners who share our vision of trustworthy autonomous systems.
+      {/* Values & CTA */}
+      <section
+        className="relative bg-cover bg-center bg-no-repeat"
+        style={{ backgroundImage: 'url(/bg1.png)' }}
+      >
+        {/* Gradient overlay - fades from gray-50 at top */}
+        <div className="absolute inset-0 bg-gradient-to-b from-gray-50 via-transparent to-black/60" />
+        
+        {/* What we stand for */}
+        <div className="max-w-6xl mx-auto px-4 md:px-6 py-16 md:py-24 relative z-10">
+          <h2 className="text-2xl md:text-3xl font-medium mb-12 md:mb-16 tracking-tight">What we stand for</h2>
+          <div className="grid md:grid-cols-2 gap-8 md:gap-12">
+            <div className="flex gap-6">
+              <div className="flex-shrink-0">
+                <div className="w-12 h-12 rounded-lg bg-gray-900 flex items-center justify-center">
+                  <Shield className="w-6 h-6 text-white" />
+                </div>
+              </div>
+              <div>
+                <h3 className="text-lg font-medium mb-2 text-gray-900">Cryptography over promises</h3>
+                <p className="text-gray-600 leading-relaxed">
+                  Mathematical proofs are stronger than contracts. Our signatures cannot be forged, 
+                  our proofs cannot be tampered with.
+                </p>
+              </div>
+            </div>
+            <div className="flex gap-6">
+              <div className="flex-shrink-0">
+                <div className="w-12 h-12 rounded-lg bg-gray-900 flex items-center justify-center">
+                  <Eye className="w-6 h-6 text-white" />
+                </div>
+              </div>
+              <div>
+                <h3 className="text-lg font-medium mb-2 text-gray-900">Transparency through open source</h3>
+                <p className="text-gray-600 leading-relaxed">
+                  Our SDK is fully open source. Anyone can review, understand, and improve the code. 
+                  Trust requires transparency.
+                </p>
+              </div>
+            </div>
+            <div className="flex gap-6">
+              <div className="flex-shrink-0">
+                <div className="w-12 h-12 rounded-lg bg-gray-900 flex items-center justify-center">
+                  <Zap className="w-6 h-6 text-white" />
+                </div>
+              </div>
+              <div>
+                <h3 className="text-lg font-medium mb-2 text-gray-900">Built for developers</h3>
+                <p className="text-gray-600 leading-relaxed">
+                  One pip install, one API key, done. Integration in minutes, not weeks. 
+                  Because good infrastructure is invisible.
+                </p>
+              </div>
+            </div>
+            <div className="flex gap-6">
+              <div className="flex-shrink-0">
+                <div className="w-12 h-12 rounded-lg bg-gray-900 flex items-center justify-center">
+                  <Lock className="w-6 h-6 text-white" />
+                </div>
+              </div>
+              <div>
+                <h3 className="text-lg font-medium mb-2 text-gray-900">Web3-native</h3>
+                <p className="text-gray-600 leading-relaxed">
+                  Your wallet is your identity. Token-gated access ensures only committed users 
+                  can use the platform. Connect with Phantom, Solflare, or other Solana wallets.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* CTA */}
+        <div className="max-w-6xl mx-auto px-4 md:px-6 py-16 md:py-24 text-center relative z-10">
+          <h2 className="text-2xl md:text-3xl font-medium mb-4 tracking-tight text-white">
+            Ready for verifiable autonomy?
+          </h2>
+          <p className="text-lg text-white mb-8 max-w-2xl mx-auto">
+            Start with the Python SDK or check out the documentation. 
+            Questions? We're just a message away.
           </p>
-          <a
-            href="mailto:contact@actobotics.net"
-            className="inline-block px-8 py-3 bg-white text-gray-900 font-medium rounded-lg hover:bg-gray-100 transition-colors"
-          >
-            Get in touch
-          </a>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <a
+              href={config.links.docs}
+              className="group inline-flex items-center justify-center gap-2 px-6 py-3 bg-white text-gray-900 font-medium rounded-lg hover:bg-gray-100 transition-colors"
+            >
+              Documentation
+              <ArrowRight size={16} className="group-hover:translate-x-0.5 transition-transform" />
+            </a>
+            <a
+              href={config.links.dashboard}
+              className="inline-flex items-center justify-center gap-2 px-6 py-3 border border-white/30 text-white font-medium rounded-lg hover:bg-white/10 transition-colors"
+            >
+              Open Dashboard
+            </a>
+          </div>
         </div>
       </section>
     </div>

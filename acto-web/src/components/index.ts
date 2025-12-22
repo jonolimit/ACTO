@@ -8,3 +8,6 @@ export { OpenSource } from './OpenSource';
 export { Footer } from './Footer';
 export { Logo } from './Logo';
 export { LoadingScreen } from './LoadingScreen';
+export { QuickInstall } from './QuickInstall';
+export { Products } from './Products';
+export { FleetManagement } from './FleetManagement';

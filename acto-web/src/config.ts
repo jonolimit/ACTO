@@ -4,7 +4,10 @@ export const config = {
     github: 'https://github.com/actobotics/ACTO',
   },
   links: {
-    docs: 'https://docs.actobotics.net/',
+    docs: 'https://docs.actobotics.net',
     repository: 'https://github.com/actobotics/ACTO',
+    dashboard: 'https://api.actobotics.net/dashboard',
+    pypi: 'https://pypi.org/project/actobotics/',
+    api: 'https://api.actobotics.net',
   },
 };
