@@ -123,6 +123,11 @@ docker run -p 8080:8080 -e ACTO_JWT_SECRET_KEY=secret acto
 | `ACTO_LOG_LEVEL` | Logging level | INFO |
 | `ACTO_TOKEN_GATING_ENABLED` | Enable token gating | true |
 | `ACTO_HELIUS_API_KEY` | Helius RPC API key | - |
+| `ACTO_RATE_LIMIT_ENABLED` | Enable rate limiting | true |
+| `ACTO_RATE_LIMIT_RPS` | Requests per second | 5.0 |
+| `ACTO_RATE_LIMIT_BURST` | Burst capacity | 20 |
+| `ACTO_RATE_LIMIT_BUCKET_TTL` | Bucket expiry (seconds) | 3600.0 |
+| `ACTO_RATE_LIMIT_CLEANUP_INTERVAL` | Cleanup frequency | 1000 |
 
 ## Database Setup
 

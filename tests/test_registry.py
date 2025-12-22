@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from acto.config.settings import Settings
 from acto.crypto.keys import KeyPair
-from acto.proof.engine import create_proof, verify_proof
+from acto.proof.engine import _verify_proof_internal, create_proof
 from acto.registry.service import ProofRegistry
 from acto.telemetry.models import TelemetryBundle, TelemetryEvent
 
@@ -22,4 +22,4 @@ def test_registry_upsert_and_get(tmp_path) -> None:
     pid = reg.upsert(env)
     loaded = reg.get(pid)
     assert loaded.payload.payload_hash == env.payload.payload_hash
-    assert verify_proof(loaded) is True
+    assert _verify_proof_internal(loaded) is True

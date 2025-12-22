@@ -5,6 +5,33 @@ All notable changes to ACTO will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.9.7] - 2025-12-22
+
+### 🔧 Improvements & Bug Fixes
+
+This release includes several stability improvements and bug fixes.
+
+#### Fixed
+
+- **Tests**: Updated test suite to use internal verification function (`_verify_proof_internal`) instead of deprecated `verify_proof()`
+- **User-Agent Version**: SDK clients now use dynamic version from `__version__` instead of hardcoded value
+
+#### Changed
+
+- **Rate Limiter Memory Leak Fix**: The rate limiter now automatically cleans up stale bucket entries to prevent unbounded memory growth
+  - New `bucket_ttl` setting: Bucket expiry time (default: 1 hour)
+  - New `cleanup_interval` setting: Cleanup frequency (default: every 1000 requests)
+  - Buckets that haven't been accessed within TTL are automatically removed
+
+#### New Configuration Options
+
+| Environment Variable | Default | Description |
+|---------------------|---------|-------------|
+| `ACTO_RATE_LIMIT_BUCKET_TTL` | `3600.0` | Time in seconds before inactive buckets expire |
+| `ACTO_RATE_LIMIT_CLEANUP_INTERVAL` | `1000` | Run cleanup every N requests |
+
+---
+
 ## [0.9.6] - 2025-12-22
 
 ### 🔒 Security Cleanup

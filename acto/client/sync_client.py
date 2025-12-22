@@ -10,6 +10,7 @@ from typing import Any
 
 import httpx
 
+from acto import __version__
 from acto.proof.models import ProofEnvelope
 
 from .exceptions import (
@@ -336,7 +337,7 @@ class ACTOClient:
             "Authorization": f"Bearer {self.api_key}",
             "X-Wallet-Address": self.wallet_address,
             "Content-Type": "application/json",
-            "User-Agent": "acto-python-sdk/0.6.0",
+            "User-Agent": f"acto-python-sdk/{__version__}",
         }
 
     def _handle_error(self, response: httpx.Response) -> None:

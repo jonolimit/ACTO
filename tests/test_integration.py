@@ -12,7 +12,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from acto.crypto.keys import KeyPair
-from acto.proof.engine import create_proof, verify_proof
+from acto.proof.engine import _verify_proof_internal, create_proof
 from acto.registry.service import ProofRegistry
 from acto.telemetry.models import TelemetryBundle, TelemetryEvent
 from acto.telemetry.parsers import JsonlTelemetryParser
@@ -55,7 +55,7 @@ class TestCompleteWorkflow:
             keypair.private_key_b64,
             keypair.public_key_b64
         )
-        assert verify_proof(envelope) is True
+        assert _verify_proof_internal(envelope) is True
         
         # Step 3: Store in registry
         from acto.config.settings import Settings
@@ -66,7 +66,7 @@ class TestCompleteWorkflow:
         # Step 4: Retrieve from registry
         retrieved = registry.get(proof_id)
         assert retrieved.payload.payload_hash == envelope.payload.payload_hash
-        assert verify_proof(retrieved) is True
+        assert _verify_proof_internal(retrieved) is True
         
         # Step 5: Verify metadata
         assert retrieved.payload.subject.task_id == "integration-test-001"
@@ -107,7 +107,7 @@ class TestParserToProofWorkflow:
             keypair.public_key_b64
         )
         
-        assert verify_proof(envelope) is True
+        assert _verify_proof_internal(envelope) is True
         assert envelope.payload.subject.task_id == "parser-test-001"
 
 
@@ -255,5 +255,5 @@ class TestConcurrentOperations:
         # Verify all proofs are retrievable
         for proof_id in proof_ids:
             proof = registry.get(proof_id)
-            assert verify_proof(proof) is True
+            assert _verify_proof_internal(proof) is True
 

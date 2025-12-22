@@ -89,7 +89,12 @@ def create_app() -> FastAPI:
     # Use database-backed API key store
     api_key_store = ApiKeyStore(settings)
     user_store = UserStore(settings)
-    limiter = TokenBucketRateLimiter.create(rps=settings.rate_limit_rps, burst=settings.rate_limit_burst)
+    limiter = TokenBucketRateLimiter.create(
+        rps=settings.rate_limit_rps,
+        burst=settings.rate_limit_burst,
+        bucket_ttl=settings.rate_limit_bucket_ttl,
+        cleanup_interval=settings.rate_limit_cleanup_interval,
+    )
     
     # Fleet management store (database-backed)
     fleet_store = FleetStore(settings)

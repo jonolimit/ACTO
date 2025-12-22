@@ -78,6 +78,27 @@ Simple API key-based authentication (existing feature).
 api_auth_enabled = true
 ```
 
+### Rate Limiting
+
+Token bucket rate limiting with automatic cleanup of stale entries.
+
+**Configuration:**
+```toml
+rate_limit_enabled = true
+rate_limit_rps = 5.0           # Requests per second
+rate_limit_burst = 20          # Maximum burst capacity
+rate_limit_bucket_ttl = 3600.0      # Bucket expiry (seconds, default: 1 hour)
+rate_limit_cleanup_interval = 1000  # Cleanup every N requests
+```
+
+**Features:**
+- Token bucket algorithm with configurable rate and burst
+- Automatic cleanup prevents memory leaks from inactive clients
+- Per-client rate limiting based on IP and endpoint
+
+**Implementation:**
+- Located in `acto/security/rate_limit.py`
+
 ## Audit Logging
 
 All operations are logged for security and compliance purposes.

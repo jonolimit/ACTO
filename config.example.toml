@@ -36,4 +36,6 @@ token_gating_minimum = 50000.0
 # rate_limit_enabled = true
 # rate_limit_rps = 5.0
 # rate_limit_burst = 20
+# rate_limit_bucket_ttl = 3600.0       # Bucket expiry in seconds (default: 1 hour)
+# rate_limit_cleanup_interval = 1000   # Cleanup stale buckets every N requests
 

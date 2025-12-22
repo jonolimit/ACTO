@@ -8,7 +8,29 @@ The ACTO API implements rate limiting to ensure fair usage and service stability
 |------------|-------|
 | Default Rate | 5 requests/second |
 | Burst Capacity | Up to 20 requests |
-| Per Key | Rate limits apply per API key |
+| Per Key | Rate limits apply per API key + endpoint |
+| Bucket TTL | 1 hour (inactive buckets expire) |
+
+## Configuration (Self-Hosted)
+
+For self-hosted deployments, you can customize rate limiting:
+
+```toml
+# config.toml
+rate_limit_enabled = true
+rate_limit_rps = 10.0                  # Requests per second
+rate_limit_burst = 50                  # Burst capacity
+rate_limit_bucket_ttl = 3600.0         # Bucket expiry in seconds (1 hour)
+rate_limit_cleanup_interval = 1000     # Cleanup stale buckets every N requests
+```
+
+| Environment Variable | Default | Description |
+|---------------------|---------|-------------|
+| `ACTO_RATE_LIMIT_ENABLED` | `true` | Enable rate limiting |
+| `ACTO_RATE_LIMIT_RPS` | `5.0` | Requests per second |
+| `ACTO_RATE_LIMIT_BURST` | `20` | Maximum burst capacity |
+| `ACTO_RATE_LIMIT_BUCKET_TTL` | `3600.0` | Bucket expiry (seconds) |
+| `ACTO_RATE_LIMIT_CLEANUP_INTERVAL` | `1000` | Cleanup frequency |
 
 ## Rate Limit Headers
 

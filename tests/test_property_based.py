@@ -11,7 +11,7 @@ import pytest
 from hypothesis import given, settings, strategies as st  # type: ignore[import-untyped]
 
 from acto.crypto.keys import KeyPair
-from acto.proof.engine import create_proof, verify_proof
+from acto.proof.engine import _verify_proof_internal, create_proof
 from acto.telemetry.models import TelemetryBundle, TelemetryEvent
 
 
@@ -59,7 +59,7 @@ class TestProofProperties:
         )
         
         # Property: Created proof must be verifiable
-        assert verify_proof(envelope) is True
+        assert _verify_proof_internal(envelope) is True
 
     @given(
         num_events=st.integers(min_value=1, max_value=100),
@@ -91,7 +91,7 @@ class TestProofProperties:
             keypair.public_key_b64
         )
         
-        assert verify_proof(envelope) is True
+        assert _verify_proof_internal(envelope) is True
         assert len(envelope.payload.telemetry_normalized["events"]) == num_events
 
     @given(

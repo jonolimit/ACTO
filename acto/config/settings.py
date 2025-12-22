@@ -92,6 +92,8 @@ class Settings(BaseSettings):
     rate_limit_enabled: bool = True
     rate_limit_rps: float = 5.0
     rate_limit_burst: int = 20
+    rate_limit_bucket_ttl: float = 3600.0  # Bucket expiry in seconds (default: 1 hour)
+    rate_limit_cleanup_interval: int = 1000  # Cleanup stale buckets every N requests
 
     # Upload limits
     max_telemetry_bytes: int = 8_000_000
