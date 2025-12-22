@@ -7,3 +7,4 @@ export { UseCases } from './UseCases';
 export { OpenSource } from './OpenSource';
 export { Footer } from './Footer';
 export { Logo } from './Logo';
+export { LoadingScreen } from './LoadingScreen';
