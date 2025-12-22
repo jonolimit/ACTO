@@ -86,10 +86,9 @@ keypair.save("/secure/path/key.json")
 
 | Option | Security | Use Case |
 |--------|----------|----------|
-| Environment variables | Medium | Development |
-| File with restricted permissions | Medium | Self-hosted |
+| Environment variables | Medium | Development, CI/CD |
+| AWS Secrets Manager | High | Production (recommended) |
 | HashiCorp Vault | High | Enterprise |
-| AWS Secrets Manager | High | Cloud |
 | Hardware Security Module | Highest | Critical systems |
 
 ## Network Security

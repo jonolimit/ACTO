@@ -103,15 +103,20 @@ print(settings.base_url)
 
 ### Custom Base URL
 
-For self-hosted instances:
+For contributors running a local development server:
 
 ```python
+# Local development only - not for production use
 client = ACTOClient(
     api_key="...",
     wallet_address="...",
-    base_url="https://my-acto-instance.com"
+    base_url="http://localhost:8080"  # Local dev server
 )
 ```
+
+::: tip
+Regular users should always use the default (`https://api.actobotics.net`). The `base_url` parameter is only for ACTO contributors testing locally.
+:::
 
 ### Custom Timeout
 

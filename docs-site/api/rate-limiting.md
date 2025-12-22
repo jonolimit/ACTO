@@ -11,9 +11,11 @@ The ACTO API implements rate limiting to ensure fair usage and service stability
 | Per Key | Rate limits apply per API key + endpoint |
 | Bucket TTL | 1 hour (inactive buckets expire) |
 
-## Configuration (Self-Hosted)
+## Configuration (Contributors Only)
 
-For self-hosted deployments, you can customize rate limiting:
+::: tip For Contributors
+These settings are for ACTO contributors running local development servers. Regular users don't need to configure rate limiting - it's handled by the hosted platform.
+:::
 
 ```toml
 # config.toml

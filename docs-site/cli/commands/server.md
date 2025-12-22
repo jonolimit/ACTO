@@ -1,9 +1,13 @@
 # acto server
 
-Run the ACTO server locally.
+Run the ACTO server locally for development.
 
-::: warning For Contributors
-Server functionality is primarily for development and self-hosting scenarios.
+::: danger For Contributors Only
+This command is **only for ACTO contributors** developing the codebase locally.
+
+**Regular users should NOT run their own server.** Use the hosted platform:
+- **Dashboard:** [api.actobotics.net/dashboard](https://api.actobotics.net/dashboard)  
+- **API:** `https://api.actobotics.net`
 :::
 
 ## Commands

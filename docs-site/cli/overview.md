@@ -71,6 +71,10 @@ acto interactive
 ### Check Access
 
 ```bash
+# Simple (uses configured ACTO token)
+acto access check --owner WALLET_ADDRESS
+
+# With explicit parameters
 acto access check \
   --owner WALLET_ADDRESS \
   --mint TOKEN_MINT \

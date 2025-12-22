@@ -1,184 +1,43 @@
-# Self-Hosting
+# Development Setup
 
-Run your own ACTO server for development or private deployments.
+::: danger Not for End Users
+This page is **only for ACTO contributors** working on the codebase itself.
 
-::: warning For Contributors
-Self-hosting is primarily for contributors and special use cases. For most users, we recommend the hosted API at `api.actobotics.net`.
+**Regular users should NOT self-host.** Use the hosted platform:
+- **Dashboard:** [api.actobotics.net/dashboard](https://api.actobotics.net/dashboard)
+- **API:** `https://api.actobotics.net`
+
+The ACTO team handles all hosting, scaling, and infrastructure.
 :::
 
-## Requirements
+## For Contributors Only
 
-- Python 3.9+
-- PostgreSQL (recommended) or SQLite
-- Redis (optional, for caching)
+If you're contributing to the ACTO project and need to run the server locally for development:
 
-## Installation
+### Prerequisites
+
+- Python 3.10+
+- Git
+
+### Local Development Setup
 
 ```bash
 # Clone the repository
 git clone https://github.com/actobotics/ACTO.git
 cd ACTO
 
-# Install with server dependencies
+# Create virtual environment
+python -m venv venv
+source venv/bin/activate  # or: venv\Scripts\activate (Windows)
+
+# Install dev dependencies
 pip install -e ".[dev]"
-```
 
-## Quick Start
-
-```bash
-# Run with default settings (SQLite)
-acto server run
-
-# Or with uvicorn directly
+# Run the server locally
 uvicorn acto_server.app:app --reload --port 8080
 ```
 
-Server runs at `http://localhost:8080`
-
-## Configuration
-
-Create a configuration file:
-
-```toml
-# config.toml
-
-# Server settings
-host = "0.0.0.0"
-port = 8080
-workers = 4
-
-# Database
-db_url = "postgresql://user:pass@localhost/acto"
-# Or SQLite: db_url = "sqlite:///./data/acto.sqlite"
-
-# JWT
-jwt_secret_key = "your-secret-key-here"
-jwt_algorithm = "HS256"
-
-# Token gating (optional)
-token_gating_enabled = true
-acto_token_mint = "your-token-mint"
-minimum_balance = 50000
-
-# Helius RPC (optional)
-helius_api_key = "your-helius-key"
-```
-
-Run with config:
-
-```bash
-acto server run --config config.toml
-```
-
-## Docker
-
-### Using Docker Compose
-
-```yaml
-# docker-compose.yml
-version: '3.8'
-
-services:
-  acto:
-    build: .
-    ports:
-      - "8080:8080"
-    environment:
-      - ACTO_DB_URL=postgresql://postgres:postgres@db/acto
-      - ACTO_JWT_SECRET_KEY=your-secret
-    depends_on:
-      - db
-
-  db:
-    image: postgres:15
-    environment:
-      - POSTGRES_DB=acto
-      - POSTGRES_PASSWORD=postgres
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-
-volumes:
-  postgres_data:
-```
-
-Run:
-
-```bash
-docker-compose up -d
-```
-
-### Using Dockerfile
-
-```bash
-docker build -t acto .
-docker run -p 8080:8080 -e ACTO_JWT_SECRET_KEY=secret acto
-```
-
-## Environment Variables
-
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `ACTO_DB_URL` | Database connection URL | SQLite in ./data |
-| `ACTO_JWT_SECRET_KEY` | JWT signing key | Random (dev only) |
-| `ACTO_LOG_LEVEL` | Logging level | INFO |
-| `ACTO_TOKEN_GATING_ENABLED` | Enable token gating | true |
-| `ACTO_HELIUS_API_KEY` | Helius RPC API key | - |
-| `ACTO_RATE_LIMIT_ENABLED` | Enable rate limiting | true |
-| `ACTO_RATE_LIMIT_RPS` | Requests per second | 5.0 |
-| `ACTO_RATE_LIMIT_BURST` | Burst capacity | 20 |
-| `ACTO_RATE_LIMIT_BUCKET_TTL` | Bucket expiry (seconds) | 3600.0 |
-| `ACTO_RATE_LIMIT_CLEANUP_INTERVAL` | Cleanup frequency | 1000 |
-
-## Database Setup
-
-### PostgreSQL
-
-```bash
-# Create database
-createdb acto
-
-# Run migrations
-alembic upgrade head
-```
-
-### SQLite
-
-SQLite works out of the box - database is created automatically.
-
-## Production Deployment
-
-### With Gunicorn
-
-```bash
-gunicorn acto_server.app:app \
-  --workers 4 \
-  --worker-class uvicorn.workers.UvicornWorker \
-  --bind 0.0.0.0:8080
-```
-
-### With Nginx
-
-```nginx
-upstream acto {
-    server 127.0.0.1:8080;
-}
-
-server {
-    listen 443 ssl;
-    server_name api.yourdomain.com;
-    
-    ssl_certificate /etc/ssl/cert.pem;
-    ssl_certificate_key /etc/ssl/key.pem;
-    
-    location / {
-        proxy_pass http://acto;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-    }
-}
-```
-
-## Testing
+### Running Tests
 
 ```bash
 # Run test suite
@@ -187,17 +46,39 @@ pytest
 # With coverage
 pytest --cov=acto --cov-report=html
 
-# Load tests
-locust -f tests/load/locustfile.py
+# Type checking
+mypy acto
+
+# Linting
+ruff check acto
 ```
 
-## Limitations
+### Environment Variables (Development)
 
-Self-hosted servers:
-- Don't have official token verification
-- Require your own RPC for token gating
-- Need manual security configuration
-- Are not supported by the ACTO team
+For local development, you can use a `.env` file:
 
-For production use, we recommend the hosted API.
+```bash
+# .env (development only)
+ACTO_LOG_LEVEL=DEBUG
+ACTO_DB_URL=sqlite:///./data/acto.sqlite
+ACTO_JWT_SECRET_KEY=dev-secret-not-for-production
+```
 
+## Production Infrastructure
+
+The production ACTO infrastructure is managed by the ACTO team and includes:
+
+- Vercel deployment with edge functions
+- PostgreSQL database (managed)
+- Helius RPC for Solana token verification
+- Automatic scaling and monitoring
+- SSL/TLS encryption
+- DDoS protection
+
+**Contributors do not need to worry about production deployment** - just submit your PR and the team handles the rest.
+
+## Questions?
+
+- **Contributing:** See [CONTRIBUTING.md](https://github.com/actobotics/ACTO/blob/main/CONTRIBUTING.md)
+- **Issues:** Open an issue on GitHub
+- **API Questions:** Use the hosted dashboard at `api.actobotics.net`

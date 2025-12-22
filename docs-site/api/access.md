@@ -102,6 +102,10 @@ else:
 ### CLI
 
 ```bash
+# Simple (uses configured ACTO token)
+acto access check --owner 5K8vK...
+
+# With explicit parameters
 acto access check \
   --owner 5K8vK... \
   --mint ACTO_TOKEN_MINT \

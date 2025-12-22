@@ -54,6 +54,10 @@ print(f"Reason: {result.reason}")
 ### Via CLI
 
 ```bash
+# Simple (uses configured ACTO token)
+acto access check --owner YOUR_WALLET_ADDRESS
+
+# With explicit parameters
 acto access check \
   --owner YOUR_WALLET_ADDRESS \
   --mint ACTO_TOKEN_MINT \
