@@ -5,6 +5,66 @@ All notable changes to ACTO will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.9.10] - 2025-12-23
+
+### 🎨 Website (acto-web)
+
+#### Added
+
+- **SEO & Meta Tags** - Comprehensive SEO optimization with react-helmet-async
+  - Dynamic meta tags (title, description, keywords) per page
+  - OpenGraph tags for Facebook and LinkedIn sharing
+  - Twitter Card support with large image previews
+  - Canonical URLs, robots directives, and author tags
+  - SEO component integrated on Home and About pages
+
+- **Sitemap & robots.txt** - Search engine optimization
+  - XML sitemap with all main pages (priority and changefreq)
+  - robots.txt with crawler configuration
+  - Proper indexing for Google, Bing, and other search engines
+
+- **Scroll-to-Top Button** - Enhanced navigation UX
+  - Floating button appears after 500px scroll
+  - Smooth scroll animation back to top
+  - Hover effects with scale and icon animation
+  - Fixed position with modern styling
+
+- **Advanced Scroll Animations** - Professional, subtle animations
+  - 11 animation types: fade-up/down/left/right, scale-up/down, zoom-in, slide-left/right, flip-up, blur-in
+  - Smooth cubic-bezier easing for organic motion
+  - Configurable delays for staggered animations (60-360ms)
+  - Intersection Observer with optimized thresholds
+  - Applied across all Home and About page sections
+  - 900ms duration with subtle 6px movements for professional feel
+
+- **404 Not Found Page** - Custom error handling
+  - Hero background with gradient overlay
+  - Helpful navigation links (Home, Docs, GitHub)
+  - Popular pages section for easy recovery
+  - SEO-optimized with proper meta tags
+
+- **Scroll Restoration** - Automatic scroll-to-top on route changes
+  - Ensures users always start at top when navigating between pages
+  - React Router integration with useLocation hook
+
+#### Changed
+
+- **Animation Refinements** - Optimized for professional appearance
+  - Reduced movement distances (12px → 6px for fades)
+  - Smoother easing curves for organic feel
+  - Faster delays between elements (100ms → 60ms)
+  - Lower trigger threshold for earlier animations
+  - Duration increased to 900ms for smoother transitions
+
+#### Components Updated
+
+- All Home page components with scroll animations
+- All About page sections with coordinated animation choreography
+- Features, QuickInstall, Products, HowItWorks, UseCases, OpenSource, FleetManagement
+- Navigation with mobile menu improvements
+
+---
+
 ## [0.9.9] - 2025-12-22
 
 ### 🔧 Improvements

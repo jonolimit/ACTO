@@ -1,5 +1,6 @@
 import { Github, ArrowRight, Code2, Shield, Users, Scale, ExternalLink } from 'lucide-react';
 import { config } from '../config';
+import { ScrollAnimation } from './ScrollAnimation';
 
 const highlights = [
   {
@@ -43,38 +44,42 @@ export function OpenSource() {
 
       <div className="max-w-6xl mx-auto px-4 md:px-6 py-16 md:py-24 relative z-10">
         {/* Header */}
-        <div className="text-center mb-12 md:mb-16">
-          <p className="text-sm text-gray-300 mb-4 tracking-wide uppercase">Transparency</p>
-          <h2 className="text-3xl md:text-4xl font-medium mb-4 tracking-tight text-white">
-            Open Source. Open Trust.
-          </h2>
-          <p className="text-gray-300 max-w-2xl mx-auto leading-relaxed">
-            Trust shouldn't be a black box. Our SDK, verification logic, and protocol specifications 
-            are fully open source – because verifiable systems require verifiable code.
-          </p>
-        </div>
+        <ScrollAnimation animation="fade-down" delay={0}>
+          <div className="text-center mb-12 md:mb-16">
+            <p className="text-sm text-gray-300 mb-4 tracking-wide uppercase">Transparency</p>
+            <h2 className="text-3xl md:text-4xl font-medium mb-4 tracking-tight text-white">
+              Open Source. Open Trust.
+            </h2>
+            <p className="text-gray-300 max-w-2xl mx-auto leading-relaxed">
+              Trust shouldn't be a black box. Our SDK, verification logic, and protocol specifications 
+              are fully open source – because verifiable systems require verifiable code.
+            </p>
+          </div>
+        </ScrollAnimation>
 
         {/* Highlights Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12 md:mb-16">
-          {highlights.map((item) => {
+          {highlights.map((item, index) => {
             const Icon = item.icon;
             return (
-              <div
-                key={item.title}
-                className="bg-white/95 backdrop-blur-sm border border-white/20 rounded-xl p-6 hover:bg-white hover:shadow-lg transition-all"
-              >
-                <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center mb-4">
-                  <Icon size={20} className="text-gray-700" />
+              <ScrollAnimation key={item.title} animation="zoom-in" delay={60 + index * 60}>
+                <div
+                  className="bg-white/95 backdrop-blur-sm border border-white/20 rounded-xl p-6 hover:bg-white hover:shadow-lg transition-all"
+                >
+                  <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center mb-4">
+                    <Icon size={20} className="text-gray-700" />
+                  </div>
+                  <h3 className="font-medium text-gray-900 mb-2">{item.title}</h3>
+                  <p className="text-sm text-gray-500 leading-relaxed">{item.description}</p>
                 </div>
-                <h3 className="font-medium text-gray-900 mb-2">{item.title}</h3>
-                <p className="text-sm text-gray-500 leading-relaxed">{item.description}</p>
-              </div>
+              </ScrollAnimation>
             );
           })}
         </div>
 
         {/* CTA Card */}
-        <div className="bg-neutral-800 rounded-2xl p-8 md:p-12 text-white">
+        <ScrollAnimation animation="scale-up" delay={300}>
+          <div className="bg-neutral-800 rounded-2xl p-8 md:p-12 text-white">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-8">
             {/* Left: Text */}
             <div className="flex-1">
@@ -124,7 +129,8 @@ export function OpenSource() {
               </div>
             </div>
           </div>
-        </div>
+          </div>
+        </ScrollAnimation>
       </div>
     </section>
   );

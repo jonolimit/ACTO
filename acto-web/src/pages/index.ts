@@ -3,3 +3,4 @@ export { About } from './About';
 export { Privacy } from './Privacy';
 export { Terms } from './Terms';
 export { Unlock } from './Unlock';
+export { NotFound } from './NotFound';

@@ -1,5 +1,6 @@
 import { Bot, Activity, FolderTree, Clock, Cpu, Battery, HardDrive, ArrowRight } from 'lucide-react';
 import { config } from '../config';
+import { ScrollAnimation } from './ScrollAnimation';
 
 const features = [
   {
@@ -43,44 +44,51 @@ export function FleetManagement() {
         <div className="grid md:grid-cols-2 gap-12 md:gap-16 items-center">
           {/* Left: Content */}
           <div>
-            <p className="text-sm text-gray-400 mb-4 tracking-wide uppercase">Fleet Management</p>
-            <h2 className="text-3xl md:text-4xl font-medium mb-6 tracking-tight">
-              Monitor your entire robot fleet
-            </h2>
-            <p className="text-gray-600 leading-relaxed mb-8">
-              When you run dozens or hundreds of robots, you need visibility. ACTO's fleet management 
-              gives you real-time overview of all your devices, their health status, and execution history. 
-              Every proof submitted automatically updates your fleet dashboard.
-            </p>
+            <ScrollAnimation animation="fade-right" delay={0}>
+              <p className="text-sm text-gray-400 mb-4 tracking-wide uppercase">Fleet Management</p>
+              <h2 className="text-3xl md:text-4xl font-medium mb-6 tracking-tight">
+                Monitor your entire robot fleet
+              </h2>
+              <p className="text-gray-600 leading-relaxed mb-8">
+                When you run dozens or hundreds of robots, you need visibility. ACTO's fleet management 
+                gives you real-time overview of all your devices, their health status, and execution history. 
+                Every proof submitted automatically updates your fleet dashboard.
+              </p>
+            </ScrollAnimation>
 
             <div className="space-y-6 mb-8">
-              {features.map((feature) => {
+              {features.map((feature, index) => {
                 const Icon = feature.icon;
                 return (
-                  <div key={feature.title} className="flex gap-4">
-                    <div className="flex-shrink-0 w-10 h-10 bg-white border border-gray-200 rounded-lg flex items-center justify-center">
-                      <Icon className="w-5 h-5 text-gray-700" />
+                  <ScrollAnimation key={feature.title} animation="fade-right" delay={120 + index * 60}>
+                    <div className="flex gap-4">
+                      <div className="flex-shrink-0 w-10 h-10 bg-white border border-gray-200 rounded-lg flex items-center justify-center">
+                        <Icon className="w-5 h-5 text-gray-700" />
+                      </div>
+                      <div>
+                        <h3 className="font-medium text-gray-900 mb-1">{feature.title}</h3>
+                        <p className="text-sm text-gray-600 leading-relaxed">{feature.description}</p>
+                      </div>
                     </div>
-                    <div>
-                      <h3 className="font-medium text-gray-900 mb-1">{feature.title}</h3>
-                      <p className="text-sm text-gray-600 leading-relaxed">{feature.description}</p>
-                    </div>
-                  </div>
+                  </ScrollAnimation>
                 );
               })}
             </div>
 
-            <a
-              href={config.links.dashboard}
-              className="inline-flex items-center gap-2 px-5 py-2.5 bg-gray-900 text-white text-sm font-medium rounded-lg hover:bg-gray-800 transition-colors"
-            >
-              View your fleet
-              <ArrowRight size={14} />
-            </a>
+            <ScrollAnimation animation="scale-up" delay={360}>
+              <a
+                href={config.links.dashboard}
+                className="inline-flex items-center gap-2 px-5 py-2.5 bg-gray-900 text-white text-sm font-medium rounded-lg hover:bg-gray-800 transition-colors"
+              >
+                View your fleet
+                <ArrowRight size={14} />
+              </a>
+            </ScrollAnimation>
           </div>
 
           {/* Right: Mock Dashboard */}
-          <div className="bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden">
+          <ScrollAnimation animation="fade-left" delay={180}>
+            <div className="bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden">
             {/* Header */}
             <div className="px-6 py-4 border-b border-gray-100 bg-gray-50/50">
               <div className="flex items-center justify-between">
@@ -129,7 +137,8 @@ export function FleetManagement() {
                 ))}
               </div>
             </div>
-          </div>
+            </div>
+          </ScrollAnimation>
         </div>
       </div>
     </section>

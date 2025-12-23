@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import { Navigation, Footer, Logo, LoadingScreen } from './components';
-import { Home, About, Privacy, Terms, Unlock } from './pages';
+import { HelmetProvider } from 'react-helmet-async';
+import { Navigation, Footer, Logo, LoadingScreen, ScrollToTop, ScrollRestoration } from './components';
+import { Home, About, Privacy, Terms, Unlock, NotFound } from './pages';
 
 // ============================================
 // ACCESS CONTROL - Set to false to disable
 // ============================================
-const ACCESS_REQUIRED = true;
+const ACCESS_REQUIRED = false;
 // ============================================
 
 function App() {
@@ -32,22 +33,27 @@ function App() {
   }
 
   return (
-    <BrowserRouter>
-      <LoadingScreen imagesToPreload={['/hero.png', '/hero2.png', '/hero3.png', '/hero4.png', '/bg1.png', '/bg2.png', '/bg3.png', '/bg4.png']} />
-      <div className="min-h-screen bg-white text-gray-900">
-        <Logo />
-        <Navigation />
-        <main>
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/about" element={<About />} />
-            <Route path="/privacy" element={<Privacy />} />
-            <Route path="/terms" element={<Terms />} />
-          </Routes>
-        </main>
-        <Footer />
-      </div>
-    </BrowserRouter>
+    <HelmetProvider>
+      <BrowserRouter>
+        <ScrollRestoration />
+        <LoadingScreen imagesToPreload={['/hero.png', '/hero2.png', '/hero3.png', '/hero4.png', '/bg1.png', '/bg2.png', '/bg3.png', '/bg4.png']} />
+        <div className="min-h-screen bg-white text-gray-900">
+          <Logo />
+          <Navigation />
+          <main>
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/about" element={<About />} />
+              <Route path="/privacy" element={<Privacy />} />
+              <Route path="/terms" element={<Terms />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </main>
+          <Footer />
+          <ScrollToTop />
+        </div>
+      </BrowserRouter>
+    </HelmetProvider>
   );
 }
 

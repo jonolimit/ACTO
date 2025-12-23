@@ -1,5 +1,6 @@
 import { Code2, Server, LayoutDashboard, Terminal, ArrowRight } from 'lucide-react';
 import { config } from '../config';
+import { ScrollAnimation } from './ScrollAnimation';
 
 const products = [
   {
@@ -69,22 +70,24 @@ export function Products() {
     <section className="py-16 md:py-24">
       {/* Header - consistent with other sections */}
       <div className="max-w-6xl mx-auto px-4 md:px-6 mb-12 md:mb-16">
-        <h2 className="text-2xl md:text-3xl font-medium mb-4 tracking-tight">The ACTO Ecosystem</h2>
-        <p className="text-gray-500 max-w-2xl leading-relaxed">
-          Everything you need to generate, verify, and manage cryptographic proofs for your autonomous systems.
-        </p>
+        <ScrollAnimation animation="fade-right" delay={0}>
+          <h2 className="text-2xl md:text-3xl font-medium mb-4 tracking-tight">The ACTO Ecosystem</h2>
+          <p className="text-gray-500 max-w-2xl leading-relaxed">
+            Everything you need to generate, verify, and manage cryptographic proofs for your autonomous systems.
+          </p>
+        </ScrollAnimation>
       </div>
 
       {/* 4 Column Grid - full width */}
       <div className="px-4 md:px-8 lg:px-12 xl:px-16 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5">
-          {products.map((product) => {
+          {products.map((product, index) => {
             const Icon = product.icon;
             
             return (
-              <div
-                key={product.name}
-                className="group relative overflow-hidden border border-gray-200 rounded-2xl p-6 hover:border-gray-300 hover:shadow-xl transition-all flex flex-col"
-              >
+              <ScrollAnimation key={product.name} animation="scale-up" delay={60 + index * 80}>
+                <div
+                  className="group relative overflow-hidden border border-gray-200 rounded-2xl p-6 hover:border-gray-300 hover:shadow-xl transition-all flex flex-col"
+                >
                 {/* Background Image */}
                 <div
                   className="absolute inset-0 bg-cover bg-center bg-no-repeat"
@@ -130,7 +133,8 @@ export function Products() {
                   <ArrowRight size={14} />
                 </a>
                 </div>
-              </div>
+                </div>
+              </ScrollAnimation>
             );
           })}
       </div>

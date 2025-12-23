@@ -8,11 +8,13 @@ import {
   TechStack,
   UseCases,
   OpenSource,
+  SEO,
 } from '../components';
 
 export function Home() {
   return (
     <>
+      <SEO />
       <Hero />
       <Features />
       <QuickInstall />

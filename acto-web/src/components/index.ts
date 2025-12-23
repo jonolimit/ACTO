@@ -11,3 +11,7 @@ export { LoadingScreen } from './LoadingScreen';
 export { QuickInstall } from './QuickInstall';
 export { Products } from './Products';
 export { FleetManagement } from './FleetManagement';
+export { SEO } from './SEO';
+export { ScrollToTop } from './ScrollToTop';
+export { ScrollAnimation } from './ScrollAnimation';
+export { ScrollRestoration } from './ScrollRestoration';
