@@ -1,5 +1,7 @@
 import { useState } from 'react';
-import { Lock, ArrowRight, AlertCircle } from 'lucide-react';
+import { Lock, ArrowRight, AlertCircle, Github } from 'lucide-react';
+import { FaXTwitter } from 'react-icons/fa6';
+import { config } from '../config';
 
 interface UnlockProps {
   onUnlock: () => void;
@@ -98,9 +100,26 @@ export function Unlock({ onUnlock }: UnlockProps) {
         </div>
 
         {/* Footer */}
-        <p className="text-center text-gray-400 text-xs mt-6">
-          <a href="https://x.com/actoboticsnet" target="_blank" rel="noopener noreferrer" className="text-gray-300 hover:text-white transition-colors">Follow us on X</a>
-        </p>
+        <div className="flex items-center justify-center gap-4 mt-6">
+          <a 
+            href="https://x.com/actoboticsnet" 
+            target="_blank" 
+            rel="noopener noreferrer" 
+            className="text-gray-400 hover:text-white transition-colors"
+            aria-label="X (Twitter)"
+          >
+            <FaXTwitter size={20} />
+          </a>
+          <a 
+            href={config.social.github} 
+            target="_blank" 
+            rel="noopener noreferrer" 
+            className="text-gray-400 hover:text-white transition-colors"
+            aria-label="GitHub"
+          >
+            <Github size={20} />
+          </a>
+        </div>
       </div>
     </div>
   );
