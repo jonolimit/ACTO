@@ -48,6 +48,20 @@ export function Navigation() {
                 >
                   About
                 </Link>
+                <Link
+                  to="/faq"
+                  className="text-base text-gray-700 hover:text-gray-900 transition-colors py-2"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  FAQ
+                </Link>
+                <Link
+                  to="/comparison"
+                  className="text-base text-gray-700 hover:text-gray-900 transition-colors py-2"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Comparison
+                </Link>
                 <a
                   href={config.links.docs}
                   className="text-base text-gray-700 hover:text-gray-900 transition-colors py-2"
@@ -89,6 +103,8 @@ export function Navigation() {
           <div className="bg-white/95 backdrop-blur-sm border border-gray-200 border-t-0 rounded-b-lg shadow-lg px-8 py-4 flex items-center gap-8">
             <Link to="/" className="text-sm text-gray-500 hover:text-gray-900 transition-colors whitespace-nowrap">Home</Link>
             <Link to="/about" className="text-sm text-gray-500 hover:text-gray-900 transition-colors whitespace-nowrap">About</Link>
+            <Link to="/faq" className="text-sm text-gray-500 hover:text-gray-900 transition-colors whitespace-nowrap">FAQ</Link>
+            <Link to="/comparison" className="text-sm text-gray-500 hover:text-gray-900 transition-colors whitespace-nowrap">Comparison</Link>
             <a href={config.links.docs} className="text-sm text-gray-500 hover:text-gray-900 transition-colors whitespace-nowrap">Docs</a>
             <a href="https://api.actobotics.net/dashboard" className="text-sm text-gray-500 hover:text-gray-900 transition-colors whitespace-nowrap">Dashboard</a>
             <a href={config.social.github} className="text-gray-500 hover:text-gray-900 transition-colors" aria-label="GitHub">

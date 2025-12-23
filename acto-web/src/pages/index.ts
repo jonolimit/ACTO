@@ -4,3 +4,6 @@ export { Privacy } from './Privacy';
 export { Terms } from './Terms';
 export { Unlock } from './Unlock';
 export { NotFound } from './NotFound';
+export { UseCaseDetail } from './UseCaseDetail';
+export { FAQ } from './FAQ';
+export { Comparison } from './Comparison';

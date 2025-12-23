@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
 import { Navigation, Footer, Logo, LoadingScreen, ScrollToTop, ScrollRestoration } from './components';
-import { Home, About, Privacy, Terms, Unlock, NotFound } from './pages';
+import { Home, About, Privacy, Terms, Unlock, NotFound, UseCaseDetail, FAQ, Comparison } from './pages';
 
 // ============================================
 // ACCESS CONTROL - Set to false to disable
@@ -44,6 +44,9 @@ function App() {
             <Routes>
               <Route path="/" element={<Home />} />
               <Route path="/about" element={<About />} />
+              <Route path="/faq" element={<FAQ />} />
+              <Route path="/comparison" element={<Comparison />} />
+              <Route path="/use-cases/:slug" element={<UseCaseDetail />} />
               <Route path="/privacy" element={<Privacy />} />
               <Route path="/terms" element={<Terms />} />
               <Route path="*" element={<NotFound />} />

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Copy, Check, ArrowRight, Shield, Cpu, Clock } from 'lucide-react';
 import { config } from '../config';
 import { ScrollAnimation } from './ScrollAnimation';
+import { AnimatedCounter } from './AnimatedCounter';
 
 export function QuickInstall() {
   const [copied, setCopied] = useState(false);
@@ -75,7 +76,9 @@ export function QuickInstall() {
                 <div className="w-12 h-12 mx-auto mb-4 rounded-xl bg-white border border-stone-200 flex items-center justify-center shadow-sm">
                   <Clock size={24} className="text-stone-600" />
                 </div>
-                <p className="text-2xl font-semibold text-gray-900 mb-1">&lt;50ms</p>
+                <p className="text-2xl font-semibold text-gray-900 mb-1">
+                  <AnimatedCounter end={50} prefix="<" suffix="ms" duration={2000} />
+                </p>
                 <p className="text-sm text-stone-500">Verification</p>
               </div>
             </ScrollAnimation>
@@ -84,7 +87,9 @@ export function QuickInstall() {
                 <div className="w-12 h-12 mx-auto mb-4 rounded-xl bg-white border border-stone-200 flex items-center justify-center shadow-sm">
                   <Cpu size={24} className="text-stone-600" />
                 </div>
-                <p className="text-2xl font-semibold text-gray-900 mb-1">100%</p>
+                <p className="text-2xl font-semibold text-gray-900 mb-1">
+                  <AnimatedCounter end={100} suffix="%" duration={2000} />
+                </p>
                 <p className="text-sm text-stone-500">Local proof generation</p>
               </div>
             </ScrollAnimation>

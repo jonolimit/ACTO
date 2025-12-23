@@ -15,3 +15,6 @@ export { SEO } from './SEO';
 export { ScrollToTop } from './ScrollToTop';
 export { ScrollAnimation } from './ScrollAnimation';
 export { ScrollRestoration } from './ScrollRestoration';
+export { AnimatedCounter } from './AnimatedCounter';
+export { ParallaxSection } from './ParallaxSection';
+export { ImageWithSkeleton } from './ImageWithSkeleton';

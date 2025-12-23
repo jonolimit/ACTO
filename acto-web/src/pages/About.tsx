@@ -2,6 +2,8 @@ import { Shield, Zap, Eye, Lock, ArrowRight, CheckCircle2, AlertTriangle, Trendi
 import { config } from '../config';
 import { SEO } from '../components/SEO';
 import { ScrollAnimation } from '../components/ScrollAnimation';
+import { ParallaxSection } from '../components/ParallaxSection';
+import { ImageWithSkeleton } from '../components/ImageWithSkeleton';
 
 const timeline = [
   {
@@ -153,11 +155,14 @@ export function About() {
 
       {/* The Solution */}
       <section id="solution-section" className="py-16 md:py-24 relative overflow-hidden text-white">
-        {/* Background Image */}
-        <div
-          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-          style={{ backgroundImage: 'url(/code.png)' }}
-        />
+        {/* Background Image with Parallax and Loading Skeleton */}
+        <ParallaxSection speed={0.3} className="absolute inset-0">
+          <ImageWithSkeleton 
+            src="/code.png" 
+            className="absolute inset-0"
+            skeletonClassName="absolute inset-0"
+          />
+        </ParallaxSection>
         {/* Dark Overlay */}
         <div className="absolute inset-0 bg-gradient-to-b from-black/85 via-black/80 to-black/85" />
         
