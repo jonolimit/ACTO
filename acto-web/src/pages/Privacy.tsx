@@ -11,7 +11,7 @@ export function Privacy() {
         <div className="max-w-4xl mx-auto px-4 md:px-6 relative z-10">
           <p className="text-sm text-gray-200 mb-4 tracking-wide uppercase">Legal</p>
           <h1 className="text-4xl md:text-5xl font-medium mb-4 tracking-tight text-white">Privacy Policy</h1>
-          <p className="text-gray-300">Last updated: December 2024</p>
+          <p className="text-gray-300">Last updated: December 2025</p>
         </div>
       </section>
 
