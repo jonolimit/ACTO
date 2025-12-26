@@ -19,9 +19,37 @@ class UserStore:
         self._ensure_tables()
 
     def _ensure_tables(self) -> None:
-        """Ensure database tables exist."""
+        """Ensure database tables exist and have all required columns."""
         from acto.registry.models import Base
+        from sqlalchemy import inspect, text
+        
+        # Create tables if they don't exist
         Base.metadata.create_all(self.engine)
+        
+        # Add missing columns to existing tables (simple migration)
+        inspector = inspect(self.engine)
+        if "users" in inspector.get_table_names():
+            existing_columns = {col["name"] for col in inspector.get_columns("users")}
+            new_columns = {
+                "contact_name": "VARCHAR(128)",
+                "company_name": "VARCHAR(256)",
+                "email": "VARCHAR(256)",
+                "phone": "VARCHAR(64)",
+                "website": "VARCHAR(512)",
+                "location": "VARCHAR(256)",
+                "industry": "VARCHAR(128)",
+                "updated_at": "VARCHAR(64)",
+            }
+            
+            with self.engine.connect() as conn:
+                for col_name, col_type in new_columns.items():
+                    if col_name not in existing_columns:
+                        try:
+                            conn.execute(text(f"ALTER TABLE users ADD COLUMN {col_name} {col_type}"))
+                            conn.commit()
+                        except Exception:
+                            # Column might already exist or DB doesn't support ALTER
+                            pass
 
     def get_or_create_user(self, wallet_address: str) -> dict[str, Any]:
         """Get existing user or create a new one."""
@@ -67,22 +95,26 @@ class UserStore:
         return None
 
     def _user_to_dict(self, user: User) -> dict[str, Any]:
-        """Convert User model to dictionary with all fields."""
+        """Convert User model to dictionary with all fields.
+        
+        Uses getattr with defaults to handle databases that don't have
+        the new profile columns yet (backwards compatibility).
+        """
         return {
             "user_id": user.user_id,
             "wallet_address": user.wallet_address,
             "created_at": user.created_at,
             "last_login_at": user.last_login_at,
             "is_active": user.is_active,
-            # Profile fields
-            "contact_name": user.contact_name,
-            "company_name": user.company_name,
-            "email": user.email,
-            "phone": user.phone,
-            "website": user.website,
-            "location": user.location,
-            "industry": user.industry,
-            "updated_at": user.updated_at,
+            # Profile fields (with defaults for backwards compatibility)
+            "contact_name": getattr(user, "contact_name", None),
+            "company_name": getattr(user, "company_name", None),
+            "email": getattr(user, "email", None),
+            "phone": getattr(user, "phone", None),
+            "website": getattr(user, "website", None),
+            "location": getattr(user, "location", None),
+            "industry": getattr(user, "industry", None),
+            "updated_at": getattr(user, "updated_at", None),
         }
 
     def update_profile(
