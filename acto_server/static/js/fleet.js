@@ -1369,11 +1369,10 @@ function handleDeviceDragStart(event, deviceId) {
 function handleDeviceDragEnd(event) {
     FleetState.draggedDeviceId = null;
     
-    // Remove dragging class
-    const deviceEl = event.target.closest('.fleet-device');
-    if (deviceEl) {
-        deviceEl.classList.remove('dragging');
-    }
+    // Remove dragging class from all devices
+    document.querySelectorAll('.fleet-device.dragging').forEach(el => {
+        el.classList.remove('dragging');
+    });
     
     // Remove drop target highlighting from all groups
     document.querySelectorAll('.fleet-group-card').forEach(card => {
@@ -1381,6 +1380,25 @@ function handleDeviceDragEnd(event) {
     });
     
     // Hide drag overlay
+    showDragOverlay(false);
+}
+
+/**
+ * Clean up all drag states - called after any drag operation
+ */
+function cleanupDragStates() {
+    FleetState.draggedDeviceId = null;
+    
+    // Remove all drag-related classes
+    document.querySelectorAll('.fleet-device.dragging').forEach(el => {
+        el.classList.remove('dragging');
+    });
+    
+    document.querySelectorAll('.fleet-group-card').forEach(card => {
+        card.classList.remove('drop-target', 'drag-over', 'loading');
+    });
+    
+    // Force hide overlay
     showDragOverlay(false);
 }
 
@@ -1412,20 +1430,23 @@ function handleGroupDragLeave(event) {
  */
 async function handleGroupDrop(event, groupId) {
     event.preventDefault();
+    event.stopPropagation();
     
     const deviceId = event.dataTransfer.getData('text/plain') || FleetState.draggedDeviceId;
-    if (!deviceId) return;
+    if (!deviceId) {
+        cleanupDragStates();
+        return;
+    }
     
     const device = FleetState.devices.find(d => d.id === deviceId);
-    if (!device) return;
+    if (!device) {
+        cleanupDragStates();
+        return;
+    }
     
     // Don't do anything if device is already in this group
     if (device.group_id === groupId) {
-        // Clean up visual states
-        document.querySelectorAll('.fleet-group-card').forEach(card => {
-            card.classList.remove('drop-target', 'drag-over');
-        });
-        showDragOverlay(false);
+        cleanupDragStates();
         return;
     }
     
@@ -1434,6 +1455,17 @@ async function handleGroupDrop(event, groupId) {
     if (groupCard) {
         groupCard.classList.add('loading');
     }
+    
+    // Immediately hide overlay and clean most states
+    showDragOverlay(false);
+    document.querySelectorAll('.fleet-device.dragging').forEach(el => {
+        el.classList.remove('dragging');
+    });
+    document.querySelectorAll('.fleet-group-card').forEach(card => {
+        if (card !== groupCard) {
+            card.classList.remove('drop-target', 'drag-over');
+        }
+    });
     
     try {
         // If removing from current group
@@ -1494,11 +1526,7 @@ async function handleGroupDrop(event, groupId) {
         console.error('Failed to assign device to group:', error);
         showAlert('Failed to assign device to group', 'error');
     } finally {
-        // Clean up visual states
-        document.querySelectorAll('.fleet-group-card').forEach(card => {
-            card.classList.remove('drop-target', 'drag-over', 'loading');
-        });
-        showDragOverlay(false);
+        cleanupDragStates();
     }
 }
 
@@ -1515,7 +1543,7 @@ function showDragOverlay(show) {
             overlay.className = 'drag-overlay';
             overlay.innerHTML = `
                 <div class="drag-overlay-content">
-                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                         <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
                         <circle cx="9" cy="7" r="4"></circle>
                         <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
@@ -1527,8 +1555,18 @@ function showDragOverlay(show) {
             document.body.appendChild(overlay);
         }
         overlay.classList.add('visible');
-    } else if (overlay) {
-        overlay.classList.remove('visible');
+    } else {
+        // Remove overlay completely to ensure it's gone
+        if (overlay) {
+            overlay.classList.remove('visible');
+            // Remove from DOM after transition
+            setTimeout(() => {
+                const el = document.getElementById('dragOverlay');
+                if (el && !el.classList.contains('visible')) {
+                    el.remove();
+                }
+            }, 200);
+        }
     }
 }
 
@@ -1538,6 +1576,7 @@ window.handleDeviceDragEnd = handleDeviceDragEnd;
 window.handleGroupDragOver = handleGroupDragOver;
 window.handleGroupDragLeave = handleGroupDragLeave;
 window.handleGroupDrop = handleGroupDrop;
+window.cleanupDragStates = cleanupDragStates;
 
 window.loadFleet = loadFleet;
 window.openDeviceModal = openDeviceModal;
