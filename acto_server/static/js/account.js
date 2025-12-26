@@ -239,12 +239,12 @@ function resetProfileForm() {
  * Get authentication token from storage
  */
 function getToken() {
-    // Try to get token from window.authToken (set by wallet.js)
-    if (window.authToken) {
-        return window.authToken;
+    // Try to get token from window.accessToken (set by wallet.js)
+    if (window.accessToken) {
+        return window.accessToken;
     }
-    // Fallback to localStorage
-    return localStorage.getItem('authToken');
+    // Fallback to localStorage (wallet.js stores as 'acto_access_token')
+    return localStorage.getItem('acto_access_token');
 }
 
 /**
