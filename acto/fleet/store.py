@@ -53,6 +53,19 @@ class FleetStore:
                 except Exception as e:
                     session.rollback()
                     print(f"Migration warning: Could not add sort_order column: {e}")
+        
+        # Also add is_hidden column if it doesn't exist
+        with self.Session() as session:
+            try:
+                session.execute(text("SELECT is_hidden FROM fleet_devices LIMIT 1"))
+            except Exception:
+                session.rollback()
+                try:
+                    session.execute(text("ALTER TABLE fleet_devices ADD COLUMN is_hidden BOOLEAN DEFAULT 0"))
+                    session.commit()
+                except Exception as e:
+                    session.rollback()
+                    print(f"Migration warning: Could not add is_hidden column: {e}")
 
     # ============================================================
     # Device Operations
@@ -159,7 +172,12 @@ class FleetStore:
             return [self._device_to_dict(r) for r in records]
 
     def delete_device(self, device_id: str, user_id: str | None = None) -> dict[str, Any]:
-        """Delete a device and all its associated data."""
+        """
+        Hide a device from the fleet list (soft delete).
+        The device's proofs are preserved, but it won't appear in the fleet.
+        """
+        now = datetime.now(timezone.utc).isoformat()
+        
         with self.Session() as session:
             query = session.query(DeviceRecord).filter(DeviceRecord.device_id == device_id)
             if user_id:
@@ -167,9 +185,19 @@ class FleetStore:
             record = query.first()
             
             if not record:
-                return {"success": False, "error": "Device not found"}
+                # Device might not have a record yet - create one and mark as hidden
+                record = DeviceRecord(
+                    device_id=device_id,
+                    user_id=user_id,
+                    is_hidden=True,
+                    created_at=now,
+                    updated_at=now,
+                )
+                session.add(record)
+            else:
+                record.is_hidden = True
+                record.updated_at = now
             
-            session.delete(record)
             session.commit()
             return {"success": True, "device_id": device_id}
 
@@ -180,6 +208,11 @@ class FleetStore:
         if sort_order is None:
             sort_order = 0
         
+        # Handle is_hidden safely
+        is_hidden = getattr(record, "is_hidden", False)
+        if is_hidden is None:
+            is_hidden = False
+        
         return {
             "device_id": record.device_id,
             "user_id": record.user_id,
@@ -188,6 +221,7 @@ class FleetStore:
             "device_type": record.device_type,
             "group_id": record.group_id,
             "sort_order": sort_order,
+            "is_hidden": is_hidden,
             "created_at": record.created_at,
             "updated_at": record.updated_at,
         }
@@ -674,6 +708,10 @@ class FleetStore:
         for device_id, device_data in devices_map.items():
             stored = stored_devices.get(device_id, {})
             
+            # Skip hidden (soft-deleted) devices
+            if stored.get("is_hidden"):
+                continue
+            
             # Get default name
             default_name = device_id.replace("-", " ").replace("_", " ").title()
             custom_name = stored.get("custom_name")
@@ -777,10 +815,14 @@ class FleetStore:
             if device_id == "unknown":
                 continue
             
+            stored = stored_devices.get(device_id, {})
+            
+            # Skip hidden (soft-deleted) devices
+            if stored.get("is_hidden"):
+                continue
+            
             # Get device stats from registry (uses SQL aggregation)
             device_stats = registry.get_device_stats(device_id)
-            
-            stored = stored_devices.get(device_id, {})
             
             # Get default name
             default_name = device_id.replace("-", " ").replace("_", " ").title()
