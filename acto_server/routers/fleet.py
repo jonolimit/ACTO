@@ -303,6 +303,26 @@ def create_fleet_router(
         except Exception as e:
             raise HTTPException(status_code=500, detail=str(e)) from e
 
+    @router.delete("/devices/{device_id}", dependencies=[jwt_dep])
+    def delete_device(device_id: str, request: Request) -> dict:
+        """Delete a device and all its associated data."""
+        try:
+            user_id = get_user_id_from_request(request)
+            if not user_id:
+                raise HTTPException(status_code=401, detail="Not authenticated")
+            
+            result = fleet_store.delete_device(device_id, user_id)
+            
+            if not result.get("success"):
+                raise HTTPException(status_code=404, detail=result.get("error", "Device not found"))
+            
+            return result
+            
+        except HTTPException:
+            raise
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=str(e)) from e
+
     # ============================================================
     # Device Update Endpoint
     # ============================================================

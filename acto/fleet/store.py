@@ -231,6 +231,37 @@ class FleetStore:
         
         return {"success": True, "updated": updated}
 
+    def delete_device(
+        self,
+        device_id: str,
+        user_id: str | None = None,
+    ) -> dict[str, Any]:
+        """
+        Delete a device and all its associated data.
+        
+        Args:
+            device_id: The device ID to delete
+            user_id: Optional user ID for ownership verification
+            
+        Returns:
+            Success status
+        """
+        with self.Session() as session:
+            query = session.query(DeviceRecord).filter(DeviceRecord.device_id == device_id)
+            if user_id:
+                query = query.filter(DeviceRecord.user_id == user_id)
+            
+            device = query.first()
+            
+            if not device:
+                return {"success": False, "error": "Device not found"}
+            
+            # Delete the device (health records will cascade delete)
+            session.delete(device)
+            session.commit()
+            
+            return {"success": True, "device_id": device_id}
+
     # ============================================================
     # Group Operations
     # ============================================================

@@ -364,6 +364,14 @@ function renderDeviceCard(device) {
                         <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
                     </svg>
                 </button>
+                <button class="fleet-action-btn fleet-action-btn-danger" onclick="event.stopPropagation(); openDeleteDeviceModal('${device.id}', '${escapeHtml(displayName)}')" title="Delete Device">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="3 6 5 6 21 6"></polyline>
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                        <line x1="10" y1="11" x2="10" y2="17"></line>
+                        <line x1="14" y1="11" x2="14" y2="17"></line>
+                    </svg>
+                </button>
             </div>
         </div>
     `;
@@ -803,6 +811,116 @@ async function submitDeviceRename() {
     } finally {
         submitBtn.disabled = false;
         submitBtn.innerHTML = 'Save Changes';
+    }
+}
+
+// ============================================================
+// Device Delete Modal
+// ============================================================
+
+function openDeleteDeviceModal(deviceId, deviceName) {
+    let modal = document.getElementById('deviceDeleteModal');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'deviceDeleteModal';
+        modal.className = 'delete-modal';
+        document.body.appendChild(modal);
+    }
+    
+    modal.innerHTML = `
+        <div class="delete-modal-overlay" onclick="closeDeleteDeviceModal()"></div>
+        <div class="delete-modal-content">
+            <div class="delete-modal-header">
+                <div class="delete-modal-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                        <line x1="12" y1="9" x2="12" y2="13"></line>
+                        <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                    </svg>
+                </div>
+                <h3>Delete Device</h3>
+                <button class="modal-close" onclick="closeDeleteDeviceModal()">&times;</button>
+            </div>
+            <div class="delete-modal-body">
+                <p>Are you sure you want to delete <strong>${escapeHtml(deviceName)}</strong>?</p>
+                <p class="delete-warning">This action cannot be undone. All associated data including health metrics will be permanently deleted.</p>
+                <input type="hidden" id="deleteDeviceId" value="${deviceId}">
+            </div>
+            <div class="delete-modal-footer">
+                <button class="btn btn-secondary" onclick="closeDeleteDeviceModal()">Cancel</button>
+                <button class="btn btn-danger" id="deleteDeviceSubmit" onclick="submitDeleteDevice()">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="3 6 5 6 21 6"></polyline>
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                    </svg>
+                    Delete Device
+                </button>
+            </div>
+        </div>
+    `;
+    
+    modal.classList.add('show');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeDeleteDeviceModal() {
+    const modal = document.getElementById('deviceDeleteModal');
+    if (modal) {
+        modal.classList.remove('show');
+        document.body.style.overflow = '';
+    }
+}
+
+async function submitDeleteDevice() {
+    const deviceId = document.getElementById('deleteDeviceId').value;
+    const submitBtn = document.getElementById('deleteDeviceSubmit');
+    
+    if (!deviceId) return;
+    
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = 'Deleting... <span class="loading"></span>';
+    
+    try {
+        const response = await fetch(`${API_BASE}/v1/fleet/devices/${deviceId}`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${window.accessToken}`
+            }
+        });
+        
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            closeDeleteDeviceModal();
+            showAlert('Device deleted successfully', 'success');
+            
+            // Remove device from local state
+            FleetState.devices = FleetState.devices.filter(d => d.id !== deviceId);
+            FleetState.summary.total_devices = Math.max(0, (FleetState.summary.total_devices || 1) - 1);
+            
+            // Close device modal if open
+            if (FleetState.currentDeviceModal === deviceId) {
+                closeDeviceModal();
+            }
+            
+            updateFleetStats();
+            renderGroupsList();
+            renderFleetList();
+        }
+    } catch (error) {
+        console.error('Failed to delete device:', error);
+        showAlert('Failed to delete device', 'error');
+    } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = `
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="3 6 5 6 21 6"></polyline>
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+            </svg>
+            Delete Device
+        `;
     }
 }
 
@@ -1771,6 +1889,9 @@ window.closeDeviceModal = closeDeviceModal;
 window.openRenameDeviceModal = openRenameDeviceModal;
 window.closeRenameDeviceModal = closeRenameDeviceModal;
 window.submitDeviceRename = submitDeviceRename;
+window.openDeleteDeviceModal = openDeleteDeviceModal;
+window.closeDeleteDeviceModal = closeDeleteDeviceModal;
+window.submitDeleteDevice = submitDeleteDevice;
 window.openCreateGroupModal = openCreateGroupModal;
 window.closeGroupModal = closeGroupModal;
 window.submitCreateGroup = submitCreateGroup;
