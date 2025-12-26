@@ -28,6 +28,7 @@ from .models import (
     AssignDevicesResponse,
     BatchVerifyResponse,
     CreateGroupResponse,
+    DeleteDeviceResponse,
     DeleteGroupResponse,
     DeviceDetailResponse,
     DeviceHealth,
@@ -39,6 +40,7 @@ from .models import (
     ProofSearchResponse,
     ProofSubmitResponse,
     RenameDeviceResponse,
+    ReorderDevicesResponse,
     ScoreResponse,
     VerifyResponse,
     WalletStatsResponse,
@@ -77,6 +79,32 @@ class AsyncFleetClient:
             json={"name": name},
         )
         return RenameDeviceResponse.model_validate(data)
+
+    async def delete_device(self, device_id: str) -> DeleteDeviceResponse:
+        """
+        Delete (hide) a device from the fleet.
+        
+        This is a soft delete - the device's proofs are preserved,
+        but it won't appear in the fleet list.
+        """
+        data = await self._parent._request("DELETE", f"/v1/fleet/devices/{device_id}")
+        return DeleteDeviceResponse.model_validate(data)
+
+    async def reorder_devices(self, device_orders: list[dict[str, Any]]) -> ReorderDevicesResponse:
+        """
+        Update the sort order of multiple devices.
+        
+        Args:
+            device_orders: List of dicts with device_id and sort_order
+                Example: [{"device_id": "robot-001", "sort_order": 0},
+                          {"device_id": "robot-002", "sort_order": 1}]
+        """
+        data = await self._parent._request(
+            "PATCH",
+            "/v1/fleet/devices/order",
+            json={"device_orders": device_orders},
+        )
+        return ReorderDevicesResponse.model_validate(data)
 
     async def report_health(
         self,

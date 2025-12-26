@@ -28,7 +28,7 @@ Generate deterministic, signed execution proofs from robot telemetry and logs. V
 - **API Verification** - Verify proofs via the hosted ACTO API
 - **REST API** - FastAPI verification service at api.actobotics.net
 - **Multi-Wallet Dashboard** - Phantom, Solflare, Backpack, Glow, Coinbase
-- **Fleet Management** - Monitor and organize your robot fleet
+- **Fleet Management** - Monitor, organize, and manage your robot fleet with drag-and-drop
 - **Account Settings** - Manage profile and contact information
 - **Token Gating** - SPL token balance checks (off-chain)
 - **Async Support** - Full async/await API

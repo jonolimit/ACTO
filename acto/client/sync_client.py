@@ -25,10 +25,14 @@ from .exceptions import (
 )
 from .models import (
     AccessCheckResponse,
+    AssignDevicesResponse,
     BatchVerifyResponse,
-    FleetOverviewResponse,
+    CreateGroupResponse,
+    DeleteDeviceResponse,
+    DeleteGroupResponse,
     DeviceDetailResponse,
     DeviceHealth,
+    FleetOverviewResponse,
     GroupListResponse,
     HealthReportResponse,
     HealthResponse,
@@ -36,9 +40,7 @@ from .models import (
     ProofSearchResponse,
     ProofSubmitResponse,
     RenameDeviceResponse,
-    CreateGroupResponse,
-    AssignDevicesResponse,
-    DeleteGroupResponse,
+    ReorderDevicesResponse,
     ScoreResponse,
     VerifyResponse,
     WalletStatsResponse,
@@ -103,6 +105,52 @@ class FleetClient:
             json={"name": name},
         )
         return RenameDeviceResponse.model_validate(data)
+
+    def delete_device(self, device_id: str) -> DeleteDeviceResponse:
+        """
+        Delete (hide) a device from the fleet.
+        
+        This is a soft delete - the device's proofs are preserved,
+        but it won't appear in the fleet list.
+        
+        Args:
+            device_id: The device ID to delete
+            
+        Returns:
+            DeleteDeviceResponse: Confirmation of deletion
+            
+        Example:
+            >>> result = client.fleet.delete_device("robot-001")
+            >>> print(f"Deleted: {result.device_id}")
+        """
+        data = self._parent._request("DELETE", f"/v1/fleet/devices/{device_id}")
+        return DeleteDeviceResponse.model_validate(data)
+
+    def reorder_devices(self, device_orders: list[dict[str, Any]]) -> ReorderDevicesResponse:
+        """
+        Update the sort order of multiple devices.
+        
+        Args:
+            device_orders: List of dicts with device_id and sort_order
+                Example: [{"device_id": "robot-001", "sort_order": 0},
+                          {"device_id": "robot-002", "sort_order": 1}]
+                          
+        Returns:
+            ReorderDevicesResponse: Confirmation with count of updated devices
+            
+        Example:
+            >>> result = client.fleet.reorder_devices([
+            ...     {"device_id": "robot-001", "sort_order": 0},
+            ...     {"device_id": "robot-002", "sort_order": 1},
+            ... ])
+            >>> print(f"Updated {result.updated} devices")
+        """
+        data = self._parent._request(
+            "PATCH",
+            "/v1/fleet/devices/order",
+            json={"device_orders": device_orders},
+        )
+        return ReorderDevicesResponse.model_validate(data)
 
     def report_health(
         self,

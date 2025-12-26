@@ -263,6 +263,27 @@ class DeleteGroupResponse(BaseModel):
     devices_unassigned: int = 0
 
 
+class DeleteDeviceResponse(BaseModel):
+    """Response from deleting a device."""
+
+    success: bool
+    device_id: str
+
+
+class DeviceOrderItem(BaseModel):
+    """Single device order specification."""
+
+    device_id: str
+    sort_order: int
+
+
+class ReorderDevicesResponse(BaseModel):
+    """Response from reordering devices."""
+
+    success: bool
+    updated: int = 0
+
+
 # =============================================================================
 # Health Check
 # =============================================================================

@@ -7,6 +7,8 @@ Monitor and manage your robot fleet with ACTO's fleet management features.
 - **Device Overview** - See all devices with status and activity
 - **Health Monitoring** - Track CPU, memory, battery, and custom metrics
 - **Device Groups** - Organize robots by location or function
+- **Drag-and-Drop** - Assign devices to groups and reorder with drag-and-drop
+- **Device Deletion** - Remove devices from fleet (soft delete preserves history)
 - **Activity Logs** - Complete proof history per device
 - **Custom Names** - Rename devices for easy identification
 

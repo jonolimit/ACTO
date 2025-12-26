@@ -87,6 +87,46 @@ print(f"Renamed to: {result.name}")
 
 ---
 
+### `delete_device(device_id)`
+
+Delete (hide) a device from the fleet. This is a soft delete - the device's proofs are preserved, but it won't appear in the fleet list.
+
+```python
+result = client.fleet.delete_device("robot-alpha-01")
+print(f"Deleted: {result.device_id}")
+```
+
+**Parameters:**
+- `device_id` (`str`) - The device ID to delete
+
+**Returns:** `DeleteDeviceResponse`
+
+> **Note:** Deleted devices can't be restored via the SDK. Contact support if you need to restore a device.
+
+---
+
+### `reorder_devices(device_orders)`
+
+Update the sort order of multiple devices. This allows custom ordering in the fleet list.
+
+```python
+result = client.fleet.reorder_devices([
+    {"device_id": "robot-alpha-01", "sort_order": 0},
+    {"device_id": "robot-beta-02", "sort_order": 1},
+    {"device_id": "robot-gamma-03", "sort_order": 2},
+])
+print(f"Updated {result.updated} devices")
+```
+
+**Parameters:**
+- `device_orders` (`list[dict]`) - List of dicts with `device_id` and `sort_order`
+
+**Returns:** `ReorderDevicesResponse`
+
+> **Tip:** In the dashboard, you can drag devices up/down to reorder them visually.
+
+---
+
 ### `report_health(device_id, **metrics)`
 
 Report health metrics for a device. All parameters are optional - only send metrics your device supports.

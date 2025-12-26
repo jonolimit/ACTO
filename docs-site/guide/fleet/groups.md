@@ -48,7 +48,18 @@ client.fleet.assign_devices(
 )
 ```
 
-### Dashboard
+### Dashboard (Drag-and-Drop)
+
+The easiest way to assign devices to groups:
+
+1. Open the **Fleet** tab in the dashboard
+2. **Drag** a device card from the device list
+3. **Drop** it onto a group card on the left sidebar
+4. The device is instantly assigned to that group
+
+> **Tip:** To remove a device from a group, drag it onto "All Devices"
+
+### Dashboard (Modal)
 
 1. Click on a device
 2. Select **Assign to Group**

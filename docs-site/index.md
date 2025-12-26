@@ -30,7 +30,7 @@ features:
     details: Simple SDK for proof creation and API integration. Available on PyPI as `actobotics`.
   - icon: 🤖
     title: Fleet Management
-    details: Monitor your robot fleet with health metrics, device groups, and activity tracking.
+    details: Monitor and organize your robot fleet with drag-and-drop, health metrics, device groups, and activity tracking.
   - icon: 🔑
     title: Token Gating
     details: SPL token-based access control. Verify wallet balances via Helius RPC.

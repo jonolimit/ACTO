@@ -5,6 +5,50 @@ All notable changes to ACTO will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.9.12] - 2025-12-26
+
+### 🤖 Fleet Management Enhancements
+
+This release adds drag-and-drop functionality to fleet management, device deletion, and device reordering.
+
+#### Added
+
+- **Drag-and-Drop Group Assignment**
+  - Drag devices directly onto groups to assign them
+  - Drop on "All Devices" to unassign from groups
+  - Visual drop indicators and overlay hints
+
+- **Drag-and-Drop Device Reordering**
+  - Drag devices up/down to reorder within the list
+  - Drop indicator shows insertion point (before/after)
+  - Order is persisted in database across sessions
+
+- **Device Deletion (Soft Delete)**
+  - Delete button on device cards (trash icon)
+  - Confirmation dialog with warning message
+  - Soft delete preserves proof history
+  - Hidden devices don't appear in fleet list
+
+- **New API Endpoints**
+  - `DELETE /v1/fleet/devices/{device_id}` - Hide/delete a device
+  - `PATCH /v1/fleet/devices/order` - Update device sort order
+
+- **Database Schema**
+  - Added `sort_order` field for custom device ordering
+  - Added `is_hidden` field for soft-delete functionality
+
+- **Python SDK**
+  - Added `delete_device(device_id)` method to FleetClient
+  - Added `reorder_devices(device_orders)` method to FleetClient
+  - New response models: `DeleteDeviceResponse`, `ReorderDevicesResponse`
+
+#### Changed
+
+- Device group count now calculated from actual device assignments
+- Improved migration system for new columns
+
+---
+
 ## [0.9.11] - 2025-12-26
 
 ### 👤 Account Settings & User Profile

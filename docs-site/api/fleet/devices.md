@@ -63,6 +63,57 @@ Get detailed information about a specific device.
 }
 ```
 
+## Delete Device
+
+<div class="endpoint-card">
+  <span class="method-badge delete">DELETE</span>
+  <span class="path">/v1/fleet/devices/{device_id}</span>
+</div>
+
+Soft-delete a device from the fleet. The device's proofs are preserved, but it won't appear in the fleet list.
+
+### Response
+
+```json
+{
+  "success": true,
+  "device_id": "robot-alpha-01"
+}
+```
+
+> **Note:** This is a soft delete. Historical proofs are preserved.
+
+## Reorder Devices
+
+<div class="endpoint-card">
+  <span class="method-badge patch">PATCH</span>
+  <span class="path">/v1/fleet/devices/order</span>
+</div>
+
+Update the sort order of multiple devices for custom ordering in the fleet list.
+
+### Request
+
+```json
+{
+  "device_orders": [
+    { "device_id": "robot-alpha-01", "sort_order": 0 },
+    { "device_id": "robot-beta-02", "sort_order": 1 }
+  ]
+}
+```
+
+### Response
+
+```json
+{
+  "success": true,
+  "updated": 2
+}
+```
+
+> **Tip:** Use drag-and-drop in the dashboard for easy reordering.
+
 ## Examples
 
 ### Python SDK

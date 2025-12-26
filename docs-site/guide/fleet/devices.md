@@ -129,12 +129,50 @@ The web dashboard provides:
 - Status at a glance
 - Quick actions
 
+## Deleting Devices
+
+Remove devices from the fleet (soft delete - proofs are preserved):
+
+```python
+# Via API
+response = requests.delete(
+    f"{API_URL}/v1/fleet/devices/robot-001",
+    headers={"Authorization": f"Bearer {jwt_token}"}
+)
+```
+
+In the dashboard, click the trash icon on any device card and confirm deletion.
+
+> **Note:** Deleted devices won't appear in the fleet list, but their historical proofs remain in the database.
+
+## Reordering Devices
+
+Customize the device order in your fleet list:
+
+```python
+# Via API
+response = requests.patch(
+    f"{API_URL}/v1/fleet/devices/order",
+    headers={"Authorization": f"Bearer {jwt_token}"},
+    json={
+        "device_orders": [
+            {"device_id": "robot-001", "sort_order": 0},
+            {"device_id": "robot-002", "sort_order": 1}
+        ]
+    }
+)
+```
+
+In the dashboard, drag devices up/down to reorder them. The order is saved automatically.
+
 ## API Endpoints
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | GET | `/v1/fleet/devices/{id}` | Get device details |
 | PATCH | `/v1/fleet/devices/{id}/name` | Rename device |
+| DELETE | `/v1/fleet/devices/{id}` | Delete device (soft delete) |
+| PATCH | `/v1/fleet/devices/order` | Reorder devices |
 | POST | `/v1/fleet/devices/{id}/health` | Report health |
 | GET | `/v1/fleet/devices/{id}/health` | Get health |
 

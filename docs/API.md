@@ -56,6 +56,8 @@ curl -X POST https://api.actobotics.net/v1/proofs \
 | GET | `/v1/fleet` | Fleet overview | 🔐 JWT |
 | GET | `/v1/fleet/devices/{id}` | Device details | 🔐 JWT |
 | PATCH | `/v1/fleet/devices/{id}/name` | Rename device | 🔐 JWT |
+| DELETE | `/v1/fleet/devices/{id}` | Delete device | 🔐 JWT |
+| PATCH | `/v1/fleet/devices/order` | Reorder devices | 🔐 JWT |
 | POST | `/v1/fleet/devices/{id}/health` | Report health | 🔐 JWT |
 | GET | `/v1/fleet/groups` | List groups | 🔐 JWT |
 | POST | `/v1/fleet/groups` | Create group | 🔐 JWT |
@@ -468,6 +470,53 @@ Set a custom name for a device.
   "name": "Warehouse Bot Alpha"
 }
 ```
+
+### Delete Device
+
+```http
+DELETE /v1/fleet/devices/{device_id}
+```
+
+Soft-delete a device from the fleet. The device's proofs are preserved, but it won't appear in the fleet list.
+
+**Response:**
+```json
+{
+  "success": true,
+  "device_id": "robot-alpha-01"
+}
+```
+
+> **Note:** This is a soft delete. The device's historical proofs remain in the database. If you want to restore a deleted device, contact support.
+
+### Reorder Devices
+
+```http
+PATCH /v1/fleet/devices/order
+```
+
+Update the sort order of multiple devices. This allows manual ordering of devices in the fleet list.
+
+**Request:**
+```json
+{
+  "device_orders": [
+    { "device_id": "robot-alpha-01", "sort_order": 0 },
+    { "device_id": "robot-beta-02", "sort_order": 1 },
+    { "device_id": "robot-gamma-03", "sort_order": 2 }
+  ]
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "updated": 3
+}
+```
+
+> **Tip:** In the dashboard, you can drag devices up/down to reorder them. The order is automatically saved.
 
 ### Report Device Health
 
