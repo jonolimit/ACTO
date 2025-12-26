@@ -158,19 +158,20 @@ class FleetStore:
             records = query.order_by(DeviceRecord.updated_at.desc()).all()
             return [self._device_to_dict(r) for r in records]
 
-    def delete_device(self, device_id: str, user_id: str | None = None) -> bool:
-        """Delete a device record."""
+    def delete_device(self, device_id: str, user_id: str | None = None) -> dict[str, Any]:
+        """Delete a device and all its associated data."""
         with self.Session() as session:
             query = session.query(DeviceRecord).filter(DeviceRecord.device_id == device_id)
             if user_id:
                 query = query.filter(DeviceRecord.user_id == user_id)
             record = query.first()
             
-            if record:
-                session.delete(record)
-                session.commit()
-                return True
-        return False
+            if not record:
+                return {"success": False, "error": "Device not found"}
+            
+            session.delete(record)
+            session.commit()
+            return {"success": True, "device_id": device_id}
 
     def _device_to_dict(self, record: DeviceRecord) -> dict[str, Any]:
         """Convert device record to dictionary."""
@@ -230,37 +231,6 @@ class FleetStore:
             session.commit()
         
         return {"success": True, "updated": updated}
-
-    def delete_device(
-        self,
-        device_id: str,
-        user_id: str | None = None,
-    ) -> dict[str, Any]:
-        """
-        Delete a device and all its associated data.
-        
-        Args:
-            device_id: The device ID to delete
-            user_id: Optional user ID for ownership verification
-            
-        Returns:
-            Success status
-        """
-        with self.Session() as session:
-            query = session.query(DeviceRecord).filter(DeviceRecord.device_id == device_id)
-            if user_id:
-                query = query.filter(DeviceRecord.user_id == user_id)
-            
-            device = query.first()
-            
-            if not device:
-                return {"success": False, "error": "Device not found"}
-            
-            # Delete the device (health records will cascade delete)
-            session.delete(device)
-            session.commit()
-            
-            return {"success": True, "device_id": device_id}
 
     # ============================================================
     # Group Operations
