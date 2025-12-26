@@ -278,7 +278,7 @@ function displayActivityChart(timeline) {
             ${barsHtml}
         </div>
         <div class="activity-summary">
-            Total: ${timeline.reduce((sum, t) => sum + t.proof_count, 0)} proofs in the last 30 days
+            Total: ${timeline.reduce((sum, t) => sum + t.proof_count, 0)} proofs in the last ${currentPeriod} days
         </div>
     `;
 }

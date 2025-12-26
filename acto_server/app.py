@@ -747,9 +747,12 @@ def create_app() -> FastAPI:
     # Wallet Statistics Endpoint (JWT authenticated for dashboard)
     # ============================================================
     @app.get("/v1/stats/wallet/{wallet_address}", response_model=WalletStatsResponse, dependencies=[Depends(require_jwt(jwt_manager))])
-    def get_wallet_stats(wallet_address: str, request: Request) -> WalletStatsResponse:
+    def get_wallet_stats(wallet_address: str, request: Request, days: int = 30) -> WalletStatsResponse:
         """
         Get comprehensive statistics for a wallet address.
+        
+        Query Parameters:
+        - days: Number of days for activity timeline (default: 30, max: 365)
         
         Returns:
         - Proof submission counts
@@ -760,11 +763,14 @@ def create_app() -> FastAPI:
         Note: Uses optimized SQL aggregations instead of loading all proofs.
         """
         try:
+            # Validate days parameter (between 1 and 365)
+            days = max(1, min(365, days))
+            
             # Use optimized SQL aggregations instead of loading all proofs
             total_proofs = registry.count()
             proofs_by_robot = registry.count_by_robot()
             proofs_by_task = registry.count_by_task()
-            activity_timeline = registry.count_by_date(days=30)
+            activity_timeline = registry.count_by_date(days=days)
             first_activity, last_activity = registry.get_activity_range()
             
             # Get user stats from API key store
