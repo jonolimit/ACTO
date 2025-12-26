@@ -5,6 +5,31 @@ All notable changes to ACTO will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.9.13] - 2025-12-26
+
+### 🔐 SDK Fleet Authentication Fix
+
+This release fixes Fleet API access from the Python SDK. Previously, fleet endpoints only accepted JWT tokens (from dashboard login), now they also accept API keys.
+
+#### Fixed
+
+- **Fleet Endpoints Accept API Keys**
+  - Fleet endpoints (`/v1/fleet/*`) now work with SDK API keys
+  - Previously only JWT tokens from dashboard were accepted
+  - Enables `client.fleet.get_overview()` and other fleet methods from SDK
+
+- **Pipeline Import Error**
+  - Fixed `ImportError: cannot import name 'verify_proof'` in `acto/pipeline/steps.py`
+  - `verify_proof` was removed from public API but still imported by pipeline module
+  - Now uses internal verification function for pipeline operations
+
+#### Changed
+
+- **ApiKeyStore.require()** now returns key data (including `user_id`) instead of `None`
+- **New auth dependency** `require_jwt_or_api_key()` accepts either JWT or API key authentication
+
+---
+
 ## [0.9.12] - 2025-12-26
 
 ### 🤖 Fleet Management Enhancements
