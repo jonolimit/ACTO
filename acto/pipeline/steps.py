@@ -62,10 +62,13 @@ class ProofCreateStep:
 @dataclass
 class ProofVerifyStep:
     """
-    Verify a proof envelope locally.
+    Verify a proof envelope (server-side only).
     
-    Note: This uses internal verification for pipeline operations.
-    For production verification, use ACTOClient.verify() instead.
+    WARNING: This step is for internal server/pipeline use only.
+    SDK users MUST use ACTOClient.verify() to verify proofs via the API.
+    
+    The proof is created locally, uploaded to the API, and verified there.
+    Local verification is not available in the public SDK.
     """
     name: str = "proof.verify"
 

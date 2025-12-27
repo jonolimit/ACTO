@@ -28,7 +28,7 @@ jwt_secret_key = "your-secret-key-here"
 jwt_algorithm = "HS256"
 jwt_access_token_expire_minutes = 30
 
-# Token gating (optional)
+# Token gating (mandatory when enabled - enforced server-side)
 token_gating_enabled = true
 token_gating_mint = "9wpLm21ab8ZMVJWH3pHeqgqNJqWos73G8qDRfaEwtray"
 token_gating_minimum = 50000.0

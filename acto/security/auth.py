@@ -198,8 +198,13 @@ def require_jwt_or_api_key(jwt_manager: JWTManager, store: ApiKeyStore, settings
             request.state.user_scopes = []
             request.state.auth_method = "api_key"
             
-            # Check token gating if enabled and wallet address provided
-            if settings.token_gating_enabled and x_wallet_address:
+            # Check token gating if enabled (mandatory when enabled)
+            if settings.token_gating_enabled:
+                if not x_wallet_address:
+                    raise HTTPException(
+                        status_code=400,
+                        detail="X-Wallet-Address header is required when token gating is enabled.",
+                    )
                 try:
                     gate = SolanaTokenGate(rpc_url=settings.get_solana_rpc_url())
                     decision = gate.decide(
@@ -210,12 +215,17 @@ def require_jwt_or_api_key(jwt_manager: JWTManager, store: ApiKeyStore, settings
                     if not decision.allowed:
                         raise HTTPException(
                             status_code=403,
-                            detail=f"Insufficient token balance. Required: {settings.token_gating_minimum}",
+                            detail=f"Insufficient token balance. Required: {settings.token_gating_minimum}, "
+                            f"Your balance: {decision.balance or 0.0}",
                         )
                 except HTTPException:
                     raise
-                except Exception:
-                    pass  # Token gating check failed, but API key is valid
+                except Exception as e:
+                    # Token gating check failed - deny access (security first)
+                    raise HTTPException(
+                        status_code=403,
+                        detail=f"Token balance verification failed: {str(e)}",
+                    ) from e
             
             return {"user_id": user_id, "auth_method": "api_key"}
         except AccessError as e:
