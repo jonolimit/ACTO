@@ -2,6 +2,30 @@
 
 Follow these practices to secure your ACTO implementation.
 
+## User Data Isolation (v1.0.0)
+
+ACTO automatically isolates user data by wallet address. Each user can only access their own proofs, devices, and groups.
+
+### How It Works
+
+- All data is tagged with `owner_wallet` (your Solana wallet address)
+- Database queries automatically filter by your wallet
+- No configuration required - works out of the box
+
+### Verify Your Isolation
+
+```python
+# Your proofs are automatically filtered by your wallet
+proofs = client.list_proofs()  # Only YOUR proofs
+
+# Fleet data is also isolated
+fleet = client.fleet.get_overview()  # Only YOUR devices
+```
+
+::: tip Security Guarantee
+User isolation is enforced at the database query level. There is no way to access data belonging to other wallets.
+:::
+
 ## API Key Security
 
 ### Do's ✅
