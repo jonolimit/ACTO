@@ -49,10 +49,7 @@ That's it! The SDK connects to the hosted API at `api.actobotics.net`.
 ### Optional Dependencies
 
 ```bash
-# With Solana integration
-pip install actobotics[solana]
-
-# With all optional features (Solana, Redis, ROS, etc.)
+# With all optional features (Redis caching, ROS, Parquet, etc.)
 pip install actobotics[full]
 ```
 

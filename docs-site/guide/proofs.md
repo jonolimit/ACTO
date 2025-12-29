@@ -32,8 +32,7 @@ A proof proves:
     "meta": {}
   },
   "signer_public_key_b64": "base64...",
-  "signature_b64": "base64...",
-  "anchor_ref": null
+  "signature_b64": "base64..."
 }
 ```
 
@@ -138,9 +137,6 @@ if result.valid:
       │
       ▼
 4. SEARCHABLE  - Can be queried and retrieved
-      │
-      ▼
-5. [OPTIONAL]  - Anchored to Solana for immutability
 ```
 
 ## Best Practices

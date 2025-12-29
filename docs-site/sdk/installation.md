@@ -21,14 +21,6 @@ This installs the core SDK with:
 
 ## Optional Dependencies
 
-### Solana Integration
-
-For Solana-specific features (anchoring, token checks):
-
-```bash
-pip install actobotics[solana]
-```
-
 ### Full Installation
 
 Install all optional dependencies:
@@ -38,7 +30,6 @@ pip install actobotics[full]
 ```
 
 This includes:
-- Solana SDK
 - Redis caching
 - ROS integration
 - Additional telemetry parsers

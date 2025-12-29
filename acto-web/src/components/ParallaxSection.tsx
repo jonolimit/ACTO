@@ -34,9 +34,15 @@ export function ParallaxSection({ children, speed = 0.5, className = '' }: Paral
 
   return (
     <div ref={ref} className={`${className} overflow-hidden`}>
+      {/* Extra height (130%) to prevent gaps during parallax scrolling */}
       <div 
-        className="w-full h-full"
-        style={{ transform: `translateY(${offset}px)`, willChange: 'transform' }}
+        className="w-full"
+        style={{ 
+          transform: `translateY(${offset}px)`, 
+          willChange: 'transform',
+          height: '130%',
+          minHeight: '130%',
+        }}
       >
         {children}
       </div>

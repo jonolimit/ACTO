@@ -19,10 +19,7 @@ pip install actobotics
 ### Optional Dependencies
 
 ```bash
-# With Solana integration
-pip install actobotics[solana]
-
-# With all features
+# With all optional features (Redis, ROS, Parquet, etc.)
 pip install actobotics[full]
 ```
 

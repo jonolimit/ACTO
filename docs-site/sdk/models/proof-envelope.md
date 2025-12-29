@@ -15,7 +15,6 @@ class ProofEnvelope:
     payload: ProofPayload
     signer_public_key_b64: str
     signature_b64: str
-    anchor_ref: str | None
 ```
 
 ### ProofPayload

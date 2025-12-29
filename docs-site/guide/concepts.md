@@ -24,8 +24,7 @@ A **Proof Envelope** is the core data structure in ACTO. It contains everything 
     "meta": {}
   },
   "signer_public_key_b64": "...",
-  "signature_b64": "...",
-  "anchor_ref": null
+  "signature_b64": "..."
 }
 ```
 
@@ -40,7 +39,6 @@ A **Proof Envelope** is the core data structure in ACTO. It contains everything 
 | `payload_hash` | BLAKE3 hash of the entire payload |
 | `signature_b64` | Ed25519 signature over payload_hash |
 | `signer_public_key_b64` | Public key of the signer |
-| `anchor_ref` | Optional Solana transaction reference |
 
 ## Telemetry Bundle
 
@@ -194,25 +192,3 @@ chain.add(proof_3)
 # Verify the entire chain
 is_valid = chain.verify(client)
 ```
-
-## Anchoring (Optional)
-
-Proofs can be anchored to Solana for additional immutability:
-
-```python
-from acto.anchor import anchor_proof
-
-# Anchor to Solana (requires solana extra)
-tx_signature = anchor_proof(envelope, wallet_keypair)
-
-# The anchor_ref field is updated
-print(envelope.anchor_ref)  # Solana transaction signature
-```
-
-::: tip When to Anchor
-Anchoring is optional and costs a small transaction fee. Use it for:
-- High-value operations
-- Regulatory compliance
-- Maximum immutability
-:::
-

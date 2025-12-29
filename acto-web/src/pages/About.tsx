@@ -164,80 +164,104 @@ export function About() {
       </section>
 
       {/* The Solution */}
-      <section id="solution-section" className="py-16 md:py-24 relative overflow-hidden text-white">
+      <section id="solution-section" className="relative overflow-hidden text-white">
         {/* Background Image with Parallax and Loading Skeleton */}
         <ParallaxSection speed={0.3} className="absolute inset-0">
           <ImageWithSkeleton 
             src="/code.png" 
-            className="absolute inset-0"
-            skeletonClassName="absolute inset-0"
+            className="absolute inset-0 h-full w-full"
+            skeletonClassName="absolute inset-0 h-full w-full"
           />
         </ParallaxSection>
         {/* Dark Overlay */}
         <div className="absolute inset-0 bg-gradient-to-b from-black/85 via-black/80 to-black/85" />
         
-        <div className="max-w-6xl mx-auto px-4 md:px-6 relative z-10">
-          <div className="text-center mb-12 md:mb-16">
-            <ScrollAnimation animation="blur-in" delay={0}>
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 text-gray-300 text-sm font-medium mb-6">
-                <CheckCircle2 size={14} />
-                The Solution
-              </div>
-            </ScrollAnimation>
-            <ScrollAnimation animation="blur-in" delay={60}>
-              <h2 className="text-3xl md:text-4xl font-medium mb-6 tracking-tight">
-                Cryptographic proofs.<br />Not words.
-              </h2>
-              <p className="text-gray-400 max-w-2xl mx-auto leading-relaxed">
-                ACTO generates a cryptographic proof for every action of an autonomous system. 
-                This proof is mathematically verifiable – by anyone, at any time.
-              </p>
-            </ScrollAnimation>
-          </div>
+        <div className="max-w-6xl mx-auto px-4 md:px-6 py-20 md:py-32 relative z-10">
+          {/* Two Column Layout */}
+          <div className="grid md:grid-cols-2 gap-12 md:gap-20 items-center">
+            
+            {/* Left: Text Content */}
+            <div>
+              <ScrollAnimation animation="blur-in" delay={0}>
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 text-gray-300 text-sm font-medium mb-8">
+                  <CheckCircle2 size={14} />
+                  The Solution
+                </div>
+              </ScrollAnimation>
+              
+              <ScrollAnimation animation="blur-in" delay={60}>
+                <h2 className="text-3xl md:text-4xl lg:text-5xl font-medium mb-6 tracking-tight leading-[1.1]">
+                  Cryptographic proofs.<br />
+                  <span className="text-gray-500">Not words.</span>
+                </h2>
+              </ScrollAnimation>
+              
+              <ScrollAnimation animation="blur-in" delay={120}>
+                <p className="text-gray-400 leading-relaxed mb-10 max-w-md">
+                  ACTO generates a cryptographic proof for every action of an autonomous system. 
+                  Mathematically verifiable – by anyone, at any time.
+                </p>
+              </ScrollAnimation>
 
-          <div className="grid md:grid-cols-3 gap-6 md:gap-8">
-            <ScrollAnimation animation="blur-in" delay={120}>
-              <div className="group relative bg-black/50 backdrop-blur-md border border-white/10 rounded-2xl p-8 shadow-2xl hover:border-white/20 transition-all duration-300 overflow-hidden">
-                <div className="relative z-10">
-                  <div className="w-14 h-14 bg-gradient-to-br from-white/20 to-white/5 rounded-xl flex items-center justify-center mb-6 transition-transform duration-300">
-                    <Lock size={26} className="text-white" strokeWidth={1.5} />
+              {/* Features as simple list */}
+              <div className="space-y-6">
+                <ScrollAnimation animation="blur-in" delay={180}>
+                  <div className="flex items-start gap-4">
+                    <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <Lock size={14} className="text-white" />
+                    </div>
+                    <div>
+                      <p className="font-medium text-white">Ed25519 Signatures</p>
+                      <p className="text-sm text-gray-500">Forgery is mathematically impossible.</p>
+                    </div>
                   </div>
-                  <h3 className="text-xl font-medium mb-3 text-white">Ed25519 Signatures</h3>
-                  <p className="text-gray-400 leading-relaxed">
-                    Every proof is signed with the robot's private key. 
-                    Forgery? Mathematically impossible.
-                  </p>
-                </div>
+                </ScrollAnimation>
+                
+                <ScrollAnimation animation="blur-in" delay={240}>
+                  <div className="flex items-start gap-4">
+                    <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <Eye size={14} className="text-white" />
+                    </div>
+                    <div>
+                      <p className="font-medium text-white">Independent Verification</p>
+                      <p className="text-sm text-gray-500">Anyone can verify. Trustless by design.</p>
+                    </div>
+                  </div>
+                </ScrollAnimation>
+                
+                <ScrollAnimation animation="blur-in" delay={300}>
+                  <div className="flex items-start gap-4">
+                    <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <Zap size={14} className="text-white" />
+                    </div>
+                    <div>
+                      <p className="font-medium text-white">Real-time Capable</p>
+                      <p className="text-sm text-gray-500">Verification under 50ms.</p>
+                    </div>
+                  </div>
+                </ScrollAnimation>
               </div>
-            </ScrollAnimation>
+            </div>
+
+            {/* Right: Video as visual element */}
             <ScrollAnimation animation="blur-in" delay={200}>
-              <div className="group relative bg-black/50 backdrop-blur-md border border-white/10 rounded-2xl p-8 shadow-2xl hover:border-white/20 transition-all duration-300 overflow-hidden">
-                <div className="relative z-10">
-                  <div className="w-14 h-14 bg-gradient-to-br from-white/20 to-white/5 rounded-xl flex items-center justify-center mb-6 transition-transform duration-300">
-                    <Eye size={26} className="text-white" strokeWidth={1.5} />
-                  </div>
-                  <h3 className="text-xl font-medium mb-3 text-white">Independent Verification</h3>
-                  <p className="text-gray-400 leading-relaxed">
-                    Anyone can verify a proof – without trusting the operator or us. 
-                    Trustless by design.
-                  </p>
-                </div>
+              <div className="relative">
+                <video
+                  autoPlay
+                  loop
+                  muted
+                  playsInline
+                  className="w-full opacity-70"
+                  style={{
+                    maskImage: 'linear-gradient(to right, transparent 0%, black 15%, black 85%, transparent 100%)',
+                    WebkitMaskImage: 'linear-gradient(to right, transparent 0%, black 15%, black 85%, transparent 100%)',
+                  }}
+                >
+                  <source src="/vid/chain.webm" type="video/webm" />
+                </video>
               </div>
             </ScrollAnimation>
-            <ScrollAnimation animation="blur-in" delay={280}>
-              <div className="group relative bg-black/50 backdrop-blur-md border border-white/10 rounded-2xl p-8 shadow-2xl hover:border-white/20 transition-all duration-300 overflow-hidden">
-                <div className="relative z-10">
-                  <div className="w-14 h-14 bg-gradient-to-br from-white/20 to-white/5 rounded-xl flex items-center justify-center mb-6 transition-transform duration-300">
-                    <Zap size={26} className="text-white" strokeWidth={1.5} />
-                  </div>
-                  <h3 className="text-xl font-medium mb-3 text-white">Real-time Capable</h3>
-                  <p className="text-gray-400 leading-relaxed">
-                    Proof generation in milliseconds. Verification under 50ms. 
-                    Built for the speed of autonomous systems.
-                  </p>
-                </div>
-              </div>
-            </ScrollAnimation>
+            
           </div>
         </div>
       </section>

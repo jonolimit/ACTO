@@ -6,4 +6,4 @@ Hardening options:
 
 - Hardware-backed signing keys
 - Secure telemetry pipelines
-- External attestation and anchoring
+- External attestation

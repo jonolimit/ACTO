@@ -48,8 +48,7 @@ X-Wallet-Address: YOUR_WALLET_ADDRESS
       "meta": {}
     },
     "signer_public_key_b64": "...",
-    "signature_b64": "...",
-    "anchor_ref": null
+    "signature_b64": "..."
   }
 }
 ```

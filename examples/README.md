@@ -10,9 +10,8 @@ This directory contains example scripts, telemetry data, and Jupyter notebooks d
 # Install from PyPI
 pip install actobotics
 
-# Or with optional features
-pip install actobotics[solana]  # With Solana integration
-pip install actobotics[full]    # With all optional features
+# Or with all optional features
+pip install actobotics[full]
 ```
 
 > **Note:** The package is called `actobotics` on PyPI, but you import it as `acto` in Python.

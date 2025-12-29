@@ -231,7 +231,7 @@ CREATE TABLE fleet_health (
 All verification happens off-chain with cryptographic primitives:
 - No blockchain transactions for verification
 - Sub-millisecond verification time
-- Optional Solana anchoring for immutability
+- Cryptographic proof integrity via BLAKE3 and Ed25519
 
 ### Deterministic Hashing
 

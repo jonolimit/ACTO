@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "actobotics"
-version = "0.9.16"
+version = "0.9.17"
 description = "Robotics proof-of-execution SDK"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -47,9 +47,6 @@ Repository = "https://github.com/actobotics/ACTO"
 Issues = "https://github.com/actobotics/ACTO/issues"
 
 [project.optional-dependencies]
-# Solana blockchain integration
-solana = ["solana>=0.35.1"]
-
 # Redis cache backend
 redis = ["redis>=5.0"]
 
@@ -78,7 +75,7 @@ aws = ["boto3>=1.34.0"]
 security = ["actobotics[vault,aws]"]
 
 # Full SDK with all optional features (for end users)
-full = ["actobotics[solana,redis,ros,protobuf,parquet,security]"]
+full = ["actobotics[redis,ros,protobuf,parquet,security]"]
 
 # Server dependencies - only needed for self-hosted deployments
 server = [

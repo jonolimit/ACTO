@@ -48,8 +48,7 @@ Content-Type: application/json
       "meta": {}
     },
     "signer_public_key_b64": "base64_encoded_public_key",
-    "signature_b64": "base64_encoded_signature",
-    "anchor_ref": null
+    "signature_b64": "base64_encoded_signature"
   }
 }
 ```
@@ -74,7 +73,6 @@ Content-Type: application/json
 | `envelope.payload.meta` | `object` | No | Arbitrary metadata |
 | `envelope.signer_public_key_b64` | `string` | Yes | Base64 public key |
 | `envelope.signature_b64` | `string` | Yes | Base64 signature |
-| `envelope.anchor_ref` | `string` | No | Solana anchor reference |
 
 ## Response
 
@@ -135,8 +133,7 @@ curl -X POST https://api.actobotics.net/v1/proofs \
         "meta": {}
       },
       "signer_public_key_b64": "...",
-      "signature_b64": "...",
-      "anchor_ref": null
+      "signature_b64": "..."
     }
   }'
 ```

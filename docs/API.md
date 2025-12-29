@@ -124,8 +124,7 @@ Submit a new execution proof to the registry.
       "meta": {}
     },
     "signer_public_key_b64": "...",
-    "signature_b64": "...",
-    "anchor_ref": null
+    "signature_b64": "..."
   }
 }
 ```

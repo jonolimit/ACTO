@@ -5,6 +5,43 @@ All notable changes to ACTO will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.9.17] - 2025-12-29
+
+### 🚀 Streamlined Architecture & Zero External Dependencies
+
+This release simplifies the ACTO architecture by removing the experimental Solana anchoring module. Token gating continues to work seamlessly using direct RPC calls - no additional dependencies required!
+
+#### Removed
+
+- **Solana Anchoring Module** (`acto/anchor/`)
+  - The anchoring feature was experimental and never production-ready
+  - Token gating works perfectly without the Solana Python SDK
+  - Reduces package size and dependency complexity
+
+- **`[solana]` Optional Extra**
+  - No longer needed - token gating uses direct HTTP RPC calls via `httpx`
+  - Simpler installation: just `pip install actobotics`
+
+#### Changed
+
+- **Simplified Installation**
+  - Token gating works out-of-the-box with the base installation
+  - No need for `pip install actobotics[solana]` anymore
+  - Faster installs, smaller footprint
+
+- **Cleaner Codebase**
+  - Removed unused anchor comparison logic
+  - Updated all documentation to reflect the streamlined architecture
+  - Removed anchor references from API examples
+
+#### Why This Change?
+
+The Solana anchoring feature was added as an experimental option but was never fully implemented. Meanwhile, our token gating system works flawlessly using simple HTTP RPC calls to Solana nodes - no special SDK required. This release embraces simplicity: fewer dependencies, faster installs, and a more maintainable codebase.
+
+**Token gating still works exactly as before!** The only change is that we removed code that was never used.
+
+---
+
 ## [0.9.16] - 2025-12-29
 
 ### 📬 Contact Page (acto-web)
@@ -940,7 +977,6 @@ This release brings a completely revamped dashboard experience with multi-wallet
 
 ### Added
 - Token gating module (Solana SPL)
-- Proof anchoring (Solana Memo)
 - Pipeline system
 - API key authentication
 - Rate limiting middleware

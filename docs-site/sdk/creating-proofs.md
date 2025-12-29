@@ -49,7 +49,6 @@ def create_proof(
     public_key_b64: str,
     *,
     meta: dict | None = None,
-    anchor_ref: str | None = None,
 ) -> ProofEnvelope:
     ...
 ```
@@ -62,7 +61,6 @@ def create_proof(
 | `private_key_b64` | `str` | Yes | Base64-encoded private key |
 | `public_key_b64` | `str` | Yes | Base64-encoded public key |
 | `meta` | `dict` | No | Additional metadata |
-| `anchor_ref` | `str` | No | Solana anchor reference |
 
 ### Returns
 

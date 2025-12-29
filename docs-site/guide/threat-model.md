@@ -100,9 +100,6 @@ ACTO proves the **integrity of records**, not the **truth of the underlying real
 │  ├── Submission timestamps                                   │
 │  └── Wallet tracking                                         │
 │                                                              │
-│  Layer 4: Optional Anchoring                                 │
-│  └── Solana blockchain immutability                          │
-│                                                              │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -139,17 +136,6 @@ Combine ACTO with external verification:
 - IoT sensor networks
 - GPS tracking
 
-### Solana Anchoring
-
-For maximum immutability:
-
-```python
-from acto.anchor import anchor_proof
-
-tx_sig = anchor_proof(envelope, wallet)
-# Proof hash now on Solana blockchain
-```
-
 ## Risk Assessment Matrix
 
 | Threat | Likelihood | Impact | Mitigation |
@@ -158,7 +144,7 @@ tx_sig = anchor_proof(envelope, wallet)
 | Key compromise | Low | Critical | HSM, rotation |
 | Replay attack | Low | Medium | Unique IDs, chaining |
 | MITM | Very Low | Medium | TLS, cert pinning |
-| Timestamp fraud | Medium | Low | Anchoring, validation |
+| Timestamp fraud | Medium | Low | Server timestamps, validation |
 
 ## Recommendations by Use Case
 
@@ -175,7 +161,6 @@ tx_sig = anchor_proof(envelope, wallet)
 
 ### High Risk (Compliance, Legal)
 - HSM for all keys
-- Solana anchoring
 - External attestation
 - Comprehensive audit trail
 - Regular security audits

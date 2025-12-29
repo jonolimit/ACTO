@@ -81,10 +81,6 @@ def compare_proofs(proof1: ProofEnvelope, proof2: ProofEnvelope) -> ProofDiff:
     if proof1.signer_public_key_b64 != proof2.signer_public_key_b64:
         diff.add_difference("signer", proof1.signer_public_key_b64[:32], proof2.signer_public_key_b64[:32])
 
-    # Compare anchor references
-    if proof1.anchor_ref != proof2.anchor_ref:
-        diff.add_difference("anchor_ref", proof1.anchor_ref, proof2.anchor_ref)
-
     return diff
 
 
