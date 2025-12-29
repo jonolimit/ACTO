@@ -5,6 +5,34 @@ All notable changes to ACTO will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.9.16] - 2025-12-29
+
+### 📬 Contact Page (acto-web)
+
+#### Added
+
+- **New Contact Page** (`/contact`)
+  - Modern, minimal design with large typography
+  - Web3Forms integration for direct email sending (no mailto: popup)
+  - Background image (`bg6.png`) with gradient fade effect
+  - Copy-to-clipboard functionality for email address
+  - Social links section (GitHub, X/Twitter, Documentation)
+  - Animated success/error states with Framer Motion
+  - Form validation with loading spinner
+
+- **Footer Update**
+  - Contact link added under Company section (between About and GitHub)
+
+- **Logo Enhancement**
+  - Automatic black logo detection for light background pages (Contact page)
+
+#### Technical
+
+- Web3Forms API key configured via `VITE_WEB3FORMS_KEY` environment variable
+- Seamless section transitions with gradient overlays
+
+---
+
 ## [0.9.15] - 2025-12-29
 
 ### 🎨 Website Visual Enhancements (acto-web)
