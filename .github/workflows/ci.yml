@@ -171,6 +171,7 @@ jobs:
           bandit-report.json
           safety-report.json
         if-no-files-found: ignore
+        retention-days: 1
 
   coverage:
     name: Coverage Report
@@ -203,6 +204,7 @@ jobs:
         name: coverage-html
         path: htmlcov/
         if-no-files-found: ignore
+        retention-days: 1
 
   build:
     name: Build Package
@@ -234,6 +236,7 @@ jobs:
         name: dist
         path: dist/
         if-no-files-found: ignore
+        retention-days: 1
 
   load-test:
     name: Load Testing
