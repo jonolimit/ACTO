@@ -23,6 +23,7 @@ jobs:
       url: https://pypi.org/project/actobotics/
     
     permissions:
+      contents: read
       id-token: write
     
     steps:
