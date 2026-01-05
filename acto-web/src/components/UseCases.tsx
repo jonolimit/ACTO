@@ -43,42 +43,59 @@ const useCases = [
 
 export function UseCases() {
   return (
-    <section 
-      id="use-cases" 
-      className="relative bg-cover bg-center bg-no-repeat"
-      style={{ backgroundImage: 'url(/bg2.png)' }}
-    >
-      {/* Gradient overlay - fades to white at top and bottom */}
-      <div className="absolute inset-0 bg-gradient-to-b from-white via-white/60 to-white" />
-      
-      <div className="max-w-6xl mx-auto px-4 md:px-6 py-16 md:py-32 relative z-10">
+    <section id="use-cases" className="py-16 md:py-32">
+      <div className="max-w-6xl mx-auto px-4 md:px-6">
         <ScrollAnimation animation="blur-in" delay={0}>
           <h2 className="text-2xl md:text-3xl font-medium mb-4 md:mb-6 tracking-tight">Use cases</h2>
           <p className="text-base md:text-lg text-gray-600 mb-12 md:mb-16 max-w-2xl">
             From industrial automation to research, proof of execution enables trust and accountability in autonomous systems across diverse applications.
           </p>
         </ScrollAnimation>
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
-          {useCases.map((useCase, index) => {
-            const Icon = useCase.icon;
-            return (
-              <ScrollAnimation key={useCase.title} animation="blur-in" delay={60 + index * 60} className="h-full">
-                <Link 
-                  to={`/use-cases/${useCase.slug}`}
-                  className="group flex flex-col h-full bg-white/60 backdrop-blur-sm border border-gray-200 rounded-xl p-6 hover:border-gray-300 hover:shadow-lg transition-all"
-                >
-                  <div className="mb-4 inline-flex items-center justify-center w-12 h-12 rounded-lg bg-gray-100 group-hover:bg-gray-900 transition-colors">
-                    <Icon className="w-6 h-6 text-gray-900 group-hover:text-white transition-colors" />
-                  </div>
-                  <h3 className="text-lg font-medium mb-3 text-gray-900 flex items-center justify-between">
-                    {useCase.title}
-                    <ArrowUpRight size={18} className="opacity-0 group-hover:opacity-100 transition-opacity" />
-                  </h3>
-                  <p className="text-gray-600 leading-relaxed flex-grow">{useCase.description}</p>
-                </Link>
-              </ScrollAnimation>
-            );
-          })}
+        
+        {/* Two-column layout */}
+        <div className="grid lg:grid-cols-2 gap-8 lg:gap-16 items-stretch">
+          {/* Left: Image */}
+          <ScrollAnimation animation="blur-in" delay={60} className="h-full">
+            <div className="relative rounded-2xl overflow-hidden aspect-[4/3] lg:aspect-auto lg:h-full">
+              <img 
+                src="/usecases.png" 
+                alt="Autonomous systems" 
+                className="absolute inset-0 w-full h-full object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
+              <div className="absolute bottom-6 left-6 right-6">
+                <p className="text-white/90 text-sm font-medium">
+                  Proof of execution for every industry
+                </p>
+              </div>
+            </div>
+          </ScrollAnimation>
+
+          {/* Right: Use Cases List */}
+          <div className="space-y-1">
+            {useCases.map((useCase, index) => {
+              const Icon = useCase.icon;
+              return (
+                <ScrollAnimation key={useCase.title} animation="blur-in" delay={100 + index * 50}>
+                  <Link 
+                    to={`/use-cases/${useCase.slug}`}
+                    className="group flex items-start gap-4 p-4 -mx-4 rounded-xl hover:bg-gray-50 transition-colors duration-200"
+                  >
+                    <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-gray-100 group-hover:bg-gray-900 transition-colors flex items-center justify-center">
+                      <Icon className="w-5 h-5 text-gray-700 group-hover:text-white transition-colors" />
+                    </div>
+                    <div className="flex-grow min-w-0">
+                      <h3 className="text-base font-medium text-gray-900 flex items-center gap-2">
+                        {useCase.title}
+                        <ArrowUpRight size={14} className="opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" />
+                      </h3>
+                      <p className="text-sm text-gray-500 mt-1 line-clamp-2">{useCase.description}</p>
+                    </div>
+                  </Link>
+                </ScrollAnimation>
+              );
+            })}
+          </div>
         </div>
       </div>
     </section>
