@@ -118,7 +118,7 @@ export function Navigation() {
                   Docs
                 </a>
                 <a
-                  href="http://127.0.0.1:8080/dashboard"
+                  href="https://acto-production.up.railway.app/dashboard"
                   className="text-base text-gray-700 hover:text-gray-900 transition-colors py-2"
                 >
                   Dashboard
@@ -155,7 +155,7 @@ export function Navigation() {
             <NavLink to="/faq">FAQ</NavLink>
             <NavLink to="/comparison">Why ACTO?</NavLink>
             <NavAnchor href={config.links.docs}>Docs</NavAnchor>
-            <NavAnchor href="http://127.0.0.1:8080/dashboard">Dashboard</NavAnchor>
+            <NavAnchor href="https://acto-production.up.railway.app/dashboard">Dashboard</NavAnchor>
             <motion.a 
               href={config.social.github} 
               className="text-gray-500 hover:text-gray-900 transition-colors" 
