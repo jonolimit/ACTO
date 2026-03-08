@@ -37,7 +37,7 @@ export default defineConfig({
       {
         text: 'Links',
         items: [
-          { text: 'Dashboard', link: 'https://api.actobotics.net/dashboard' },
+          { text: 'Dashboard', link: 'https://https://acto-production.up.railway.app/dashboard' },
           { text: 'Website', link: 'https://actobotics.net' },
           { text: 'PyPI', link: 'https://pypi.org/project/actobotics/' },
           { text: 'GitHub', link: 'https://github.com/0xzonee/ACTO' },

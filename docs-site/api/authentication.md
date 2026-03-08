@@ -23,7 +23,7 @@ Content-Type: application/json
 
 ## Getting Your API Key
 
-1. Visit [api.actobotics.net/dashboard](https://api.actobotics.net/dashboard)
+1. Visit [https://acto-production.up.railway.app/dashboard](https://https://acto-production.up.railway.app/dashboard)
 2. Connect your Solana wallet (Phantom, Solflare, Backpack, Glow, or Coinbase)
 3. Click **"Create API Key"**
 4. Copy the key immediately - it's only shown once!

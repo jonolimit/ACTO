@@ -316,7 +316,7 @@ MIT. See [LICENSE](LICENSE).
 
 <p align="center">
   <a href="https://actobotics.net">Website</a> •
-  <a href="https://api.actobotics.net/dashboard">Dashboard</a> •
+  <a href="https://https://acto-production.up.railway.app/dashboard">Dashboard</a> •
   <a href="https://x.com/actoboticsnet">X (Twitter)</a> •
   <a href="https://pypi.org/project/actobotics/">PyPI</a>
 </p>

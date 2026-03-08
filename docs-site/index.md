@@ -79,7 +79,7 @@ print(f"Valid: {result.valid}")
 ## Links
 
 <div class="link-cards">
-  <a href="https://api.actobotics.net/dashboard" class="link-card">
+  <a href="https://https://acto-production.up.railway.app/dashboard" class="link-card">
     <span class="title">Dashboard</span>
     <span class="desc">Manage API keys and view statistics</span>
   </a>

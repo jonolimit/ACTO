@@ -179,5 +179,5 @@ def verify_proof(envelope: ProofEnvelope) -> bool:
         "  from acto.client import ACTOClient\n"
         "  client = ACTOClient(api_key='...', wallet_address='...')\n"
         "  result = client.verify(envelope)\n\n"
-        "Get your API key at: https://api.actobotics.net/dashboard"
+        "Get your API key at: https://https://acto-production.up.railway.app/dashboard"
     )

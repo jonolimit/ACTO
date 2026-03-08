@@ -25,7 +25,7 @@ pip install actobotics[full]
 
 ## Step 1: Get Your API Key
 
-1. Visit [api.actobotics.net/dashboard](https://api.actobotics.net/dashboard)
+1. Visit [https://acto-production.up.railway.app/dashboard](https://https://acto-production.up.railway.app/dashboard)
 2. Connect your Solana wallet
 3. Click **"Create API Key"**
 4. Copy the key (it's only shown once!)

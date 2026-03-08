@@ -195,7 +195,7 @@ Track your API usage in the dashboard to stay within limits.
 For higher rate limits, contact support:
 
 - **Email**: support@actobotics.net
-- **Dashboard**: api.actobotics.net/dashboard
+- **Dashboard**: https://acto-production.up.railway.app/dashboard
 
 Include:
 - Your use case

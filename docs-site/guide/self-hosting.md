@@ -4,7 +4,7 @@
 This page is **only for ACTO contributors** working on the codebase itself.
 
 **Regular users should NOT self-host.** Use the hosted platform:
-- **Dashboard:** [api.actobotics.net/dashboard](https://api.actobotics.net/dashboard)
+- **Dashboard:** [https://acto-production.up.railway.app/dashboard](https://https://acto-production.up.railway.app/dashboard)
 - **API:** `https://api.actobotics.net`
 
 The ACTO team handles all hosting, scaling, and infrastructure.

@@ -58,7 +58,7 @@ acto interactive start
 
 Use the hosted API at `https://api.actobotics.net`:
 
-1. Get an API key at [api.actobotics.net/dashboard](https://api.actobotics.net/dashboard)
+1. Get an API key at [https://acto-production.up.railway.app/dashboard](https://https://acto-production.up.railway.app/dashboard)
 2. Submit proofs via the API
 
 ```bash

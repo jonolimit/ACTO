@@ -133,5 +133,5 @@ See [SDK Documentation](/sdk/client) for details.
 
 Access the web dashboard for API key management and statistics:
 
-[api.actobotics.net/dashboard](https://api.actobotics.net/dashboard)
+[https://acto-production.up.railway.app/dashboard](https://https://acto-production.up.railway.app/dashboard)
 

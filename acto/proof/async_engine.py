@@ -121,6 +121,6 @@ async def verify_proof_async(envelope: ProofEnvelope) -> bool:
         "  from acto.client import AsyncACTOClient\n"
         "  client = AsyncACTOClient(api_key='...', wallet_address='...')\n"
         "  result = await client.verify(envelope)\n\n"
-        "Get your API key at: https://api.actobotics.net/dashboard"
+        "Get your API key at: https://https://acto-production.up.railway.app/dashboard"
     )
 

@@ -68,7 +68,7 @@ No separate registration required - just include `robot_id` in your proofs.
 
 Access fleet management via the web dashboard:
 
-1. Go to [api.actobotics.net/dashboard](https://api.actobotics.net/dashboard)
+1. Go to [https://acto-production.up.railway.app/dashboard](https://https://acto-production.up.railway.app/dashboard)
 2. Connect your wallet
 3. Click the **Fleet** tab
 

@@ -6,7 +6,7 @@ Learn the essential patterns for using the ACTO SDK.
 
 ```
 1. Install SDK     ──▶  pip install actobotics
-2. Get API Key     ──▶  api.actobotics.net/dashboard
+2. Get API Key     ──▶  https://acto-production.up.railway.app/dashboard
 3. Create Proof    ──▶  create_proof(bundle, keys)
 4. Verify via API  ──▶  client.verify(envelope)
 5. Submit Proof    ──▶  client.submit_proof(envelope)

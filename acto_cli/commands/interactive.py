@@ -109,10 +109,10 @@ def _handle_verify_proof() -> None:
     console.print("  result = client.verify(envelope)")
     console.print()
     console.print("[cyan]Option 2: Use the Dashboard[/cyan]")
-    console.print("  Visit: https://api.actobotics.net/dashboard")
+    console.print("  Visit: https://https://acto-production.up.railway.app/dashboard")
     console.print("  Use the API Playground to verify proofs")
     console.print()
-    console.print("[cyan]Get your API key at:[/cyan] https://api.actobotics.net/dashboard")
+    console.print("[cyan]Get your API key at:[/cyan] https://https://acto-production.up.railway.app/dashboard")
 
 
 def _handle_list_proofs() -> None:

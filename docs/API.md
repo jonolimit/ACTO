@@ -6,7 +6,7 @@ The ACTO API provides a hosted service for submitting and verifying robot execut
 
 **Base URL:** `https://api.actobotics.net`
 
-**Dashboard:** [api.actobotics.net/dashboard](https://api.actobotics.net/dashboard)
+**Dashboard:** [https://acto-production.up.railway.app/dashboard](https://https://acto-production.up.railway.app/dashboard)
 
 ---
 
@@ -28,7 +28,7 @@ curl -X POST https://api.actobotics.net/v1/proofs \
 
 ### Getting Your API Key
 
-1. Visit [api.actobotics.net/dashboard](https://api.actobotics.net/dashboard)
+1. Visit [https://acto-production.up.railway.app/dashboard](https://https://acto-production.up.railway.app/dashboard)
 2. Connect your Solana wallet (Phantom, Solflare, Backpack, Glow, or Coinbase)
 3. Create a new API key
 4. **Copy the key immediately** - it's only shown once!
@@ -953,6 +953,6 @@ const { valid_count, invalid_count } = await batchResponse.json();
 
 ## Support
 
-- **Dashboard**: [api.actobotics.net/dashboard](https://api.actobotics.net/dashboard)
+- **Dashboard**: [https://acto-production.up.railway.app/dashboard](https://https://acto-production.up.railway.app/dashboard)
 - **Website**: [actobotics.net](https://actobotics.net)
 - **X (Twitter)**: [@actoboticsnet](https://x.com/actoboticsnet)

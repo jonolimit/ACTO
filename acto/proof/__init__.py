@@ -18,7 +18,7 @@ from .versioning import (
 )
 
 # Note: verify_proof has been removed. Use ACTOClient.verify() for API-based verification.
-# See: https://api.actobotics.net/dashboard for API key management.
+# See: https://https://acto-production.up.railway.app/dashboard for API key management.
 
 __all__ = [
     "ProofEnvelope",
