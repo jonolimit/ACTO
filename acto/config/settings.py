@@ -107,7 +107,7 @@ class Settings(BaseSettings):
 
     # Token Gating
     token_gating_enabled: bool = True
-    token_gating_mint: str = "0x1d247658af573e010fbf12e27abe8790ed525486"
+    token_gating_mint: str = ""
     token_gating_minimum: float = 50000.0
     
     # Solana RPC - Helius recommended for production
